@@ -18,7 +18,7 @@ as of the current state the lexer is the only thing completed.
 - Bytecode Compiler
 - VM (for bytecode)
 
-# Proposed Examples
+## Proposed Examples
 
 EleetScript is built on top of the ruby language and so ruby syntax is borrowed
 heavily as well as some minor inspiration from [CoffeeScript](coffeescript.org).
