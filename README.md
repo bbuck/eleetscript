@@ -50,6 +50,7 @@ Math.pi # parameterless calls do not require parenthesis
 ```
 
 ```eleetscript
+# Greeter sample
 class Greeter
   property greeting # similar to ruby's attr_accessor, defines 'greeting' and 'greeting=(value)'
 
