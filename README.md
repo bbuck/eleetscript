@@ -1,6 +1,6 @@
 # Introduction
 
-EleetScript is a simple and secure scripting language desgined to be hosted in
+Cuby is a simple and secure scripting language desgined to be hosted in
 ruby applications to add a scripting component. The desire to design a language
 for this purpose instead of pursuing other options is to make a language with
 no default unsafe access to the system or execution of the software unless
@@ -20,10 +20,10 @@ as of the current state the lexer is the only thing completed.
 
 ## Proposed Examples
 
-EleetScript is built on top of the ruby language and so ruby syntax is borrowed
+Cuby is built on top of the ruby language and so ruby syntax is borrowed
 heavily as well as some minor inspiration from [CoffeeScript](coffeescript.org).
 
-```eleetscript
+```cuby
 # Math sample
 class Math
   @@add do |a, b| # The @@ is a class identifier, making @@add a class method
@@ -49,7 +49,7 @@ Math.pi # parameterless calls do not require parenthesis
 # => 3.14
 ```
 
-```eleetscript
+```cuby
 # Greeter sample
 class Greeter
   property greeting # similar to ruby's attr_accessor, defines 'greeting' and 'greeting=(value)'
@@ -65,6 +65,10 @@ greeter = Greeter.new("Hello")
 greeter.greet("World")
 # => "Hello, World"
 ```
+
+# Thanks
+
+Thanks to Nick for the name 'Cuby'
 
 # License
 
