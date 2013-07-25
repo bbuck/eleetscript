@@ -4,7 +4,7 @@ $consant = "constants start with $"
 
 class Sample
   @var_here = "scoped to class Sample, class variable
-  method_name do |args, lik, ruby, blocks|
+  method_name do |args, like, ruby, blocks|
     # Here methods are defined
     @here = "variables are scoped to instances of Sample
   end
@@ -42,4 +42,4 @@ class Greeter
 end
 
 @greeter = Greeter.new("Hello", "World")
-@greeter.greet # Parenthesis not required when no parameters are given
+@greeter.greet # Parenthesis not required when no arguments are given
