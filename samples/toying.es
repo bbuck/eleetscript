@@ -16,8 +16,8 @@ class Sample # classes like in ruby can be reopened later
   # Just like rubies attr_accessor except no need for symbols
   property name
 
-  construct do |@name| # Like ruby's initialize function
-    # Like in CoffeeScript this will assign the first argument to the instances @name
+  init do |@name| # Like ruby's initialize function
+    # Like in CoffeeScript this will assign the first argument to the instances @name variable
   end
 end
 
