@@ -1,80 +1,92 @@
-require "lexer"
+require "lang/lexer"
 
-# code = <<-CODE
-# $test_num = 10
-# @instance = 4
-# method_name do |arg, list|
-#   # Comment, shouldn't appear
-# end
-# CODE
+describe "EleetScript::Lexer" do
+  let(:lexer) { ES::Lexer.new }
 
-# tokens = [
-#   [:CONSTANT, "test_num"], ["=", "="], [:NUMBER, 10],
-#   [:INSTANCE_VAR, "instance"], ["=", "="], [:NUMBER, 4],
-#   [:IDENTIFIER, "method_name"], [:DO, "do"], ["|", "|"], [:IDENTIFIER, "arg"], [:IDENTIFIER, "list"], ["|", "|"],
-#   [:END, "end"]
-# ]
+  it "should raise LexicalErrors when unknown characters are encountered" do
+    code = "^"
+    expect {
+      lexer.tokenize(code)
+    }.to raise_error(ES::LexicalError)
+  end
 
-describe "EleetScript Lexer" do
-  let(:lexer) { EleetScript::Lexer.new }
+  it "should report line numbers in LexicalErrors" do
+    code = "+\n^\n-"
+    begin
+      lexer.tokenize(code)
+    rescue ES::LexicalError => e
+      e.message.should eq("Unknown character encountered '^' on line #2")
+    end
+  end
 
   describe "variable types" do
     it "should tokenize constants" do
       code = "Constant_name"
-      lexer.tokenize(code).should eq([[:CONSTANT, "Constant_name"]])
+      lexer.tokenize(code).should eq([[:CONSTANT, "Constant_name"], [:TERMINATOR, "\n"], [:EOF, :eof]])
     end
 
     it "should tokenize global variables" do
       code = "$global_name"
-      lexer.tokenize(code).should eq([[:GLOBAL, "global_name"]])
+      lexer.tokenize(code).should eq([[:GLOBAL, "$global_name"], [:TERMINATOR, "\n"], [:EOF, :eof]])
     end
 
     it "should tokenize class variables" do
       code = "@@class"
-      lexer.tokenize(code).should eq([[:CLASS_VAR, "class"]])
+      lexer.tokenize(code).should eq([[:CLASS_IDENTIFIER, "@@class"], [:TERMINATOR, "\n"], [:EOF, :eof]])
     end
 
     it "should tokenize instance variables" do
       code = "@instance_var"
-      lexer.tokenize(code).should eq([[:INSTANCE_VAR, "instance_var"]])
+      lexer.tokenize(code).should eq([[:INSTANCE_IDENTIFIER, "@instance_var"], [:TERMINATOR, "\n"], [:EOF, :eof]])
     end
 
-    it "should tokenize identifiers" do
-      code = "identifier"
-      lexer.tokenize(code).should eq([[:IDENTIFIER, "identifier"]])
+    describe "identifiers" do
+      it "should be tokenized" do
+        code = "identifier"
+        lexer.tokenize(code).should eq([[:IDENTIFIER, "identifier"], [:TERMINATOR, "\n"], [:EOF, :eof]])
+      end
+
+      it "should be allowed to contain ? and ! punctuation" do
+        code = "identifier? identifier!"
+        lexer.tokenize(code).should eq([[:IDENTIFIER, "identifier?"], [:IDENTIFIER, "identifier!"], [:TERMINATOR, "\n"], [:EOF, :eof]])
+      end
     end
 
     it "should not get the five mixed up" do
       code = "CONSTANT $global @instance @@class identifier"
-      tokens = [[:CONSTANT, "CONSTANT"], [:GLOBAL, "global"], [:INSTANCE_VAR, "instance"], [:CLASS_VAR, "class"], [:IDENTIFIER, "identifier"]]
+      tokens = [
+        [:CONSTANT, "CONSTANT"], [:GLOBAL, "$global"], [:INSTANCE_IDENTIFIER, "@instance"],
+        [:CLASS_IDENTIFIER, "@@class"], [:IDENTIFIER, "identifier"], [:TERMINATOR, "\n"], [:EOF, :eof]
+      ]
       lexer.tokenize(code).should eq(tokens)
     end
   end
 
   describe "whitespace" do
-    it "should ignore spaces and tabs" do
+    it "should be ignored if space or tab" do
       code = "Constant   \t\t  @instance"
-      tokens = [[:CONSTANT, "Constant"], [:INSTANCE_VAR, "instance"]]
+      tokens = [[:CONSTANT, "Constant"], [:INSTANCE_IDENTIFIER, "@instance"], [:TERMINATOR, "\n"], [:EOF, :eof]]
       lexer.tokenize(code).should eq(tokens)
     end
 
-    it "should mark newline characters as terminators" do
+    it "should be marked terminators if newline" do
       code = "Con\n@in"
-      tokens = [[:CONSTANT, "Con"], [:TERMINATOR, "\n"], [:INSTANCE_VAR, "in"]]
+      tokens = [[:CONSTANT, "Con"], [:TERMINATOR, "\n"], [:INSTANCE_IDENTIFIER, "@in"], [:TERMINATOR, "\n"], [:EOF, :eof]]
       lexer.tokenize(code).should eq(tokens)
     end
   end
 
   describe "operators" do
-    it "should tokenize them with the operater as the token type and value" do
-      code = "+ - / *"
-      tokens = [["+", "+"], ["-", "-"], ["/", "/"], ["*", "*"]]
+    it "should be tokenized with the operator as the token type and value" do
+      operators = ["+", "-", "*", "/", "%", "=", "+=", "-=", "*=", "/=", "%=", "==", "!=", "**", "**=", "|", "[", "]", "{", "}", "(", ")", ".", ",", "?", ":"]
+      code = operators.join(" ")
+      tokens = operators.map { |op| [op, op] }.concat [[:TERMINATOR, "\n"], [:EOF, :eof]]
       lexer.tokenize(code).should eq(tokens)
     end
 
     it "should tokenize operators with other tokens" do
       code = "(Con = @in)"
-      tokens = [["(", "("], [:CONSTANT, "Con"], ["=", "="], [:INSTANCE_VAR, "in"], [")", ")"]]
+      tokens = [["(", "("], [:CONSTANT, "Con"], ["=", "="], [:INSTANCE_IDENTIFIER, "@in"], [")", ")"], [:TERMINATOR, "\n"], [:EOF, :eof]]
       lexer.tokenize(code).should eq(tokens)
     end
   end
@@ -82,7 +94,7 @@ describe "EleetScript Lexer" do
   describe "semicolon" do
     it "should be tokenized as a terminator" do
       code = "CONSTANT; $global"
-      tokens = [[:CONSTANT, "CONSTANT"], [:TERMINATOR, ";"], [:GLOBAL, "global"]]
+      tokens = [[:CONSTANT, "CONSTANT"], [:TERMINATOR, ";"], [:GLOBAL, "$global"], [:TERMINATOR, "\n"], [:EOF, :eof]]
       lexer.tokenize(code).should eq(tokens)
     end
   end
@@ -90,7 +102,7 @@ describe "EleetScript Lexer" do
   describe "keywords" do
     it "should tokenize them with their name symbolized as token name and their text as value" do
       code = "do end while if"
-      tokens = [[:DO, "do"], [:END, "end"], [:WHILE, "while"], [:IF, "if"]]
+      tokens = [[:DO, "do"], [:END, "end"], [:WHILE, "while"], [:IF, "if"], [:TERMINATOR, "\n"], [:EOF, :eof]]
       lexer.tokenize(code).should eq(tokens)
     end
   end
@@ -105,7 +117,7 @@ CODE
       tokens = [
         [:IDENTIFIER, "method_name"], [:DO, "do"], ["|", "|"], [:IDENTIFIER, "arg1"], [",", ","], [:IDENTIFIER, "arg2"], ["|", "|"], [:TERMINATOR, "\n"],
         [:IDENTIFIER, "var"], ["=", "="], [:IDENTIFIER, "arg1"], [:TERMINATOR, "\n"],
-        [:END, "end"], [:TERMINATOR, "\n"]
+        [:END, "end"], [:TERMINATOR, "\n"], [:EOF, :eof]
       ]
       lexer.tokenize(code).should eq(tokens)
     end
@@ -115,33 +127,33 @@ CODE
     describe "numbers" do
       it "should tokenize integers as numbers" do
         code = "10"
-        lexer.tokenize(code).should eq([[:NUMBER, 10]])
+        lexer.tokenize(code).should eq([[:NUMBER, 10], [:TERMINATOR, "\n"], [:EOF, :eof]])
       end
 
       it "should allow underscore seperation for numbers" do
-        lexer.tokenize("100_000").should eq([[:NUMBER, 100000]])
+        lexer.tokenize("100_000").should eq([[:NUMBER, 100000], [:TERMINATOR, "\n"], [:EOF, :eof]])
       end
 
       it "should tokenize floats as floats" do
         code = "10.134"
-        lexer.tokenize(code).should eq([[:FLOAT, 10.134]])
+        lexer.tokenize(code).should eq([[:FLOAT, 10.134], [:TERMINATOR, "\n"], [:EOF, :eof]])
       end
 
       it "should not confuse them" do
         code = "10 1.234"
-        lexer.tokenize(code).should eq([[:NUMBER, 10], [:FLOAT, 1.234]])
+        lexer.tokenize(code).should eq([[:NUMBER, 10], [:FLOAT, 1.234], [:TERMINATOR, "\n"], [:EOF, :eof]])
       end
     end
 
     describe "strings" do
       it "should properly tokenize strings" do
         code = "\"String Text\""
-        lexer.tokenize(code).should eq([[:STRING, "String Text"]])
+        lexer.tokenize(code).should eq([[:STRING, "String Text"], [:TERMINATOR, "\n"], [:EOF, :eof]])
       end
 
       it "should properly tokenize strings with escaped quotes" do
         code = "\"String \\\" text\""
-        lexer.tokenize(code).should eq([[:STRING, "String \" text"]])
+        lexer.tokenize(code).should eq([[:STRING, "String \" text"], [:TERMINATOR, "\n"], [:EOF, :eof]])
       end
 
       it "should allow strings to be defined on multiple lines" do
@@ -155,10 +167,31 @@ lines
 "
 CODE
         tokens = [
-          [:IDENTIFIER, "str"], ["=", "="], [:STRING, "strings\ncan\nexist\non\nmultiple\nlines\n"], [:TERMINATOR, "\n"]
+          [:IDENTIFIER, "str"], ["=", "="], [:STRING, "strings\ncan\nexist\non\nmultiple\nlines\n"], [:TERMINATOR, "\n"], [:EOF, :eof]
         ]
         lexer.tokenize(code).should eq(tokens)
       end
+    end
+  end
+
+  describe "comments" do
+    it "should be ignored" do
+      code = <<-CODE
+a = 10
+# This is a comment
+b = 20
+CODE
+      tokens = [
+        [:IDENTIFIER, "a"], ["=", "="], [:NUMBER, 10], [:TERMINATOR, "\n"],
+        [:IDENTIFIER, "b"], ["=", "="], [:NUMBER, 20], [:TERMINATOR, "\n"],
+        [:EOF, :eof]
+      ]
+      lexer.tokenize(code).should eq(tokens)
+    end
+
+    it "should report empty code if just a comment" do
+      code = "# Just a comment"
+      lexer.tokenize(code).should eq([])
     end
   end
 
@@ -181,7 +214,7 @@ greet("World")
 CODE
       tokens = [
         [:CONSTANT, "CONSTANT"], ["=", "="], [:NUMBER, 10], [:TERMINATOR, "\n"],
-        [:GLOBAL, "global"], ["=", "="], [:STRING, "hello"], [:TERMINATOR, "\n"],
+        [:GLOBAL, "$global"], ["=", "="], [:STRING, "hello"], [:TERMINATOR, "\n"],
         [:CLASS, "class"], [:CONSTANT, "Math"], [:TERMINATOR, "\n"],
         [:IDENTIFIER, "add"], [:DO, "do"], ["|", "|"], [:IDENTIFIER, "a"], [",", ","], [:IDENTIFIER, "b"], ["|", "|"], [:TERMINATOR, "\n"],
         [:IDENTIFIER, "a"], ["+", "+"], [:IDENTIFIER, "b"], [:TERMINATOR, "\n"],
@@ -192,7 +225,8 @@ CODE
         [:IDENTIFIER, "greet"], [:DO, "do"], ["|", "|"], [:IDENTIFIER, "name"], ["|", "|"], [:TERMINATOR, "\n"],
         [:IDENTIFIER, "print"], ["(", "("], [:STRING, "Hello, %name"], [")", ")"], [:TERMINATOR, "\n"],
         [:END, "end"], [:TERMINATOR, "\n"],
-        [:IDENTIFIER, "greet"], ["(", "("], [:STRING, "World"], [")", ")"], [:TERMINATOR, "\n"]
+        [:IDENTIFIER, "greet"], ["(", "("], [:STRING, "World"], [")", ")"], [:TERMINATOR, "\n"],
+        [:EOF, :eof]
       ]
       lexer.tokenize(code).should eq(tokens)
     end
