@@ -1,4 +1,4 @@
-module EleetScript
+module Cuby
   class LexicalError < RuntimeError
     def initialize(char, line)
       @char = char
@@ -22,4 +22,4 @@ module EleetScript
   end
 end
 
-ES = EleetScript
+CB = Cuby

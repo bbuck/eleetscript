@@ -1,6 +1,6 @@
 require "eleetscript"
 
-module EleetScript
+module Cuby
   class Nodes < Struct.new(:nodes)
     def <<(node)
       nodes << node

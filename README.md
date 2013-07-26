@@ -12,7 +12,7 @@ The project is currently in an very early alpha, the language is incomplete and
 as of the current state the lexer is the only thing completed.
 
 - Lexer (complete)
-- Parser/Grammer
+- Parser/Grammer (complete)
 - Runtime
 - Interpreter
 - Bytecode Compiler
