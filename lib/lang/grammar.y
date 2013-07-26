@@ -1,7 +1,7 @@
 class Parser
 
 token DO END CLASS LOAD IF WHILE NAMESPACE ELSE ELSIF RETURN BREAK NEXT TRUE
-token YES ON FALSE NO OFF NIL SELF DEFINED
+token YES ON FALSE NO OFF NIL SELF DEFINED PROPERTY RETURN
 token CONSTANT GLOBAL CLASS_IDENTIFIER INSTANCE_IDENTIFIER IDENTIFIER
 token FLOAT NUMBER STRING TERMINATOR EOF
 
@@ -44,6 +44,8 @@ rule
   | Class
   | If
   | While
+  | Return
+  | Property
   | '(' Expression ')'                                     { result = val[1] }
   ;
 
@@ -109,27 +111,27 @@ rule
 
   OperatorAssignment:
     GLOBAL '+=' Expression                                 { result = CallNode.new(GetGlobalNode.new(val[0]), val[1], [val[2]]) }
-  | CLASS_IDENTIFIER '+=' Expression                       { result = CallNode.new(GetClassNode.new(val[0]), val[1], [val[2]]) }
+  | CLASS_IDENTIFIER '+=' Expression                       { result = CallNode.new(GetClassVarNode.new(val[0]), val[1], [val[2]]) }
   | INSTANCE_IDENTIFIER '+=' Expression                    { result = CallNode.new(SetInstanceVarNode.new(val[0]), val[1], [val[2]]) }
   | IDENTIFIER '+=' Expression                             { result = CallNode.new(GetLocalNode.new(val[0]), val[1], [val[2]]) }
   | GLOBAL '-=' Expression                                 { result = CallNode.new(GetGlobalNode.new(val[0]), val[1], [val[2]]) }
-  | CLASS_IDENTIFIER '-=' Expression                       { result = CallNode.new(GetClassNode.new(val[0]), val[1], [val[2]]) }
+  | CLASS_IDENTIFIER '-=' Expression                       { result = CallNode.new(GetClassVarNode.new(val[0]), val[1], [val[2]]) }
   | INSTANCE_IDENTIFIER '-=' Expression                    { result = CallNode.new(SetInstanceVarNode.new(val[0]), val[1], [val[2]]) }
   | IDENTIFIER '-=' Expression                             { result = CallNode.new(GetLocalNode.new(val[0]), val[1], [val[2]]) }
   | GLOBAL '*=' Expression                                 { result = CallNode.new(GetGlobalNode.new(val[0]), val[1], [val[2]]) }
-  | CLASS_IDENTIFIER '*=' Expression                       { result = CallNode.new(GetClassNode.new(val[0]), val[1], [val[2]]) }
+  | CLASS_IDENTIFIER '*=' Expression                       { result = CallNode.new(GetClassVarNode.new(val[0]), val[1], [val[2]]) }
   | INSTANCE_IDENTIFIER '*=' Expression                    { result = CallNode.new(SetInstanceVarNode.new(val[0]), val[1], [val[2]]) }
   | IDENTIFIER '*=' Expression                             { result = CallNode.new(GetLocalNode.new(val[0]), val[1], [val[2]]) }
   | GLOBAL '/=' Expression                                 { result = CallNode.new(GetGlobalNode.new(val[0]), val[1], [val[2]]) }
-  | CLASS_IDENTIFIER '/=' Expression                       { result = CallNode.new(GetClassNode.new(val[0]), val[1], [val[2]]) }
+  | CLASS_IDENTIFIER '/=' Expression                       { result = CallNode.new(GetClassVarNode.new(val[0]), val[1], [val[2]]) }
   | INSTANCE_IDENTIFIER '/=' Expression                    { result = CallNode.new(SetInstanceVarNode.new(val[0]), val[1], [val[2]]) }
   | IDENTIFIER '/=' Expression                             { result = CallNode.new(GetLocalNode.new(val[0]), val[1], [val[2]]) }
   | GLOBAL '%=' Expression                                 { result = CallNode.new(GetGlobalNode.new(val[0]), val[1], [val[2]]) }
-  | CLASS_IDENTIFIER '%=' Expression                       { result = CallNode.new(GetClassNode.new(val[0]), val[1], [val[2]]) }
+  | CLASS_IDENTIFIER '%=' Expression                       { result = CallNode.new(GetClassVarNode.new(val[0]), val[1], [val[2]]) }
   | INSTANCE_IDENTIFIER '%=' Expression                    { result = CallNode.new(SetInstanceVarNode.new(val[0]), val[1], [val[2]]) }
   | IDENTIFIER '%=' Expression                             { result = CallNode.new(GetLocalNode.new(val[0]), val[1], [val[2]]) }
   | GLOBAL '**=' Expression                                { result = CallNode.new(GetGlobalNode.new(val[0]), val[1], [val[2]]) }
-  | CLASS_IDENTIFIER '**=' Expression                      { result = CallNode.new(GetClassNode.new(val[0]), val[1], [val[2]]) }
+  | CLASS_IDENTIFIER '**=' Expression                      { result = CallNode.new(GetClassVarNode.new(val[0]), val[1], [val[2]]) }
   | INSTANCE_IDENTIFIER '**=' Expression                   { result = CallNode.new(SetInstanceVarNode.new(val[0]), val[1], [val[2]]) }
   | IDENTIFIER '**=' Expression                            { result = CallNode.new(GetLocalNode.new(val[0]), val[1], [val[2]]) }
   ;
@@ -202,6 +204,21 @@ rule
 
   While:
     WHILE Expression TERMINATOR Expressions END            { result = WhileNode.new(val[1], val[3]) }
+  ;
+
+  Return:
+    RETURN Expression                                      { result = ReturnNode.new(val[1]) }
+  | RETURN                                                 { result = ReturnNode.new(nil) }
+  ;
+
+  Property:
+    PROPERTY IDENTIFIER                                    { result = PropertyNode.new([val[1]]) }
+  | PROPERTY PropertyList                                  { result = PropertyNode.new(val[1]) }
+  ;
+
+  PropertyList:
+    IDENTIFIER IDENTIFIER                                  { result = [val[0], val[1]] }
+  | PropertyList IDENTIFIER                                { result = val[0] << val[1] }
   ;
 
 end

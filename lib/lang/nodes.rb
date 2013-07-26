@@ -1,4 +1,4 @@
-require "eleetscript"
+require "cuby"
 
 module Cuby
   class Nodes < Struct.new(:nodes)
@@ -53,4 +53,6 @@ module Cuby
   class DefinedNode < Struct.new(:value); end
   class NamespaceNode < Struct.new(:name, :body); end
   class ClassNode < Struct.new(:name, :body); end
+  class ReturnNode < Struct.new(:expression); end
+  class PropertyNode < Struct.new(:properties); end
 end

@@ -334,6 +334,125 @@ describe "Cuby::Parser" do
     end
   end
 
+  describe "return statement" do
+    it "should be parsed" do
+      code = <<-CODE
+      test do
+        return
+      end
+      CODE
+      nodes = CB::Nodes.new([
+                CB::DefMethodNode.new(
+                  "test",
+                  [],
+                  CB::Nodes.new([
+                    CB::ReturnNode.new(nil)
+                  ])
+                )
+              ])
+      parser.parse(code).should eq(nodes)
+    end
+
+    it "should be parsed with an expression" do
+      code = <<-CODE
+      test do |name|
+        @names.push(name)
+        return name
+      end
+      CODE
+      nodes = CB::Nodes.new([
+                CB::DefMethodNode.new(
+                  "test",
+                  ["name"],
+                  CB::Nodes.new([
+                    CB::CallNode.new(
+                      CB::GetInstanceVarNode.new("@names"),
+                      "push",
+                      [CB::GetLocalNode.new("name")]
+                    ),
+                    CB::ReturnNode.new(
+                      CB::GetLocalNode.new("name")
+                    )
+                  ])
+                )
+              ])
+      parser.parse(code).should eq(nodes)
+    end
+  end
+
+  describe "the property keyword" do
+    it "should be parsed" do
+      code = <<-CODE
+      class Test
+        property name
+      end
+      CODE
+      nodes = CB::Nodes.new([
+                CB::ClassNode.new(
+                  "Test",
+                  CB::Nodes.new([
+                    CB::PropertyNode.new(["name"])
+                  ])
+                )
+              ])
+      parser.parse(code).should eq(nodes)
+    end
+
+    it "should be parsed with multiple identifiers" do
+      code = <<-CODE
+      class Test
+        property one two three
+      end
+      CODE
+      nodes = CB::Nodes.new([
+                CB::ClassNode.new(
+                  "Test",
+                  CB::Nodes.new([
+                    CB::PropertyNode.new([
+                      "one", "two", "three"
+                      ])
+                  ])
+                )
+              ])
+      parser.parse(code).should eq(nodes)
+    end
+
+    it "should be parsed with other code" do
+      code = <<-CODE
+      class Test
+        property name
+        @@count = 0
+        name do
+          @@count += 1
+          @name
+        end
+      end
+      CODE
+      nodes = CB::Nodes.new([
+                CB::ClassNode.new(
+                  "Test",
+                  CB::Nodes.new([
+                    CB::PropertyNode.new(["name"]),
+                    CB::SetClassVarNode.new("@@count", CB::IntegerNode.new(0)),
+                    CB::DefMethodNode.new(
+                      "name",
+                      [],
+                      CB::Nodes.new([
+                        CB::CallNode.new(
+                          CB::GetClassVarNode.new("@@count"),
+                          "+=",
+                          [CB::IntegerNode.new(1)]
+                        ),
+                        CB::GetInstanceVarNode.new("@name")
+                      ])
+                    )
+                  ])
+                )
+              ])
+      parser.parse(code).should eq(nodes)
+    end
+  end
+
   describe "full programs" do
     it "should be parsed" do
       code = <<-CODE
