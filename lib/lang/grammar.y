@@ -35,6 +35,7 @@ rule
     Literal
   | Call
   | SELF                                                   { result = SelfNode.new }
+  | NEXT                                                   { result = NextNode.new }
   | Defined
   | Operator
   | SetVariable

@@ -55,4 +55,10 @@ module Cuby
   class ClassNode < Struct.new(:name, :body); end
   class ReturnNode < Struct.new(:expression); end
   class PropertyNode < Struct.new(:properties); end
+
+  class NextNode
+    def ==(o)
+      o.kind_of?(NextNode)
+    end
+  end
 end

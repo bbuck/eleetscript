@@ -332,6 +332,27 @@ describe "Cuby::Parser" do
               ])
       parser.parse(code).should eq(nodes)
     end
+
+    it "should parse next tokens" do
+      code = <<-CODE
+      while 1 < 10
+        next
+      end
+      CODE
+      nodes = CB::Nodes.new([
+                CB::WhileNode.new(
+                  CB::CallNode.new(
+                    CB::IntegerNode.new(1),
+                    "<",
+                    [CB::IntegerNode.new(10)]
+                  ),
+                  CB::Nodes.new([
+                    CB::NextNode.new
+                  ])
+                )
+              ])
+      parser.parse(code).should eq(nodes)
+    end
   end
 
   describe "return statement" do
