@@ -474,6 +474,53 @@ describe "Cuby::Parser" do
     end
   end
 
+  describe "namespaces" do
+    it "should be parsed" do
+      code = <<-CODE
+      namespace Test
+        class One end
+      end
+      CODE
+      nodes = CB::Nodes.new([
+                CB::NamespaceNode.new(
+                  "Test",
+                  CB::Nodes.new([
+                    CB::ClassNode.new(
+                      "One",
+                      CB::Nodes.new([])
+                    )
+                  ])
+                )
+              ])
+      parser.parse(code).should eq(nodes)
+    end
+
+    it "should also parse namespace accessors" do
+      code = <<-CODE
+      namespace Test
+        class One end
+      end
+      Test::One
+      CODE
+      nodes = CB::Nodes.new([
+                CB::NamespaceNode.new(
+                  "Test",
+                  CB::Nodes.new([
+                    CB::ClassNode.new(
+                      "One",
+                      CB::Nodes.new([])
+                    )
+                  ])
+                ),
+                CB::NamespaceAccessNode.new(
+                  "Test",
+                  CB::GetConstantNode.new("One")
+                )
+              ])
+      parser.parse(code).should eq(nodes)
+    end
+  end
+
   describe "full programs" do
     it "should be parsed" do
       code = <<-CODE

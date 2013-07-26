@@ -61,4 +61,6 @@ module Cuby
       o.kind_of?(NextNode)
     end
   end
+
+  class NamespaceAccessNode < Struct.new(:namespace, :expression); end
 end

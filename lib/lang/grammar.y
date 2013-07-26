@@ -47,6 +47,7 @@ rule
   | While
   | Return
   | Property
+  | NamespaceAccess
   | '(' Expression ')'                                     { result = val[1] }
   ;
 
@@ -54,21 +55,21 @@ rule
     NUMBER                                                 { result = IntegerNode.new(val[0].to_i) }
   | FLOAT                                                  { result = FloatNode.new(val[0].to_f) }
   | STRING                                                 { result = StringNode.new(val[0]) }
-  | True
-  | False
+  | True                                                   { result = TrueNode.new }
+  | False                                                  { result = FalseNode.new }
   | NIL                                                    { result = NilNode.new }
   ;
 
   True:
-    TRUE                                                   { result = TrueNode.new }
-  | YES                                                    { result = TrueNode.new }
-  | ON                                                     { result = TrueNode.new }
+    TRUE
+  | YES
+  | ON
   ;
 
   False:
-    FALSE                                                  { result = FalseNode.new }
-  | NO                                                     { result = FalseNode.new }
-  | OFF                                                    { result = FalseNode.new }
+    FALSE
+  | NO
+  | OFF
   ;
 
   Call:
@@ -89,6 +90,12 @@ rule
 
   Defined:
     DEFINED '(' GetVariable ')'                            { result = DefinedNode.new(val[2]) }
+  ;
+
+  NamespaceAccess:
+    CONSTANT '::' IDENTIFIER                               { result = NamespaceAccessNode.new(val[0], val[2]) }
+  | CONSTANT '::' CONSTANT                                 { result = NamespaceAccessNode.new(val[0], GetConstantNode.new(val[2])) }
+  | CONSTANT '::' Expression                               { result = NamespaceAccessNode.new(val[0], val[2]) }
   ;
 
   Operator:
@@ -173,6 +180,7 @@ rule
   Parameter:
     IDENTIFIER                                             { result = val[0] }
   | INSTANCE_IDENTIFIER                                    { result = val[0] }
+  | CLASS_IDENTIFIER                                       { result = val[0] }
   ;
 
   Namespace:
