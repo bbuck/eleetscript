@@ -190,9 +190,14 @@ rule
   ;
 
   Class:
-    CLASS CONSTANT Expressions END                         { result = ClassNode.new(val[1], val[2]) }
-  | CLASS CONSTANT TERMINATOR Expressions END              { result = ClassNode.new(val[1], val[3]) }
-  | CLASS CONSTANT END                                     { result = ClassNode.new(val[1], Nodes.new([])) }
+    CLASS CONSTANT Expressions END                         { result = ClassNode.new(val[1], nil, val[2]) }
+  | CLASS CONSTANT TERMINATOR Expressions END              { result = ClassNode.new(val[1], nil, val[3]) }
+  | CLASS CONSTANT END                                     { result = ClassNode.new(val[1], nil, Nodes.new([])) }
+  | CLASS CONSTANT TERMINATOR END                          { result = ClassNode.new(val[1], nil, Nodes.new([])) }
+  | CLASS CONSTANT '<' CONSTANT Expressions END            { result = ClassNode.new(val[1], val[3], val[4]) }
+  | CLASS CONSTANT '<' CONSTANT TERMINATOR Expressions END { result = ClassNode.new(val[1], val[3], val[5]) }
+  | CLASS CONSTANT '<' CONSTANT END                        { result = ClassNode.new(val[1], val[3], Nodes.new([])) }
+  | CLASS CONSTANT '<' CONSTANT TERMINATOR END             { result = ClassNode.new(val[1], val[3], Nodes.new([])) }
   ;
 
   If:

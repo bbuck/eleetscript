@@ -52,7 +52,7 @@ module Cuby
   class SelfNode; end
   class DefinedNode < Struct.new(:value); end
   class NamespaceNode < Struct.new(:name, :body); end
-  class ClassNode < Struct.new(:name, :body); end
+  class ClassNode < Struct.new(:name, :parent, :body); end
   class ReturnNode < Struct.new(:expression); end
   class PropertyNode < Struct.new(:properties); end
 

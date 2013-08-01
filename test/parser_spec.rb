@@ -401,6 +401,113 @@ describe "Cuby::Parser" do
     end
   end
 
+  describe "class definitions" do
+    it "should be parsed" do
+      code = "class One end"
+      nodes = CB::Nodes.new([
+                CB::ClassNode.new(
+                  "One",
+                  nil,
+                  CB::Nodes.new([])
+                )
+              ])
+      parser.parse(code).should eq(nodes)
+    end
+
+    it "should parse with expressions" do
+      code = "class One @@something = \"nothing\" end"
+      nodes = CB::Nodes.new([
+                CB::ClassNode.new(
+                  "One",
+                  nil,
+                  CB::Nodes.new([
+                    CB::SetClassVarNode.new(
+                      "@@something",
+                      CB::StringNode.new("nothing")
+                    )
+                  ])
+                )
+              ])
+      parser.parse(code).should eq(nodes)
+    end
+
+    it "should parse with multiple expressions and method definitions" do
+      code = <<-CODE
+      class One
+        @@one = "one"
+
+        call do
+          @@one = "two"
+        end
+      end
+      CODE
+      nodes = CB::Nodes.new([
+                CB::ClassNode.new(
+                  "One",
+                  nil,
+                  CB::Nodes.new([
+                    CB::SetClassVarNode.new(
+                      "@@one",
+                      CB::StringNode.new("one")
+                    ),
+                    CB::DefMethodNode.new(
+                      "call",
+                      [],
+                      CB::Nodes.new([
+                        CB::SetClassVarNode.new(
+                          "@@one",
+                          CB::StringNode.new("two")
+                        )
+                      ])
+                    )
+                  ])
+                )
+              ])
+      parser.parse(code).should eq(nodes)
+    end
+
+    it "should parse inheritance" do
+      code = "class One < Two end"
+      nodes = CB::Nodes.new([
+                CB::ClassNode.new(
+                  "One",
+                  "Two",
+                  CB::Nodes.new([])
+                )
+              ])
+      parser.parse(code).should eq(nodes)
+    end
+
+    it "should parse inheritance with expressions" do
+      code = <<-CODE
+      class One < Two
+        init do |one|
+          @one = one
+        end
+      end
+      CODE
+      nodes = CB::Nodes.new([
+                CB::ClassNode.new(
+                  "One",
+                  "Two",
+                  CB::Nodes.new([
+                    CB::DefMethodNode.new(
+                      "init",
+                      ["one"],
+                      CB::Nodes.new([
+                        CB::SetInstanceVarNode.new(
+                          "@one",
+                          CB::GetLocalNode.new("one")
+                        )
+                      ])
+                    )
+                  ])
+                )
+              ])
+      parser.parse(code).should eq(nodes)
+    end
+  end
+
   describe "the property keyword" do
     it "should be parsed" do
       code = <<-CODE
@@ -411,6 +518,7 @@ describe "Cuby::Parser" do
       nodes = CB::Nodes.new([
                 CB::ClassNode.new(
                   "Test",
+                  nil,
                   CB::Nodes.new([
                     CB::PropertyNode.new(["name"])
                   ])
@@ -428,6 +536,7 @@ describe "Cuby::Parser" do
       nodes = CB::Nodes.new([
                 CB::ClassNode.new(
                   "Test",
+                  nil,
                   CB::Nodes.new([
                     CB::PropertyNode.new([
                       "one", "two", "three"
@@ -452,6 +561,7 @@ describe "Cuby::Parser" do
       nodes = CB::Nodes.new([
                 CB::ClassNode.new(
                   "Test",
+                  nil,
                   CB::Nodes.new([
                     CB::PropertyNode.new(["name"]),
                     CB::SetClassVarNode.new("@@count", CB::IntegerNode.new(0)),
@@ -487,6 +597,7 @@ describe "Cuby::Parser" do
                   CB::Nodes.new([
                     CB::ClassNode.new(
                       "One",
+                      nil,
                       CB::Nodes.new([])
                     )
                   ])
@@ -508,6 +619,7 @@ describe "Cuby::Parser" do
                   CB::Nodes.new([
                     CB::ClassNode.new(
                       "One",
+                      nil,
                       CB::Nodes.new([])
                     )
                   ])
@@ -560,6 +672,7 @@ describe "Cuby::Parser" do
                   CB::Nodes.new([
                     CB::ClassNode.new(
                       "Math",
+                      nil,
                       CB::Nodes.new([
                         CB::DefMethodNode.new(
                           "add",
