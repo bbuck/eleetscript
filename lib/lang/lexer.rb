@@ -5,7 +5,7 @@ module Cuby
     KEYWORDS = [
       "do", "end", "class", "load", "if", "while", "namespace", "else", "elsif",
       "return", "break", "next", "true", "yes", "on", "false", "no", "off",
-      "nil", "self", "defined?", "property"
+      "nil", "self", "defined?", "property", "is", "isnt"
     ]
 
     TOKEN_RX = {

@@ -33,14 +33,15 @@ rule
 
   Expression:
     Literal
+  | AssignmentFunction
   | Call
   | SELF                                                   { result = SelfNode.new }
   | NEXT                                                   { result = NextNode.new }
   | Defined
-  | Operator
+  | DefMethod
+  | Operation
   | SetVariable
   | GetVariable
-  | DefMethod
   | Namespace
   | Class
   | If
@@ -72,10 +73,16 @@ rule
   | OFF
   ;
 
+  AssignmentFunction
+    Expression '.' IDENTIFIER '=' Expression               { result = CallNode.new(val[0], "#{val[2]}=", [val[4]]) }
+  ;
+
   Call:
     IDENTIFIER Arguments                                   { result = CallNode.new(nil, val[0], val[1]) }
   | Expression '.' IDENTIFIER Arguments                    { result = CallNode.new(val[0], val[2], val[3]) }
   | Expression '.' IDENTIFIER                              { result = CallNode.new(val[0], val[2], []) }
+  | Expression '.' Operator Arguments                      { result = CallNode.new(val[0], val[2], val[3]) }
+  | Expression '.' 'not'                                   { result = CallNode.new(val[0], val[2], []) }
   ;
 
   Arguments:
@@ -96,9 +103,12 @@ rule
     CONSTANT '::' IDENTIFIER                               { result = NamespaceAccessNode.new(val[0], val[2]) }
   | CONSTANT '::' CONSTANT                                 { result = NamespaceAccessNode.new(val[0], GetConstantNode.new(val[2])) }
   | CONSTANT '::' Expression                               { result = NamespaceAccessNode.new(val[0], val[2]) }
+  | '::' IDENTIFIER                                        { result = NamespaceAccessNode.new(nil, val[1]) }
+  | '::' CONSTANT                                          { result = NamespaceAccessNode.new(nil, GetConstantNode.new(val[1])) }
+  | '::' Expression                                        { result = NamespaceAccessNode.new(nil, val[1]) }
   ;
 
-  Operator:
+  Operation:
     Expression '+' Expression                              { result = CallNode.new(val[0], val[1], [val[2]]) }
   | Expression '-' Expression                              { result = CallNode.new(val[0], val[1], [val[2]]) }
   | Expression '*' Expression                              { result = CallNode.new(val[0], val[1], [val[2]]) }
@@ -110,38 +120,22 @@ rule
   | Expression '<' Expression                              { result = CallNode.new(val[0], val[1], [val[2]]) }
   | Expression '<=' Expression                             { result = CallNode.new(val[0], val[1], [val[2]]) }
   | OperatorAssignment
-  | 'not' Expression                                       { result = NotNode.new(val[1]) }
+  | 'not' Expression                                       { result = CallNode.new(val[1], val[0], []) }
   | Expression 'and' Expression                            { result = CallNode.new(val[0], val[1], [val[2]]) }
   | Expression 'or' Expression                             { result = CallNode.new(val[0], val[1], [val[2]]) }
   | Expression '==' Expression                             { result = CallNode.new(val[0], val[1], [val[2]]) }
+  | Expression 'is' Expression                             { result = CallNode.new(val[0], val[1], [val[2]]) }
   | Expression '!=' Expression                             { result = CallNode.new(val[0], val[1], [val[2]]) }
+  | Expression 'isnt' Expression                           { result = CallNode.new(val[0], val[1], [val[2]]) }
   ;
 
   OperatorAssignment:
-    GLOBAL '+=' Expression                                 { result = CallNode.new(GetGlobalNode.new(val[0]), val[1], [val[2]]) }
-  | CLASS_IDENTIFIER '+=' Expression                       { result = CallNode.new(GetClassVarNode.new(val[0]), val[1], [val[2]]) }
-  | INSTANCE_IDENTIFIER '+=' Expression                    { result = CallNode.new(SetInstanceVarNode.new(val[0]), val[1], [val[2]]) }
-  | IDENTIFIER '+=' Expression                             { result = CallNode.new(GetLocalNode.new(val[0]), val[1], [val[2]]) }
-  | GLOBAL '-=' Expression                                 { result = CallNode.new(GetGlobalNode.new(val[0]), val[1], [val[2]]) }
-  | CLASS_IDENTIFIER '-=' Expression                       { result = CallNode.new(GetClassVarNode.new(val[0]), val[1], [val[2]]) }
-  | INSTANCE_IDENTIFIER '-=' Expression                    { result = CallNode.new(SetInstanceVarNode.new(val[0]), val[1], [val[2]]) }
-  | IDENTIFIER '-=' Expression                             { result = CallNode.new(GetLocalNode.new(val[0]), val[1], [val[2]]) }
-  | GLOBAL '*=' Expression                                 { result = CallNode.new(GetGlobalNode.new(val[0]), val[1], [val[2]]) }
-  | CLASS_IDENTIFIER '*=' Expression                       { result = CallNode.new(GetClassVarNode.new(val[0]), val[1], [val[2]]) }
-  | INSTANCE_IDENTIFIER '*=' Expression                    { result = CallNode.new(SetInstanceVarNode.new(val[0]), val[1], [val[2]]) }
-  | IDENTIFIER '*=' Expression                             { result = CallNode.new(GetLocalNode.new(val[0]), val[1], [val[2]]) }
-  | GLOBAL '/=' Expression                                 { result = CallNode.new(GetGlobalNode.new(val[0]), val[1], [val[2]]) }
-  | CLASS_IDENTIFIER '/=' Expression                       { result = CallNode.new(GetClassVarNode.new(val[0]), val[1], [val[2]]) }
-  | INSTANCE_IDENTIFIER '/=' Expression                    { result = CallNode.new(SetInstanceVarNode.new(val[0]), val[1], [val[2]]) }
-  | IDENTIFIER '/=' Expression                             { result = CallNode.new(GetLocalNode.new(val[0]), val[1], [val[2]]) }
-  | GLOBAL '%=' Expression                                 { result = CallNode.new(GetGlobalNode.new(val[0]), val[1], [val[2]]) }
-  | CLASS_IDENTIFIER '%=' Expression                       { result = CallNode.new(GetClassVarNode.new(val[0]), val[1], [val[2]]) }
-  | INSTANCE_IDENTIFIER '%=' Expression                    { result = CallNode.new(SetInstanceVarNode.new(val[0]), val[1], [val[2]]) }
-  | IDENTIFIER '%=' Expression                             { result = CallNode.new(GetLocalNode.new(val[0]), val[1], [val[2]]) }
-  | GLOBAL '**=' Expression                                { result = CallNode.new(GetGlobalNode.new(val[0]), val[1], [val[2]]) }
-  | CLASS_IDENTIFIER '**=' Expression                      { result = CallNode.new(GetClassVarNode.new(val[0]), val[1], [val[2]]) }
-  | INSTANCE_IDENTIFIER '**=' Expression                   { result = CallNode.new(SetInstanceVarNode.new(val[0]), val[1], [val[2]]) }
-  | IDENTIFIER '**=' Expression                            { result = CallNode.new(GetLocalNode.new(val[0]), val[1], [val[2]]) }
+    GetVariable '+=' Expression                            { result = CallNode.new(val[0], val[1], [val[2]]) }
+  | GetVariable '-=' Expression                            { result = CallNode.new(val[0], val[1], [val[2]]) }
+  | GetVariable '*=' Expression                            { result = CallNode.new(val[0], val[1], [val[2]]) }
+  | GetVariable '/=' Expression                            { result = CallNode.new(val[0], val[1], [val[2]]) }
+  | GetVariable '%=' Expression                            { result = CallNode.new(val[0], val[1], [val[2]]) }
+  | GetVariable '**=' Expression                           { result = CallNode.new(val[0], val[1], [val[2]]) }
   ;
 
   GetVariable:
@@ -162,7 +156,39 @@ rule
 
   DefMethod:
     IDENTIFIER DO Parameters Expressions END               { result = DefMethodNode.new(val[0], val[2], val[3]) }
+  | IDENTIFIER DO Parameters END                           { result = DefMethodNode.new(val[0], val[2], Nodes.new([])) }
   | CLASS_IDENTIFIER DO Parameters Expressions END         { result = DefMethodNode.new(val[0], val[2], val[3]) }
+  | CLASS_IDENTIFIER DO Parameters END                     { result = DefMethodNode.new(val[0], val[2], Nodes.new([])) }
+  | Operator DO Parameters Expressions END                 { result = DefMethodNode.new(val[0], val[2], val[3]) }
+  | Operator DO Parameters END                             { result = DefMethodNode.new(val[0], val[2], Nodes.new([])) }
+  ;
+
+  Operator:
+    '+'
+  | '+='
+  | '-'
+  | '-='
+  | '*'
+  | '*='
+  | '/'
+  | '/='
+  | '%'
+  | '%='
+  | '**'
+  | '**='
+  | '[]'
+  | '[]='
+  | 'and'
+  | 'or'
+  | 'not'
+  | 'is'
+  | 'isnt'
+  | '=='
+  | '!='
+  | '>'
+  | '>='
+  | '<='
+  | '<'
   ;
 
   Parameters:

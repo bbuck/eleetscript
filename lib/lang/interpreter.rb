@@ -1,5 +1,6 @@
 require "lang/parser"
 require "lang/runtime/memory"
+require "pry"
 
 module Cuby
   class Interpreter
@@ -15,6 +16,21 @@ module Cuby
     end
   end
 
+  module InterpHelpers
+    def self.global_name(name)
+      name[1..-1]
+    end
+
+    def self.class_var_name(name)
+      name[2..-1]
+    end
+
+    def self.instance_var_name(name)
+      name[1..-1]
+    end
+  end
+  H = InterpHelpers
+
   class Nodes
     def eval(context, memory)
       return_value = nil
@@ -26,8 +42,31 @@ module Cuby
   end
 
   class StringNode
+    INTERPOLATE_RX = /(?<!\\)#\{.*?\}/
+
     def eval(context, memory)
-      memory.constants["String"].new_with_value(value)
+      memory.constants["String"].new_with_value(interpolate(context, memory))
+    end
+
+    def interpolate(context, memory)
+      new_val = value.dup
+      matches = value.scan(INTERPOLATE_RX)
+      matches.each do |match|
+        next new_val.sub!(match, "") if match == "\#{}"
+        var = match[2..-2]
+        if var.start_with? "$"
+          new_val.sub!(match, memory.globals[H::global_name(var)].call("to_string"))
+        elsif var.start_with? "@@"
+          new_val.sub!(match, context.current_class.class_vars[H::class_var_name(var)].call("to_string"))
+        elsif var.start_with? "@"
+          new_val.sub!(match, context.current_self.instance_vars[H::instance_var_name(var)].call("to_string"))
+        elsif var[/\A[A-Z]/]
+          new_val.sub!(match, (context.constants[var] || memory.constants[var]).call("to_string"))
+        else
+          new_val.sub!(match, context.locals[var].call("to_string"))
+        end
+      end
+      new_val
     end
   end
 
@@ -43,15 +82,67 @@ module Cuby
     end
   end
 
+  class GetLocalNode
+    def eval(context, memory)
+      context.locals[name] || context.current_self.call(name, [])
+    end
+  end
+
   class SetLocalNode
     def eval(context, memory)
       context.locals[name] = value.eval(context, memory)
     end
   end
 
-  class GetLocalNode
+  class GetConstantNode
     def eval(context, memory)
-      context.locals[name] || context.current_self.call(name, [])
+      context.constants[name] || memory.constants[name]
+    end
+  end
+
+  class SetInstanceVarNode
+    def eval(context, memory)
+      context.current_self.instance_vars[instance_var_name(name)] = value.eval(context, memory)
+    end
+  end
+
+  class GetInstanceVarNode
+    def eval(context, memory)
+      context.current_self.instance_vars[instance_var_name(name)]
+    end
+  end
+
+  class TrueNode
+    def eval(context, memory)
+      memory.constants["true"]
+    end
+  end
+
+  class FalseNode
+    def eval(context, memory)
+      memory.constants["false"]
+    end
+  end
+
+  class ClassNode
+    def eval(context, memory)
+      cls = context.constants[name] || memory.constants[name]
+      unless cls
+        cls = if parent
+          parent = context.constants[parent] || memory.constants[parent]
+          CubyClass.new(memory, parent)
+        else
+          CubyClass.new(memory)
+        end
+        if context != memory.root_context
+          context.constants[name] = cls
+        else
+          memory.constants[name] = cls
+        end
+      end
+
+      body.eval(cls.context, memory)
+      cls
     end
   end
 

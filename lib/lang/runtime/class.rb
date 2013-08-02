@@ -1,28 +1,25 @@
 module Cuby
   class CubyClass < CubyObject
-    class << self
-      def memory=(memory)
-        @@memory = memory
-      end
-    end
+    attr_accessor :runtime_methods, :context, :name
+    attr_reader :memory, :class_vars
 
-    attr_accessor :runtime_methods, :class_vars
-
-    def initialize(super_class = nil)
-      raise "Memory not set, cannot execut properly!" unless @@memory
+    def initialize(memory, super_class = nil)
+      @memory = memory
       @runtime_methods = {}
-      @runtime_class = @@memory.constants["Class"]
-      @super_class = super_class || @@memory.constants["Object"]
+      @context = Context.new(self, self)
+      @runtime_class = default_runtime_class
+      @name = "Class"
+      @super_class = super_class || default_super_class
     end
 
     def lookup(method_name)
       method = @runtime_methods[method_name]
       unless method
-        if @super_class
+        if @super_class && @super_class != self
           return @super_class.lookup(method_name)
         end
       end
-      method || @@memory.constants["Object"].runtime_methods["__nil_method"]
+      method || @memory.constants["Object"].runtime_methods["__nil_method"]
     end
 
     def def(name, &block)
@@ -37,8 +34,14 @@ module Cuby
       CubyObject.new(self, value)
     end
 
-    def memory
-      @@memory
+    private
+
+    def default_super_class
+      @memory.constants["Object"] || self
+    end
+
+    def default_runtime_class
+      @memory.constants["Class"] || self
     end
   end
 end

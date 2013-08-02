@@ -105,6 +105,28 @@ describe "Cuby::Parser" do
       end
     end
 
+    describe "operators" do
+      let(:nodes) {
+        CB::Nodes.new([
+          CB::CallNode.new(
+            CB::GetLocalNode.new("one"),
+            "+",
+            [CB::GetLocalNode.new("two")]
+          )
+        ])
+      }
+
+      it "should treat them like functions when used like functions" do
+        code = "one.+(two)"
+        parser.parse(code).should eq(nodes)
+      end
+
+      it "should do the same but with syntatic sugar" do
+        code = "one + two"
+        parser.parse(code).should eq(nodes)
+      end
+    end
+
     describe "class" do
       it "should parse get requests" do
         code = "@@con"
@@ -133,6 +155,28 @@ describe "Cuby::Parser" do
         nodes = CB::Nodes.new([
                   CB::SetInstanceVarNode.new("@con", CB::IntegerNode.new(10))
                 ])
+        parser.parse(code).should eq(nodes)
+      end
+    end
+
+    describe "assignment method calls" do
+      let(:nodes) {
+        CB::Nodes.new([
+          CB::CallNode.new(
+            CB::GetLocalNode.new("one"),
+            "two=",
+            [CB::IntegerNode.new(10)]
+          )
+        ])
+      }
+
+      it "should be parsed" do
+        code = "one.two = 10"
+        parser.parse(code).should eq(nodes)
+      end
+
+      it "should be parsed as a real method call" do
+        code = "one.two=(10)"
         parser.parse(code).should eq(nodes)
       end
     end
@@ -267,6 +311,24 @@ describe "Cuby::Parser" do
                         )
                       )
                     )
+                  ])
+                )
+              ])
+      parser.parse(code).should eq(nodes)
+    end
+
+    it "should allow operators to be method names" do
+      code = <<-CODE
+      + do |add|
+        "Hello, World"
+      end
+      CODE
+      nodes = CB::Nodes.new([
+                CB::DefMethodNode.new(
+                  "+",
+                  ["add"],
+                  CB::Nodes.new([
+                    CB::StringNode.new("Hello, World")
                   ])
                 )
               ])
@@ -458,6 +520,38 @@ describe "Cuby::Parser" do
                           "@@one",
                           CB::StringNode.new("two")
                         )
+                      ])
+                    )
+                  ])
+                )
+              ])
+      parser.parse(code).should eq(nodes)
+    end
+
+    it "should parse Greeter example" do
+      code = <<-CODE
+      class Greeter
+        init do |@greeting| end
+        greet do |name|
+          "\#{@greeting} \#{name}"
+        end
+      end
+      CODE
+      nodes = CB::Nodes.new([
+                CB::ClassNode.new(
+                  "Greeter",
+                  nil,
+                  CB::Nodes.new([
+                    CB::DefMethodNode.new(
+                      "init",
+                      ["@greeting"],
+                      CB::Nodes.new([])
+                    ),
+                    CB::DefMethodNode.new(
+                      "greet",
+                      ["name"],
+                      CB::Nodes.new([
+                        CB::StringNode.new("\#{@greeting} \#{name}")
                       ])
                     )
                   ])
