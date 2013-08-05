@@ -5,7 +5,7 @@ module Cuby
     KEYWORDS = [
       "do", "end", "class", "load", "if", "while", "namespace", "else", "elsif",
       "return", "break", "next", "true", "yes", "on", "false", "no", "off",
-      "nil", "self", "defined?", "property", "is", "isnt"
+      "nil", "self", "defined?", "property"
     ]
 
     TOKEN_RX = {
@@ -14,7 +14,7 @@ module Cuby
       globals: /\A(\$[a-z][\w\d]*)/i,
       class_var: /\A(\@\@[a-z][\w\d]*)/i,
       instance_var: /\A(\@[a-z][\w\d]*)/i,
-      operator: /\A([+\-\*\/%<>=!]=|\*\*=|\*\*|[+\-\*\/%=><]|or|and|not|\||\(|\)|\[|\]|\{|\}|::|[.,?:])/,
+      operator: /\A([+\-\*\/%<>=!]=|\*\*=|\*\*|[+\-\*\/%=><]|or|and|not|isnt|is|\||\(|\)|\[|\]|\{|\}|::|[.,?:])/,
       whitespace: /\A([ \t]+)/,
       terminator: /\A([;\n])/,
       integer: /\A([\d_]+)/,

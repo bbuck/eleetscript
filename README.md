@@ -13,8 +13,8 @@ as of the current state the lexer is the only thing completed.
 
 - Lexer (complete)
 - Parser/Grammer (complete)
-- Runtime
-- Interpreter
+- Runtime (complete)
+- Interpreter (started)
 - Bytecode Compiler
 - VM (for bytecode)
 
