@@ -9,7 +9,7 @@ module Cuby
     ]
 
     TOKEN_RX = {
-      identifiers: /\A([a-z][\w\d]*[?!]?)/,
+      identifiers: /\A([a-z_][\w\d]*[?!]?)/,
       constants: /\A([A-Z][\w\d]*)/,
       globals: /\A(\$[a-z][\w\d]*)/i,
       class_var: /\A(\@\@[a-z][\w\d]*)/i,

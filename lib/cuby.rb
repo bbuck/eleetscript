@@ -11,15 +11,6 @@ module Cuby
   end
 
   class ParseError < RuntimeError; end
-  class ConstantError < ParseError
-    def initialize(name)
-      @name = name
-    end
-
-    def message
-      "Value assigned to #{@name} cannot be an expression."
-    end
-  end
 end
 
 CB = Cuby

@@ -78,11 +78,12 @@ rule
   ;
 
   Call:
-    IDENTIFIER Arguments                                   { result = CallNode.new(nil, val[0], val[1]) }
-  | Expression '.' IDENTIFIER Arguments                    { result = CallNode.new(val[0], val[2], val[3]) }
-  | Expression '.' IDENTIFIER                              { result = CallNode.new(val[0], val[2], []) }
-  | Expression '.' Operator Arguments                      { result = CallNode.new(val[0], val[2], val[3]) }
-  | Expression '.' 'not'                                   { result = CallNode.new(val[0], val[2], []) }
+    IDENTIFIER Arguments                                   { result = CallNode.new(nil, val[0], val[1], nil) }
+  | Expression '.' IDENTIFIER Arguments MethodBlock        { result = CallNode.new(val[0], val[2], val[3], val[4]) }
+  | Expression '.' IDENTIFIER Arguments                    { result = CallNode.new(val[0], val[2], val[3], nil) }
+  | Expression '.' IDENTIFIER                              { result = CallNode.new(val[0], val[2], [], nil) }
+  | Expression '.' Operator Arguments                      { result = CallNode.new(val[0], val[2], val[3], nil) }
+  | Expression '.' 'not'                                   { result = CallNode.new(val[0], val[2], [], nil) }
   ;
 
   Arguments:
@@ -155,12 +156,14 @@ rule
   ;
 
   DefMethod:
-    IDENTIFIER DO Parameters Expressions END               { result = DefMethodNode.new(val[0], val[2], val[3]) }
-  | IDENTIFIER DO Parameters END                           { result = DefMethodNode.new(val[0], val[2], Nodes.new([])) }
-  | CLASS_IDENTIFIER DO Parameters Expressions END         { result = DefMethodNode.new(val[0], val[2], val[3]) }
-  | CLASS_IDENTIFIER DO Parameters END                     { result = DefMethodNode.new(val[0], val[2], Nodes.new([])) }
-  | Operator DO Parameters Expressions END                 { result = DefMethodNode.new(val[0], val[2], val[3]) }
-  | Operator DO Parameters END                             { result = DefMethodNode.new(val[0], val[2], Nodes.new([])) }
+    IDENTIFIER MethodBlock                                 { result = DefMethodNode.new(val[0], val[1]) }
+  | CLASS_IDENTIFIER MethodBlock                           { result = DefMethodNode.new(val[0], val[1]) }
+  | Operator MethodBlock                                   { result = DefMethodNode.new(val[0], val[1]) }
+  ;
+
+  MethodBlock:
+    DO Parameters Expressions END                          { result = MethodNode.new(val[1], val[2]) }
+  | DO Parameters END                                      { result = MethodNode.new(val[1], Nodes.new([])) }
   ;
 
   Operator:

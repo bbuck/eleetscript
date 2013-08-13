@@ -11,8 +11,19 @@ module Cuby
     end
 
     def call(method, arguments = [])
+      method = method.to_s
       method = @runtime_class.lookup(method)
       method.call(self, arguments)
+    end
+
+    def call_class(method, arguments = [])
+      method = method.to_s
+      method = @runtime_class.lookup_class(method)
+      method.call(self, arguments)
+    end
+
+    def to_s
+      "<CubyObject>"
     end
   end
 end

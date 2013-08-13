@@ -1,8 +1,9 @@
 module Cuby
   class Method
-    def initialize(params, body)
+    def initialize(params, body, block = nil)
       @params = params
       @body = body
+      @block = block
     end
 
     def call(reciever, arguments)
@@ -20,7 +21,7 @@ module Cuby
         end
       end
 
-      context.locals["arguments"] = arguments
+      # context.locals["arguments"] = arguments
 
       @body.eval(context, context.current_class.memory)
     end

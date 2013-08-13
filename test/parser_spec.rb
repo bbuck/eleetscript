@@ -204,10 +204,12 @@ describe "Cuby::Parser" do
       nodes = CB::Nodes.new([
                 CB::DefMethodNode.new(
                   "name",
-                  [],
-                  CB::Nodes.new([
-                    CB::StringNode.new("Name")
-                  ])
+                  CB::MethodNode.new(
+                    [],
+                    CB::Nodes.new([
+                      CB::StringNode.new("Name")
+                    ])
+                  )
                 )
               ])
       parser.parse(code).should eq(nodes)
@@ -218,14 +220,16 @@ describe "Cuby::Parser" do
       nodes = CB::Nodes.new([
                 CB::DefMethodNode.new(
                   "add",
-                  ["a", "b"],
-                  CB::Nodes.new([
-                    CB::CallNode.new(
-                      CB::GetLocalNode.new("a"),
-                      "+",
-                      [CB::GetLocalNode.new("b")]
-                    )
-                  ])
+                  CB::MethodNode.new(
+                    ["a", "b"],
+                    CB::Nodes.new([
+                      CB::CallNode.new(
+                        CB::GetLocalNode.new("a"),
+                        "+",
+                        [CB::GetLocalNode.new("b")]
+                      )
+                    ])
+                  )
                 )
               ])
       parser.parse(code).should eq(nodes)
@@ -240,10 +244,12 @@ describe "Cuby::Parser" do
       nodes = CB::Nodes.new([
                 CB::DefMethodNode.new(
                   "name",
-                  [],
-                  CB::Nodes.new([
-                    CB::StringNode.new("Name")
-                  ])
+                  CB::MethodNode.new(
+                    [],
+                    CB::Nodes.new([
+                      CB::StringNode.new("Name")
+                    ])
+                  )
                 )
               ])
       parser.parse(code).should eq(nodes)
@@ -258,14 +264,16 @@ describe "Cuby::Parser" do
       nodes = CB::Nodes.new([
                 CB::DefMethodNode.new(
                   "add",
-                  ["a", "b"],
-                  CB::Nodes.new([
-                    CB::CallNode.new(
-                      CB::GetLocalNode.new("a"),
-                      "+",
-                      [CB::GetLocalNode.new("b")]
-                    )
-                  ])
+                  CB::MethodNode.new(
+                    ["a", "b"],
+                    CB::Nodes.new([
+                      CB::CallNode.new(
+                        CB::GetLocalNode.new("a"),
+                        "+",
+                        [CB::GetLocalNode.new("b")]
+                      )
+                    ])
+                  )
                 )
               ])
       parser.parse(code).should eq(nodes)
@@ -284,34 +292,36 @@ describe "Cuby::Parser" do
       nodes = CB::Nodes.new([
                 CB::DefMethodNode.new(
                   "@@test",
-                  ["@name"],
-                  CB::Nodes.new([
-                    CB::IfNode.new(
-                      CB::CallNode.new(
+                  CB::MethodNode.new(
+                    ["@name"],
+                    CB::Nodes.new([
+                      CB::IfNode.new(
                         CB::CallNode.new(
-                          CB::GetInstanceVarNode.new("@name"),
-                          "length",
-                          []
+                          CB::CallNode.new(
+                            CB::GetInstanceVarNode.new("@name"),
+                            "length",
+                            []
+                          ),
+                          ">",
+                          [CB::IntegerNode.new(7)]
                         ),
-                        ">",
-                        [CB::IntegerNode.new(7)]
-                      ),
-                      CB::Nodes.new([
-                        CB::CallNode.new(
-                          nil,
-                          "print",
-                          [CB::StringNode.new("Long")]
-                        )
-                      ]),
-                      CB::ElseNode.new(
-                        CB::CallNode.new(
-                          nil,
-                          "print",
-                          [CB::StringNode.new("Short")]
+                        CB::Nodes.new([
+                          CB::CallNode.new(
+                            nil,
+                            "print",
+                            [CB::StringNode.new("Long")]
+                          )
+                        ]),
+                        CB::ElseNode.new(
+                          CB::CallNode.new(
+                            nil,
+                            "print",
+                            [CB::StringNode.new("Short")]
+                          )
                         )
                       )
-                    )
-                  ])
+                    ])
+                  )
                 )
               ])
       parser.parse(code).should eq(nodes)
@@ -326,10 +336,12 @@ describe "Cuby::Parser" do
       nodes = CB::Nodes.new([
                 CB::DefMethodNode.new(
                   "+",
-                  ["add"],
-                  CB::Nodes.new([
-                    CB::StringNode.new("Hello, World")
-                  ])
+                  CB::MethodNode.new(
+                    ["add"],
+                    CB::Nodes.new([
+                      CB::StringNode.new("Hello, World")
+                    ])
+                  )
                 )
               ])
       parser.parse(code).should eq(nodes)
@@ -427,10 +439,12 @@ describe "Cuby::Parser" do
       nodes = CB::Nodes.new([
                 CB::DefMethodNode.new(
                   "test",
-                  [],
-                  CB::Nodes.new([
-                    CB::ReturnNode.new(nil)
-                  ])
+                  CB::MethodNode.new(
+                    [],
+                    CB::Nodes.new([
+                      CB::ReturnNode.new(nil)
+                    ])
+                  )
                 )
               ])
       parser.parse(code).should eq(nodes)
@@ -446,17 +460,19 @@ describe "Cuby::Parser" do
       nodes = CB::Nodes.new([
                 CB::DefMethodNode.new(
                   "test",
-                  ["name"],
-                  CB::Nodes.new([
-                    CB::CallNode.new(
-                      CB::GetInstanceVarNode.new("@names"),
-                      "push",
-                      [CB::GetLocalNode.new("name")]
-                    ),
-                    CB::ReturnNode.new(
-                      CB::GetLocalNode.new("name")
-                    )
-                  ])
+                  CB::MethodNode.new(
+                    ["name"],
+                    CB::Nodes.new([
+                      CB::CallNode.new(
+                        CB::GetInstanceVarNode.new("@names"),
+                        "push",
+                        [CB::GetLocalNode.new("name")]
+                      ),
+                      CB::ReturnNode.new(
+                        CB::GetLocalNode.new("name")
+                      )
+                    ])
+                  )
                 )
               ])
       parser.parse(code).should eq(nodes)
@@ -514,13 +530,15 @@ describe "Cuby::Parser" do
                     ),
                     CB::DefMethodNode.new(
                       "call",
-                      [],
-                      CB::Nodes.new([
-                        CB::SetClassVarNode.new(
-                          "@@one",
-                          CB::StringNode.new("two")
-                        )
-                      ])
+                      CB::MethodNode.new(
+                        [],
+                        CB::Nodes.new([
+                          CB::SetClassVarNode.new(
+                            "@@one",
+                            CB::StringNode.new("two")
+                          )
+                        ])
+                      )
                     )
                   ])
                 )
@@ -544,15 +562,19 @@ describe "Cuby::Parser" do
                   CB::Nodes.new([
                     CB::DefMethodNode.new(
                       "init",
-                      ["@greeting"],
-                      CB::Nodes.new([])
+                      CB::MethodNode.new(
+                        ["@greeting"],
+                        CB::Nodes.new([])
+                      )
                     ),
                     CB::DefMethodNode.new(
                       "greet",
-                      ["name"],
-                      CB::Nodes.new([
-                        CB::StringNode.new("\#{@greeting} \#{name}")
-                      ])
+                      CB::MethodNode.new(
+                        ["name"],
+                        CB::Nodes.new([
+                          CB::StringNode.new("\#{@greeting} \#{name}")
+                        ])
+                      )
                     )
                   ])
                 )
@@ -587,13 +609,15 @@ describe "Cuby::Parser" do
                   CB::Nodes.new([
                     CB::DefMethodNode.new(
                       "init",
-                      ["one"],
-                      CB::Nodes.new([
-                        CB::SetInstanceVarNode.new(
-                          "@one",
-                          CB::GetLocalNode.new("one")
-                        )
-                      ])
+                      CB::MethodNode.new(
+                        ["one"],
+                        CB::Nodes.new([
+                          CB::SetInstanceVarNode.new(
+                            "@one",
+                            CB::GetLocalNode.new("one")
+                          )
+                        ])
+                      )
                     )
                   ])
                 )
@@ -661,15 +685,17 @@ describe "Cuby::Parser" do
                     CB::SetClassVarNode.new("@@count", CB::IntegerNode.new(0)),
                     CB::DefMethodNode.new(
                       "name",
-                      [],
-                      CB::Nodes.new([
-                        CB::CallNode.new(
-                          CB::GetClassVarNode.new("@@count"),
-                          "+=",
-                          [CB::IntegerNode.new(1)]
-                        ),
-                        CB::GetInstanceVarNode.new("@name")
-                      ])
+                      CB::MethodNode.new(
+                        [],
+                        CB::Nodes.new([
+                          CB::CallNode.new(
+                            CB::GetClassVarNode.new("@@count"),
+                            "+=",
+                            [CB::IntegerNode.new(1)]
+                          ),
+                          CB::GetInstanceVarNode.new("@name")
+                        ])
+                      )
                     )
                   ])
                 )
@@ -770,58 +796,68 @@ describe "Cuby::Parser" do
                       CB::Nodes.new([
                         CB::DefMethodNode.new(
                           "add",
-                          ["a", "b"],
-                          CB::Nodes.new([
-                            CB::CallNode.new(
-                              CB::GetLocalNode.new("a"),
-                              "+",
-                              [CB::GetLocalNode.new("b")]
-                            )
-                          ])
+                          CB::MethodNode.new(
+                            ["a", "b"],
+                            CB::Nodes.new([
+                              CB::CallNode.new(
+                                CB::GetLocalNode.new("a"),
+                                "+",
+                                [CB::GetLocalNode.new("b")]
+                              )
+                            ])
+                          )
                         ),
                         CB::DefMethodNode.new(
                           "sub",
-                          ["a", "b"],
-                          CB::Nodes.new([
-                            CB::CallNode.new(
-                              CB::GetLocalNode.new("a"),
-                              "-",
-                              [CB::GetLocalNode.new("b")]
-                            )
-                          ])
+                          CB::MethodNode.new(
+                            ["a", "b"],
+                            CB::Nodes.new([
+                              CB::CallNode.new(
+                                CB::GetLocalNode.new("a"),
+                                "-",
+                                [CB::GetLocalNode.new("b")]
+                              )
+                            ])
+                          )
                         ),
                         CB::DefMethodNode.new(
                           "div",
-                          ["a", "b"],
-                          CB::Nodes.new([
-                            CB::CallNode.new(
-                              CB::GetLocalNode.new("a"),
-                              "/",
-                              [CB::GetLocalNode.new("b")]
-                            )
-                          ])
+                          CB::MethodNode.new(
+                            ["a", "b"],
+                            CB::Nodes.new([
+                              CB::CallNode.new(
+                                CB::GetLocalNode.new("a"),
+                                "/",
+                                [CB::GetLocalNode.new("b")]
+                              )
+                            ])
+                          )
                         ),
                         CB::DefMethodNode.new(
                           "mult",
-                          ["a", "b"],
-                          CB::Nodes.new([
-                            CB::CallNode.new(
-                              CB::GetLocalNode.new("a"),
-                              "*",
-                              [CB::GetLocalNode.new("b")]
-                            )
-                          ])
+                          CB::MethodNode.new(
+                            ["a", "b"],
+                            CB::Nodes.new([
+                              CB::CallNode.new(
+                                CB::GetLocalNode.new("a"),
+                                "*",
+                                [CB::GetLocalNode.new("b")]
+                              )
+                            ])
+                          )
                         ),
                         CB::DefMethodNode.new(
                           "pow",
-                          ["a", "b"],
-                          CB::Nodes.new([
-                            CB::CallNode.new(
-                              CB::GetLocalNode.new("a"),
-                              "**",
-                              [CB::GetLocalNode.new("b")]
-                            )
-                          ])
+                          CB::MethodNode.new(
+                            ["a", "b"],
+                            CB::Nodes.new([
+                              CB::CallNode.new(
+                                CB::GetLocalNode.new("a"),
+                                "**",
+                                [CB::GetLocalNode.new("b")]
+                              )
+                            ])
+                          )
                         )
                       ])
                     )

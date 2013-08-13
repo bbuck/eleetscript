@@ -1,0 +1,39 @@
+#!/usr/bin/env ruby
+
+$:.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
+require "lang/interpreter"
+
+Signal.trap("INT") do
+  puts "\n\nExiting Cuby REPL"
+  exit
+end
+
+interp = CB::Interpreter.new
+
+if ARGV.empty?
+  show_nodes = false
+  interp.memory.constants["Object"].def :__repl_show_nodes do |receiver, arguments|
+    bool = !!arguments.first.ruby_value
+    show_nodes = bool
+  end
+
+  interp.memory.constants["Object"].def :exit do |receiver, arguments|
+    exit
+  end
+
+  line = 1
+
+  while true
+    print "#{line} >> "
+    input = gets.chomp.strip
+    value = interp.eval(input, show_nodes)
+    if ["Integer", "Float", "String", "TrueClass", "FalseClass", "NilClass"].include?(value.call(:name))
+      p value.ruby_value
+    else
+      p value.call(:to_string)
+    end
+    line += 1
+  end
+elsif File.exists?(ARGV[0])
+  interp.eval(File.read(ARGV[0]))
+end

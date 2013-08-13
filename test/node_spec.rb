@@ -298,12 +298,18 @@ describe "Cuby syntax nodes" do
       CB::DefMethodNode.new.should respond_to(:method_name)
     end
 
+    it "should respond to 'body'" do
+      CB::DefMethodNode.new.should respond_to(:method)
+    end
+  end
+
+  describe "method node" do
     it "should respond to 'params'" do
-      CB::DefMethodNode.new.should respond_to(:params)
+      CB::MethodNode.new.should respond_to(:params)
     end
 
     it "should respond to 'body'" do
-      CB::DefMethodNode.new.should respond_to(:body)
+      CB::MethodNode.new.should respond_to(:body)
     end
   end
 

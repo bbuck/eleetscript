@@ -4,6 +4,7 @@ require "pry"
 
 module Cuby
   class Interpreter
+    attr_reader :memory
     def initialize
       @memory = Memory.new
       @parser = Parser.new
@@ -55,15 +56,15 @@ module Cuby
         next new_val.sub!(match, "") if match == "\#{}"
         var = match[2..-2]
         if var.start_with? "$"
-          new_val.sub!(match, memory.globals[H::global_name(var)].call("to_string"))
+          new_val.sub!(match, memory.globals[H::global_name(var)].call("to_string").ruby_value)
         elsif var.start_with? "@@"
-          new_val.sub!(match, context.current_class.class_vars[H::class_var_name(var)].call("to_string"))
+          new_val.sub!(match, context.current_class.class_vars[H::class_var_name(var)].call("to_string").ruby_value)
         elsif var.start_with? "@"
-          new_val.sub!(match, context.current_self.instance_vars[H::instance_var_name(var)].call("to_string"))
+          new_val.sub!(match, context.current_self.instance_vars[H::instance_var_name(var)].call("to_string").ruby_value)
         elsif var[/\A[A-Z]/]
-          new_val.sub!(match, (context.constants[var] || memory.constants[var]).call("to_string"))
+          new_val.sub!(match, (context.constants[var] || memory.constants[var]).call("to_string").ruby_value)
         else
-          new_val.sub!(match, context.locals[var].call("to_string"))
+          new_val.sub!(match, context.locals[var].call("to_string").ruby_value)
         end
       end
       new_val
@@ -100,15 +101,29 @@ module Cuby
     end
   end
 
+  class SetConstantNode
+    def eval(context, memory)
+      if context == memory.root_context
+        unless memory.constants[name]
+          memory.constants[name] = value.eval(context, memory)
+        end
+      else
+        unless context.constants[name]
+          context.constants[name] = value.eval(context, memory)
+        end
+      end
+    end
+  end
+
   class SetInstanceVarNode
     def eval(context, memory)
-      context.current_self.instance_vars[instance_var_name(name)] = value.eval(context, memory)
+      context.current_self.instance_vars[H::instance_var_name(name)] = value.eval(context, memory)
     end
   end
 
   class GetInstanceVarNode
     def eval(context, memory)
-      context.current_self.instance_vars[instance_var_name(name)]
+      context.current_self.instance_vars[H::instance_var_name(name)]
     end
   end
 
@@ -154,13 +169,22 @@ module Cuby
         value = context.current_self
       end
       evaled_args = arguments.map { |a| a.eval(context, memory) }
-      value.call(method_name, evaled_args)
+      if memory.constants.values.include?(value)
+        value.call_class(method_name, evaled_args)
+      else
+        value.call(method_name, evaled_args)
+      end
     end
   end
 
   class DefMethodNode
     def eval(context, memory)
-      context.current_class.runtime_methods[method_name] = Method.new(params, body)
+      method_obj = Method.new(method.params, method.body)
+      if method_name.start_with? "@@"
+        context.current_class.class_methods[H::class_var_name(method_name)] = method_obj
+      else
+        context.current_class.runtime_methods[method_name] = method_obj
+      end
     end
   end
 end
