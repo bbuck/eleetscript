@@ -47,13 +47,9 @@ module Cuby
       object = @constants["Object"]
 
       object.class_def :new do |receiver, arguments|
-        if receiver.class?
-          ins = receiver.new
-          ins.call("init", arguments)
-          ins
-        else
-          receiver
-        end
+        ins = receiver.new
+        ins.call("init", arguments)
+        ins
       end
 
       object.def :print do |receiver, arguments|
