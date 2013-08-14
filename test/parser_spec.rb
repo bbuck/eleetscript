@@ -198,6 +198,42 @@ describe "Cuby::Parser" do
     end
   end
 
+  describe "method calls" do
+    it "should be parsed" do
+      code = "println(\"Hello, World\")"
+      nodes = CB::Nodes.new([
+                CB::CallNode.new(
+                  nil,
+                  "println",
+                  [CB::StringNode.new("Hello, World")]
+                )
+              ])
+      parser.parse(code).should eq(nodes)
+    end
+
+    it "should parse chain calls" do
+      code = "println(Sample.new.msg)"
+      nodes = CB::Nodes.new([
+                CB::CallNode.new(
+                  nil,
+                  "println",
+                  [
+                    CB::CallNode.new(
+                      CB::CallNode.new(
+                        CB::GetConstantNode.new("Sample"),
+                        "new",
+                        []
+                      ),
+                      "msg",
+                      []
+                    )
+                  ]
+                )
+              ])
+      parser.parse(code).should eq(nodes)
+    end
+  end
+
   describe "methods" do
     it "should allow one line definitions without params" do
       code = "name do \"Name\" end"

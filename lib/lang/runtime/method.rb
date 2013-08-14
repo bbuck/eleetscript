@@ -6,14 +6,14 @@ module Cuby
       @block = block
     end
 
-    def call(reciever, arguments)
-      context = Context.new(reciever)
+    def call(receiver, arguments)
+      context = Context.new(receiver)
 
       @params.each_with_index do |param, index|
         if param.start_with? "@@"
           name = param[2..-1]
           context.current_class.class_vars[name] = arguments[index]
-        elsif param.start_with? "@"
+        elsif param.start_with?("@") && context.current_self.instance?
           name = param[1..-1]
           context.current_self.instance_vars[name] = arguments[index]
         else

@@ -1,0 +1,11 @@
+class Greeter
+  @@create do |greeting|
+    Greeter.new(greeting)
+  end
+  init do |@greeting| end
+  greet do |name|
+    println("#{@Greeting}, #{name}")
+  end
+end
+g = Greeter.create("Hello")
+g.greet("World")

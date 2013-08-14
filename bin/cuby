@@ -27,11 +27,12 @@ if ARGV.empty?
     print "#{line} >> "
     input = gets.chomp.strip
     value = interp.eval(input, show_nodes)
-    if ["Integer", "Float", "String", "TrueClass", "FalseClass", "NilClass"].include?(value.call(:name))
-      p value.ruby_value
-    else
-      p value.call(:to_string)
-    end
+    # if ["Integer", "Float", "String", "TrueClass", "FalseClass", "NilClass"].include?(value.call(:name))
+    #   p value.ruby_value
+    # else
+    #   p value.call(:to_string)
+    # end
+    p value
     line += 1
   end
 elsif File.exists?(ARGV[0])
