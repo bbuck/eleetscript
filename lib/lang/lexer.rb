@@ -14,7 +14,7 @@ module Cuby
       globals: /\A(\$[a-z][\w\d]*)/i,
       class_var: /\A(\@\@[a-z][\w\d]*)/i,
       instance_var: /\A(\@[a-z][\w\d]*)/i,
-      operator: /\A([+\-\*\/%<>=!]=|\*\*=|\*\*|[+\-\*\/%=><]|or|and|not|isnt|is|\||\(|\)|\[|\]|\{|\}|::|[.,?:])/,
+      operator: /\A(=>|[+\-\*\/%<>=!]=|\*\*=|\*\*|[+\-\*\/%=><]|or|and|not|isnt|is|\||\(|\)|\[|\]|\{|\}|::|[.,?:])/,
       whitespace: /\A([ \t]+)/,
       terminator: /\A([;\n])/,
       integer: /\A([\d_]+)/,

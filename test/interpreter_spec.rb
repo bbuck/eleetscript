@@ -51,20 +51,32 @@ describe "Cuby::Interpreter" do
         ->{ interpreter.eval(code) }.should_not raise_error
       end
     end
+  end
 
-    # describe "methods" do
-    #   it "should receive compiled arguments" do
-    #     code = <<-CODE
-    #     test do |a|
-    #       println(a)
-    #       println(arguments)
-    #     end
-    #     test()
-    #     CODE
-    #     $stdout.should_receive(:puts).twice
-    #     interpreter.eval(code)
-    #   end
-    # end
+  describe "methods" do
+    it "should receive compiled arguments" do
+      code = <<-CODE
+      test do |a|
+        println(a)
+        println(arguments)
+      end
+      test("Hello", "World")
+      CODE
+      $stdout.should_receive(:puts).with("Hello")
+      $stdout.should_receive(:puts).with("[\"Hello\", \"World\"]")
+      interpreter.eval(code)
+    end
+
+    it "should be usable wihtout specific params" do
+      code = <<-CODE
+      add do
+        arguments[0] + arguments[1]
+      end
+      println(add(1, 2))
+      CODE
+      $stdout.should_receive(:puts).with("3")
+      interpreter.eval(code)
+    end
   end
 
   describe "classes" do
@@ -126,6 +138,58 @@ describe "Cuby::Interpreter" do
       g.greet("World")
       CODE
       $stdout.should_receive(:puts).with("Hello, World")
+      interpreter.eval(code)
+    end
+  end
+
+  describe "Cuby core" do
+    it "should have a working Pair class" do
+      code = <<-CODE
+      print_pair do |pair|
+        println(pair.key)
+        println(pair.value)
+      end
+      p = Pair.new("Hello", "World")
+      print_pair(p)
+      p.key = "Hola"
+      p.value = "Mundo"
+      print_pair(p)
+      CODE
+      $stdout.should_receive(:puts).with("Hello")
+      $stdout.should_receive(:puts).with("World")
+      $stdout.should_receive(:puts).with("Hola")
+      $stdout.should_receive(:puts).with("Mundo")
+      interpreter.eval(code)
+    end
+
+    it "should have a working kind_of? method" do
+      code = <<-CODE
+      println("Hello".kind_of?(String))
+      p = Pair.new(1, 2)
+      println(p.kind_of?(Pair))
+      println("Hello".kind_of?(Pair))
+      CODE
+      $stdout.should_receive(:puts).with("true").twice
+      $stdout.should_receive(:puts).with("false")
+      interpreter.eval(code)
+    end
+
+    it "should have a working List class" do
+      code = <<-CODE
+      list = ["Hello", "msg" => "World"]
+      list2 = List.new("Hola", "msg" => "Mundo")
+      println(list[0])
+      println(list["msg"])
+      println(list2[0])
+      println(list2["msg"])
+      list["msg"] = "Konnichiwa"
+      println(list["msg"])
+      CODE
+      $stdout.should_receive(:puts).with("Hello")
+      $stdout.should_receive(:puts).with("World")
+      $stdout.should_receive(:puts).with("Hola")
+      $stdout.should_receive(:puts).with("Mundo")
+      $stdout.should_receive(:puts).with("Konnichiwa")
       interpreter.eval(code)
     end
   end

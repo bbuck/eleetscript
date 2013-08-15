@@ -5,15 +5,22 @@ require "pry"
 module Cuby
   class Interpreter
     attr_reader :memory
-    def initialize
-      @memory = Memory.new
+    def initialize(memory = nil)
       @parser = Parser.new
+      @memory = memory || Memory.new
+      @memory.bootstrap(self)
     end
 
     def eval(code, show_nodes = false)
       nodes = @parser.parse(code)
       puts nodes if show_nodes
       nodes.eval(@memory.root_context, @memory)
+    end
+
+    def load(file_name)
+      if File.exists?(file_name)
+        eval(File.read(file_name))
+      end
     end
   end
 
@@ -162,6 +169,21 @@ module Cuby
     end
   end
 
+  class PropertyNode
+    def eval(context, memory)
+      cls = context.current_class
+      properties.each do |prop_name|
+        cls.def "#{prop_name}=" do |receiver, arguments|
+          receiver.instance_vars[prop_name] = arguments.first
+        end
+
+        cls.def prop_name do |receiver, arguments|
+          receiver.instance_vars[prop_name]
+        end
+      end
+    end
+  end
+
   class CallNode
     def eval(context, memory)
       value = if receiver
@@ -176,7 +198,7 @@ module Cuby
 
   class DefMethodNode
     def eval(context, memory)
-      method_obj = Method.new(method.params, method.body)
+      method_obj = CubyMethod.new(method.params, method.body)
       if method_name.start_with? "@@"
         context.current_class.class_methods[H::class_var_name(method_name)] = method_obj
       else

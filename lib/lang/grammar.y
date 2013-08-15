@@ -37,6 +37,9 @@ rule
   | Call
   | SELF                                                   { result = SelfNode.new }
   | NEXT                                                   { result = NextNode.new }
+  | KeyValExpression
+  | ListExpression
+  | NamespaceAccess
   | Defined
   | DefMethod
   | Operation
@@ -48,8 +51,15 @@ rule
   | While
   | Return
   | Property
-  | NamespaceAccess
   | '(' Expression ')'                                     { result = val[1] }
+  ;
+
+  GetVariable:
+    CONSTANT                                               { result = GetConstantNode.new(val[0]) }
+  | GLOBAL                                                 { result = GetGlobalNode.new(val[0]) }
+  | CLASS_IDENTIFIER                                       { result = GetClassVarNode.new(val[0]) }
+  | INSTANCE_IDENTIFIER                                    { result = GetInstanceVarNode.new(val[0]) }
+  | IDENTIFIER                                             { result = GetLocalNode.new(val[0]) }
   ;
 
   Literal:
@@ -59,6 +69,26 @@ rule
   | True                                                   { result = TrueNode.new }
   | False                                                  { result = FalseNode.new }
   | NIL                                                    { result = NilNode.new }
+  ;
+
+  ListExpression:
+    List
+  | Expression '[' Expression ']' '=' Expression           { result = CallNode.new(val[0], "[]=", [val[2], val[5]]) }
+  | Expression '[' Expression ']'                          { result = CallNode.new(val[0], "[]", [val[2]]) }
+  ;
+
+  List:
+    '[' ']'                                                { result = CallNode.new(GetConstantNode.new("List"), "new", []) }
+  | '[' ExpressionList ']'                                 { result = CallNode.new(GetConstantNode.new("List"), "new", val[1]) }
+  ;
+
+  ExpressionList:
+    Expression                                             { result = val }
+  | ExpressionList ',' Expression                          { result = val[0] << val[2] }
+  ;
+
+  KeyValExpression:
+    Expression '=>' Expression                             { result = CallNode.new(GetConstantNode.new("Pair"), "new", [val[0], val[2]]) }
   ;
 
   True:
@@ -101,11 +131,7 @@ rule
   ;
 
   NamespaceAccess:
-    CONSTANT '::' IDENTIFIER                               { result = NamespaceAccessNode.new(val[0], val[2]) }
-  | CONSTANT '::' CONSTANT                                 { result = NamespaceAccessNode.new(val[0], GetConstantNode.new(val[2])) }
-  | CONSTANT '::' Expression                               { result = NamespaceAccessNode.new(val[0], val[2]) }
-  | '::' IDENTIFIER                                        { result = NamespaceAccessNode.new(nil, val[1]) }
-  | '::' CONSTANT                                          { result = NamespaceAccessNode.new(nil, GetConstantNode.new(val[1])) }
+    CONSTANT '::' Expression                               { result = NamespaceAccessNode.new(val[0], val[2]) }
   | '::' Expression                                        { result = NamespaceAccessNode.new(nil, val[1]) }
   ;
 
@@ -131,20 +157,36 @@ rule
   ;
 
   OperatorAssignment:
-    GetVariable '+=' Expression                            { result = CallNode.new(val[0], val[1], [val[2]]) }
-  | GetVariable '-=' Expression                            { result = CallNode.new(val[0], val[1], [val[2]]) }
-  | GetVariable '*=' Expression                            { result = CallNode.new(val[0], val[1], [val[2]]) }
-  | GetVariable '/=' Expression                            { result = CallNode.new(val[0], val[1], [val[2]]) }
-  | GetVariable '%=' Expression                            { result = CallNode.new(val[0], val[1], [val[2]]) }
-  | GetVariable '**=' Expression                           { result = CallNode.new(val[0], val[1], [val[2]]) }
-  ;
-
-  GetVariable:
-    CONSTANT                                               { result = GetConstantNode.new(val[0]) }
-  | GLOBAL                                                 { result = GetGlobalNode.new(val[0]) }
-  | CLASS_IDENTIFIER                                       { result = GetClassVarNode.new(val[0]) }
-  | INSTANCE_IDENTIFIER                                    { result = GetInstanceVarNode.new(val[0]) }
-  | IDENTIFIER                                             { result = GetLocalNode.new(val[0]) }
+    CONSTANT '+=' Expression                               { result = SetConstantNode.new(val[0], CallNode.new(GetConstantNode.new(val[0]), "+", [val[2]])) }
+  | GLOBAL '+=' Expression                                 { result = SetGlobalNode.new(val[0], CallNode.new(GetGlobalNode.new(val[0]), "+", [val[2]])) }
+  | CLASS_IDENTIFIER '+=' Expression                       { result = SetClassVarNode.new(val[0], CallNode.new(GetClassVarNode.new(val[0]), "+", [val[2]])) }
+  | INSTANCE_IDENTIFIER '+=' Expression                    { result = SetInstanceVarNode.new(val[0], CallNode.new(GetInstanceVarNode.new(val[0]), "+", [val[2]])) }
+  | IDENTIFIER '+=' Expression                             { result = SetLocalNode.new(val[0], CallNode.new(GetLocalNode.new(val[0]), "+", [val[2]])) }
+  | CONSTANT '-=' Expression                               { result = SetConstantNode.new(val[0], CallNode.new(GetConstantNode.new(val[0]), "-", [val[2]])) }
+  | GLOBAL '-=' Expression                                 { result = SetGlobalNode.new(val[0], CallNode.new(GetGlobalNode.new(val[0]), "-", [val[2]])) }
+  | CLASS_IDENTIFIER '-=' Expression                       { result = SetClassVarNode.new(val[0], CallNode.new(GetClassVarNode.new(val[0]), "-", [val[2]])) }
+  | INSTANCE_IDENTIFIER '-=' Expression                    { result = SetInstanceVarNode.new(val[0], CallNode.new(GetInstanceVarNode.new(val[0]), "-", [val[2]])) }
+  | IDENTIFIER '-=' Expression                             { result = SetLocalNode.new(val[0], CallNode.new(GetLocalNode.new(val[0]), "-", [val[2]])) }
+  | CONSTANT '*=' Expression                               { result = SetConstantNode.new(val[0], CallNode.new(GetConstantNode.new(val[0]), "*", [val[2]])) }
+  | GLOBAL '*=' Expression                                 { result = SetGlobalNode.new(val[0], CallNode.new(GetGlobalNode.new(val[0]), "*", [val[2]])) }
+  | CLASS_IDENTIFIER '*=' Expression                       { result = SetClassVarNode.new(val[0], CallNode.new(GetClassVarNode.new(val[0]), "*", [val[2]])) }
+  | INSTANCE_IDENTIFIER '*=' Expression                    { result = SetInstanceVarNode.new(val[0], CallNode.new(GetInstanceVarNode.new(val[0]), "*", [val[2]])) }
+  | IDENTIFIER '*=' Expression                             { result = SetLocalNode.new(val[0], CallNode.new(GetLocalNode.new(val[0]), "*", [val[2]])) }
+  | CONSTANT '/=' Expression                               { result = SetConstantNode.new(val[0], CallNode.new(GetConstantNode.new(val[0]), "/", [val[2]])) }
+  | GLOBAL '/=' Expression                                 { result = SetGlobalNode.new(val[0], CallNode.new(GetGlobalNode.new(val[0]), "/", [val[2]])) }
+  | CLASS_IDENTIFIER '/=' Expression                       { result = SetClassVarNode.new(val[0], CallNode.new(GetClassVarNode.new(val[0]), "/", [val[2]])) }
+  | INSTANCE_IDENTIFIER '/=' Expression                    { result = SetInstanceVarNode.new(val[0], CallNode.new(GetInstanceVarNode.new(val[0]), "/", [val[2]])) }
+  | IDENTIFIER '/=' Expression                             { result = SetLocalNode.new(val[0], CallNode.new(GetLocalNode.new(val[0]), "/", [val[2]])) }
+  | CONSTANT '%=' Expression                               { result = SetConstantNode.new(val[0], CallNode.new(GetConstantNode.new(val[0]), "%", [val[2]])) }
+  | GLOBAL '%=' Expression                                 { result = SetGlobalNode.new(val[0], CallNode.new(GetGlobalNode.new(val[0]), "%", [val[2]])) }
+  | CLASS_IDENTIFIER '%=' Expression                       { result = SetClassVarNode.new(val[0], CallNode.new(GetClassVarNode.new(val[0]), "%", [val[2]])) }
+  | INSTANCE_IDENTIFIER '%=' Expression                    { result = SetInstanceVarNode.new(val[0], CallNode.new(GetInstanceVarNode.new(val[0]), "%", [val[2]])) }
+  | IDENTIFIER '%=' Expression                             { result = SetLocalNode.new(val[0], CallNode.new(GetLocalNode.new(val[0]), "%", [val[2]])) }
+  | CONSTANT '**=' Expression                              { result = SetConstantNode.new(val[0], CallNode.new(GetConstantNode.new(val[0]), "**", [val[2]])) }
+  | GLOBAL '**=' Expression                                { result = SetGlobalNode.new(val[0], CallNode.new(GetGlobalNode.new(val[0]), "**", [val[2]])) }
+  | CLASS_IDENTIFIER '**=' Expression                      { result = SetClassVarNode.new(val[0], CallNode.new(GetClassVarNode.new(val[0]), "**", [val[2]])) }
+  | INSTANCE_IDENTIFIER '**=' Expression                   { result = SetInstanceVarNode.new(val[0], CallNode.new(GetInstanceVarNode.new(val[0]), "**", [val[2]])) }
+  | IDENTIFIER '**=' Expression                            { result = SetLocalNode.new(val[0], CallNode.new(GetLocalNode.new(val[0]), "**", [val[2]])) }
   ;
 
   SetVariable:

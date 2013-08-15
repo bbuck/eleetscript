@@ -70,6 +70,85 @@ describe "Cuby::Parser" do
         parser.parse("nil").should eq(nodes)
       end
     end
+
+    describe "pairs" do
+      it "should be parsed" do
+        code = "\"key\" => \"value\""
+        nodes = CB::Nodes.new([
+                  CB::CallNode.new(
+                    CB::GetConstantNode.new("Pair"),
+                    "new",
+                    [
+                      CB::StringNode.new("key"),
+                      CB::StringNode.new("value")
+                    ]
+                  )
+                ])
+        parser.parse(code).should eq(nodes)
+      end
+    end
+
+    describe "lists" do
+      it "should parse literal lists" do
+        code = "[1, 2, 3, 4]"
+        nodes = CB::Nodes.new([
+                  CB::CallNode.new(
+                    CB::GetConstantNode.new("List"),
+                    "new",
+                    [
+                      CB::IntegerNode.new(1),
+                      CB::IntegerNode.new(2),
+                      CB::IntegerNode.new(3),
+                      CB::IntegerNode.new(4)
+                    ]
+                  )
+                ]
+              )
+        parser.parse(code).should eq(nodes)
+      end
+
+      it "should handle empty lists too" do
+        code = "a = []"
+        nodes = CB::Nodes.new([
+                  CB::SetLocalNode.new(
+                    "a",
+                    CB::CallNode.new(
+                      CB::GetConstantNode.new("List"),
+                      "new",
+                      []
+                    )
+                  )
+                ])
+        parser.parse(code).should eq(nodes)
+      end
+
+      it "should provide the same results for sugarless syntax" do
+        with_sugar = "[1, 2, 3, 4]"
+        without_sugar = "List.new(1, 2, 3, 4)"
+        parser.parse(with_sugar).should eq(parser.parse(without_sugar))
+      end
+
+      it "should accept pairs" do
+        code = "[\"key\" => \"value\"]"
+        nodes = CB::Nodes.new([
+                  CB::CallNode.new(
+                    CB::GetConstantNode.new("List"),
+                    "new",
+                    [
+                      CB::CallNode.new(
+                        CB::GetConstantNode.new("Pair"),
+                        "new",
+                        [
+                          CB::StringNode.new("key"),
+                          CB::StringNode.new("value")
+                        ]
+                      )
+                    ]
+                  )
+                ])
+        parser.parse(code).should eq(nodes)
+      end
+    end
   end
 
   describe "variables" do
@@ -106,24 +185,55 @@ describe "Cuby::Parser" do
     end
 
     describe "operators" do
-      let(:nodes) {
-        CB::Nodes.new([
-          CB::CallNode.new(
-            CB::GetLocalNode.new("one"),
-            "+",
-            [CB::GetLocalNode.new("two")]
-          )
-        ])
-      }
+      describe "should be function calls" do
+        let(:nodes) {
+          CB::Nodes.new([
+            CB::CallNode.new(
+              CB::GetLocalNode.new("one"),
+              "+",
+              [CB::GetLocalNode.new("two")]
+            )
+          ])
+        }
 
-      it "should treat them like functions when used like functions" do
-        code = "one.+(two)"
-        parser.parse(code).should eq(nodes)
+        it "should treat them like functions when used like functions" do
+          code = "one.+(two)"
+          parser.parse(code).should eq(nodes)
+        end
+
+        it "should do the same but with syntatic sugar" do
+          code = "one + two"
+          parser.parse(code).should eq(nodes)
+        end
       end
 
-      it "should do the same but with syntatic sugar" do
-        code = "one + two"
-        parser.parse(code).should eq(nodes)
+      describe "list specific" do
+        it "should call [] when list accessors are used" do
+          code = "one[two]"
+          nodes = CB::Nodes.new([
+                    CB::CallNode.new(
+                      CB::GetLocalNode.new("one"),
+                      "[]",
+                      [CB::GetLocalNode.new("two")]
+                    )
+                  ])
+          parser.parse(code).should eq(nodes)
+        end
+
+        it "should do the same for assignment" do
+          code = "one[\"two\"] = three"
+          nodes = CB::Nodes.new([
+                    CB::CallNode.new(
+                      CB::GetLocalNode.new("one"),
+                      "[]=",
+                      [
+                        CB::StringNode.new("two"),
+                        CB::GetLocalNode.new("three")
+                      ]
+                    )
+                  ])
+          parser.parse(code).should eq(nodes)
+        end
       end
     end
 
@@ -427,10 +537,13 @@ describe "Cuby::Parser" do
                     [CB::IntegerNode.new(10)]
                   ),
                   CB::Nodes.new([
-                    CB::CallNode.new(
-                      CB::GetLocalNode.new("a"),
-                      "+=",
-                      [CB::IntegerNode.new(10)]
+                    CB::SetLocalNode.new(
+                      "a",
+                      CB::CallNode.new(
+                        CB::GetLocalNode.new("a"),
+                        "+",
+                        [CB::IntegerNode.new(10)]
+                      )
                     ),
                     CB::CallNode.new(
                       nil,
@@ -724,10 +837,13 @@ describe "Cuby::Parser" do
                       CB::MethodNode.new(
                         [],
                         CB::Nodes.new([
-                          CB::CallNode.new(
-                            CB::GetClassVarNode.new("@@count"),
-                            "+=",
-                            [CB::IntegerNode.new(1)]
+                          CB::SetClassVarNode.new(
+                            "@@count",
+                            CB::CallNode.new(
+                              CB::GetClassVarNode.new("@@count"),
+                              "+",
+                              [CB::IntegerNode.new(1)]
+                            )
                           ),
                           CB::GetInstanceVarNode.new("@name")
                         ])

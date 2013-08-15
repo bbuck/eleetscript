@@ -32,7 +32,7 @@ module Cuby
 
   class CubyClass < CubyClassSkeleton
     attr_accessor :class_methods, :instance_methods, :class_vars, :context, :name
-    attr_reader :super_class
+    attr_reader :super_class, :memory
     set_is_class
 
     class << self
@@ -55,7 +55,11 @@ module Cuby
 
     def call(method_name, arguments = [])
       method = lookup(method_name.to_s)
-      method.call(self, arguments)
+      if method.kind_of?(CubyMethod)
+        method.call(self, arguments, @memory)
+      else
+        method.call(self, arguments)
+      end
     end
 
     def lookup(method_name)
@@ -127,7 +131,11 @@ module Cuby
 
     def call(method_name, arguments = [])
       method = @runtime_class.instance_lookup(method_name.to_s)
-      method.call(self, arguments)
+      if method.kind_of?(CubyMethod)
+        method.call(self, arguments, runtime_class.memory)
+      else
+        method.call(self, arguments)
+      end
     end
 
     def initialize(memory, runtime_class)

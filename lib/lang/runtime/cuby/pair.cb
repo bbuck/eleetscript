@@ -1,0 +1,4 @@
+class Pair
+  property key value
+  init do |@key, @value| end
+end
