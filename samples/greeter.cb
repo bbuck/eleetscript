@@ -1,6 +1,6 @@
 class Greeter
   init do |@greeting| end
   greet do |name|
-    print("#{@greeting}, #{name}")
+    print("%@greeting, %name")
   end
 end

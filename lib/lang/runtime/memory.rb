@@ -157,7 +157,6 @@ module Cuby
 
       list.def "[]" do |receiver, arguments|
         lst = receiver.ruby_value
-        p lst
         arg = arguments.first
         if arg.instance? && arg.runtime_class.name == "Integer"
           index = arg.ruby_value

@@ -53,6 +53,38 @@ describe "Cuby::Interpreter" do
     end
   end
 
+  describe "strings" do
+    it "should work normally" do
+      code = "println(\"Hello\")"
+      $stdout.should_receive(:puts).with("Hello")
+      interpreter.eval(code)
+    end
+
+    it "should interpolate variables" do
+      code = <<-CODE
+      a = "Hello"
+      println("%a")
+      CODE
+      $stdout.should_receive(:puts).with("Hello")
+      interpreter.eval(code)
+    end
+
+    it "should not interpolate escaped sequences" do
+      code = <<-CODE
+      a = "Hello"
+      println("\\%a")
+      CODE
+      $stdout.should_receive(:puts).with("%a")
+      interpreter.eval(code)
+    end
+
+    it "should allow percent signs in strings" do
+      code = "println(\"10%\")"
+      $stdout.should_receive(:puts).with("10%")
+      interpreter.eval(code)
+    end
+  end
+
   describe "methods" do
     it "should receive compiled arguments" do
       code = <<-CODE
@@ -85,7 +117,7 @@ describe "Cuby::Interpreter" do
       class Greeter
         init do |@greeting| end
         greet do |name|
-          "\#{@greeting} \#{name}"
+          "%@greeting %name"
         end
       end
       CODE
@@ -108,7 +140,7 @@ describe "Cuby::Interpreter" do
       class Greeter
         init do |@greeting| end
         greet do |name|
-          println("\#{@greeting}, \#{name}")
+          println("%@greeting, %name")
         end
       end
       g = Greeter.new("Hello")
@@ -131,7 +163,7 @@ describe "Cuby::Interpreter" do
         end
         init do |@greeting| end
         greet do |name|
-          println("\#{@greeting}, \#{name}")
+          println("%@greeting, %name")
         end
       end
       g = Greeter.create("Hello")

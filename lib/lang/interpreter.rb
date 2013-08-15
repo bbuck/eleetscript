@@ -50,7 +50,7 @@ module Cuby
   end
 
   class StringNode
-    INTERPOLATE_RX = /(?<!\\)#\{.*?\}/
+    INTERPOLATE_RX = /[\\]?%(?:@|@@|\$)?[\w]+?(?=\W|$)/
 
     def eval(context, memory)
       memory.constants["String"].new_with_value(interpolate(context, memory))
@@ -60,8 +60,11 @@ module Cuby
       new_val = value.dup
       matches = value.scan(INTERPOLATE_RX)
       matches.each do |match|
-        next new_val.sub!(match, "") if match == "\#{}"
-        var = match[2..-2]
+        next if match.nil? || match == "%" || match == ""
+        if match.start_with?("\\")
+          next new_val.sub!(match, match[1..-1])
+        end
+        var = match[1..-1]
         var_value = if var.start_with? "$"
           memory.globals[H::global_name(var)]
         elsif var.start_with? "@@"
@@ -73,7 +76,7 @@ module Cuby
         else
           context.locals[var]
         end
-        new_val.sub!(match, (var_value.nil? ? memory.nil_obj : var_value).call("to_string").ruby_value)
+        new_val.sub!(match, (var_value.nil? ? memory.nil_obj : var_value).call(:to_string).ruby_value)
       end
       new_val
     end
