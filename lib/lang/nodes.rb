@@ -76,11 +76,15 @@ module Cuby
         str += "#{tabs}  @receiver=#{receiver.to_s[0..-2]}\n"
       end
       str += "#{tabs}  @method_name=#{method_name}\n"
-      str += "#{tabs}  @arguments=(\n"
-      arguments.each do |arg|
-        str += arg.to_s(level + 2)
+      if arguments.empty?
+        str += "#{tabs} @arguemtns=empty\n"
+      else
+        str += "#{tabs}  @arguments=(\n"
+        arguments.each do |arg|
+          str += arg.to_s(level + 2)
+        end
+        str += "#{tabs}  )\n"
       end
-      str += "#{tabs}  )\n"
       if block.nil?
         str + "#{tabs}  @block=nil\n>\n"
       else

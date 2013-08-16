@@ -10,8 +10,9 @@ prechigh
   left '**'
   left '*' '/' '%'
   left '+' '-'
+  right '-'
   left '>' '<' '>=' '<='
-  left '==' '!='
+  left 'is' 'isnt'
   right 'not'
   left 'and'
   left 'or'
@@ -138,6 +139,7 @@ rule
   Operation:
     Expression '+' Expression                              { result = CallNode.new(val[0], val[1], [val[2]]) }
   | Expression '-' Expression                              { result = CallNode.new(val[0], val[1], [val[2]]) }
+  | '-' Expression                                         { result = CallNode.new(val[1], "__negate!", []) }
   | Expression '*' Expression                              { result = CallNode.new(val[0], val[1], [val[2]]) }
   | Expression '**' Expression                             { result = CallNode.new(val[0], val[1], [val[2]]) }
   | Expression '/' Expression                              { result = CallNode.new(val[0], val[1], [val[2]]) }
@@ -150,9 +152,7 @@ rule
   | 'not' Expression                                       { result = CallNode.new(val[1], val[0], []) }
   | Expression 'and' Expression                            { result = CallNode.new(val[0], val[1], [val[2]]) }
   | Expression 'or' Expression                             { result = CallNode.new(val[0], val[1], [val[2]]) }
-  | Expression '==' Expression                             { result = CallNode.new(val[0], val[1], [val[2]]) }
   | Expression 'is' Expression                             { result = CallNode.new(val[0], val[1], [val[2]]) }
-  | Expression '!=' Expression                             { result = CallNode.new(val[0], val[1], [val[2]]) }
   | Expression 'isnt' Expression                           { result = CallNode.new(val[0], val[1], [val[2]]) }
   ;
 
@@ -222,8 +222,6 @@ rule
   | 'not'
   | 'is'
   | 'isnt'
-  | '=='
-  | '!='
   | '>'
   | '>='
   | '<='

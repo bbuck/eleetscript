@@ -94,6 +94,20 @@ describe "Cuby::Interpreter" do
     end
   end
 
+  describe "numbers" do
+    it "should allow negative" do
+      code = "println(-10)"
+      $stdout.should_receive(:puts).with("-10")
+      interpreter.eval(code)
+    end
+
+    it "should do math on negative numbers" do
+      code = "println(-10 + 8)"
+      $stdout.should_receive(:puts).with("-2")
+      interpreter.eval(code)
+    end
+  end
+
   describe "methods" do
     it "should receive compiled arguments" do
       code = <<-CODE
@@ -309,7 +323,7 @@ describe "Cuby::Interpreter" do
         get do |i|
           n = 0
           while n < 10
-            if n == i
+            if n is i
               return n
             end
             n += 1
@@ -343,7 +357,7 @@ describe "Cuby::Interpreter" do
         i = 0
         sum = 0
         while i < 10
-          if i == 1
+          if i is 1
             i += 1
             next
           end
@@ -390,23 +404,69 @@ describe "Cuby::Interpreter" do
       interpreter.eval(code)
     end
 
-    it "should have a working List class" do
-      code = <<-CODE
-      list = ["Hello", "msg" => "World"]
-      list2 = List.new("Hola", "msg" => "Mundo")
-      println(list[0])
-      println(list["msg"])
-      println(list2[0])
-      println(list2["msg"])
-      list["msg"] = "Konnichiwa"
-      println(list["msg"])
-      CODE
-      $stdout.should_receive(:puts).with("Hello")
-      $stdout.should_receive(:puts).with("World")
-      $stdout.should_receive(:puts).with("Hola")
-      $stdout.should_receive(:puts).with("Mundo")
-      $stdout.should_receive(:puts).with("Konnichiwa")
-      interpreter.eval(code)
+    describe "List class" do
+      it "should work" do
+        code = <<-CODE
+        list = ["Hello", "msg" => "World"]
+        list2 = List.new("Hola", "msg" => "Mundo")
+        println(list[0])
+        println(list["msg"])
+        println(list2[0])
+        println(list2["msg"])
+        list["msg"] = "Konnichiwa"
+        println(list["msg"])
+        CODE
+        $stdout.should_receive(:puts).with("Hello")
+        $stdout.should_receive(:puts).with("World")
+        $stdout.should_receive(:puts).with("Hola")
+        $stdout.should_receive(:puts).with("Mundo")
+        $stdout.should_receive(:puts).with("Konnichiwa")
+        interpreter.eval(code)
+      end
+
+      it "should allow pushing/popping" do
+        code = <<-CODE
+        l = []
+        l.push(10)
+        l.push(8)
+        println(l[0] + l[1])
+        CODE
+        $stdout.should_receive(:puts).with("18")
+        interpreter.eval(code)
+      end
+
+      it "should use operators overloads" do
+        code = <<-CODE
+        l = []
+        l < 10
+        l < 20
+        println(l[0] + l[1])
+        CODE
+        $stdout.should_receive(:puts).with("30")
+        interpreter.eval(code)
+      end
+
+      it "should allow merge operations" do
+        code = <<-CODE
+        l1 = [1, 2, 10 => "What"]
+        l2 = [3, 4, "msg" => "Hello"]
+        l1.merge!(l2)
+        println(l1)
+        CODE
+        $stdout.should_receive(:puts).with("[1, 2, 3, 4, 10=>What, msg=>Hello]")
+        interpreter.eval(code)
+      end
+
+      it "should use ** method" do
+        code = <<-CODE
+        l1 = [1, 2]
+        l2 = [3, 4]
+        l1 ** l2
+        println(l1)
+        CODE
+        $stdout.should_receive(:puts).with("[1, 2, 3, 4]")
+        interpreter.eval(code)
+      end
     end
   end
 end

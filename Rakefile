@@ -14,5 +14,6 @@ end
 
 desc "Run a console"
 task :console => :load_path do
+  require "lang/interpreter"
   pry
 end

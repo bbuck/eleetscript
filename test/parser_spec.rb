@@ -934,7 +934,7 @@ describe "Cuby::Parser" do
 
       m = Math.new
       a = m.add(10, 20)
-      if a == 30
+      if a is 30
         print("It works!")
       end
       CODE
@@ -1034,7 +1034,7 @@ describe "Cuby::Parser" do
                 CB::IfNode.new(
                   CB::CallNode.new(
                     CB::GetLocalNode.new("a"),
-                    "==",
+                    "is",
                     [CB::IntegerNode.new(30)]
                   ),
                   CB::Nodes.new([

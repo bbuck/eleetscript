@@ -3,36 +3,84 @@
 $:.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
 require "lang/interpreter"
 
-Signal.trap("INT") do
+def exit_repl
   puts "\n\nExiting Cuby REPL"
   exit
 end
 
+Signal.trap("INT") do
+  exit_repl
+end
+
 interp = CB::Interpreter.new
+@lexer = CB::Lexer.new
 
 if ARGV.empty?
   show_nodes = false
   interp.memory.constants["Object"].def :__repl_show_nodes do |receiver, arguments|
     bool = !!arguments.first.ruby_value
     show_nodes = bool
+    arguments.first
   end
 
   interp.memory.constants["Object"].def :exit do |receiver, arguments|
-    exit
+    exit_repl
+  end
+
+  def depth(code)
+    begin
+      tokens = @lexer.tokenize(code)
+    rescue
+      return 0
+    end
+    depth = 0
+    tokens.each do |token|
+      depth += 1 if ["class", "do", "while", "if",  "("].include?(token[1])
+      depth -= 1 if ["end", ")"].include?(token[1])
+    end
+    depth
   end
 
   line = 1
+  line_depth = 0
+  code = ""
 
   while true
-    print "#{line} >> "
+    if line_depth > 0
+      spaces = "  " * line_depth
+      stars = line.to_s.gsub(/./, "*")
+      print "#{stars} >> #{spaces}"
+    else
+      print "#{line} >> "
+    end
     input = gets.chomp.strip
-    value = interp.eval(input, show_nodes)
-    # if ["Integer", "Float", "String", "TrueClass", "FalseClass", "NilClass"].include?(value.call(:name))
-    #   p value.ruby_value
-    # else
-    #   p value.call(:to_string)
-    # end
-    p value
+    if code.length > 0
+      input = code + "\n" + input
+    end
+    if depth(input) == 0
+      begin
+        value = interp.eval(input, show_nodes)
+      rescue => e
+        puts "Error: #{e.message}"
+        next
+      end
+      if value.kind_of?(CB::CubyClass) || value.kind_of?(CB::CubyClassInstance)
+        if ["Integer", "Float", "String", "TrueClass", "FalseClass", "NilClass"].include?(value.class_name)
+          puts " => #{value.ruby_value.inspect}"
+        else
+          puts " => #{value.call(:inspect).ruby_value}"
+        end
+      else
+        puts "Improper value returned"
+        p value
+      end
+      line_depth = 0
+      code = ""
+    else
+      line_depth = depth(input)
+      line_depth = 0 if line_depth < 0
+      code = input
+    end
     line += 1
   end
 elsif File.exists?(ARGV[0])

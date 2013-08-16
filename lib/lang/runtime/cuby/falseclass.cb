@@ -13,7 +13,7 @@ class FalseClass
 
   or do |o|
     if o
-      true
+      o
     else
       false
     end

@@ -5,4 +5,8 @@ class Pair
   clone do
     Pair.new(@key.clone, @value.clone)
   end
+
+  to_string do
+    "<Pair " + @key + " => " + @value + ">"
+  end
 end

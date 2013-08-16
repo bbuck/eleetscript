@@ -56,6 +56,7 @@ module Cuby
       @super_class = super_class
       @ruby_value = self
     end
+    alias :class_name :name
 
     def call(method_name, arguments = [])
       method = lookup(method_name.to_s)
@@ -169,6 +170,10 @@ module Cuby
         cur_class = cur_class.super_class
       end
       names.include?(value)
+    end
+
+    def class_name
+      @runtime_class.name
     end
   end
 end

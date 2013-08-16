@@ -271,6 +271,7 @@ module Cuby
       else
         context.current_class.instance_methods[method_name] = method_obj
       end
+      memory.nil_obj
     end
   end
 

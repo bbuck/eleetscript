@@ -97,7 +97,7 @@ module Cuby
         @constants["String"].new_with_value(receiver.runtime_class.name)
       end
 
-      object.def "==" do |receiver, arguments|
+      object.def "is" do |receiver, arguments|
         if receiver == arguments.first
           @constants["true"]
         else
@@ -140,11 +140,82 @@ module Cuby
 
       number.def "+" do |receiver, arguments|
         arg = arguments.first
-        val = receiver.ruby_value + arg.ruby_value
-        if val.kind_of?(Fixnum)
-          int.new_with_value(val)
+        if arg.is_a?("Number")
+          val = receiver.ruby_value + arg.ruby_value
+          if val.kind_of?(Fixnum)
+            int.new_with_value(val)
+          else
+            float.new_with_value(val)
+          end
+        elsif arg.is_a?("String")
+          str = receiver.ruby_value.to_s + arg.ruby_value
+          @constants["String"].new_with_value(str)
         else
-          float.new_with_value(val)
+          receiver
+        end
+      end
+
+      number.def "-" do |receiver, arguments|
+        arg = arguments.first
+        if arg.is_a?("Number")
+          val = receiver.ruby_value - arg.ruby_value
+          if val.kind_of?(Fixnum)
+            int.new_with_value(val)
+          else
+            float.new_with_value(float)
+          end
+        else
+          receiver
+        end
+      end
+
+      number.def "*" do |receiver, arguments|
+        arg = arguments.first
+        if arg.is_a?("Number")
+          val = receiver.ruby_value * arg.ruby_value
+          if val.kind_of?(Fixnum)
+            int.new_with_value(val)
+          else
+            float.new_with_value(float)
+          end
+        else
+          receiver
+        end
+      end
+
+      number.def "/" do |receiver, arguments|
+        arg = arguments.first
+        if arg.is_a?("Number")
+          if arg.ruby_value == 0
+            int.new_with_value(0)
+          else
+            val = receiver.ruby_value / arg.ruby_value
+            if val.kind_of?(Fixnum)
+              int.new_with_value(val)
+            else
+              float.new_with_value(float)
+            end
+          end
+        else
+          receiver
+        end
+      end
+
+      number.def "%" do |receiver, arguments|
+        arg = arguments.first
+        if arg.is_a?("Number")
+          if arg.ruby_value == 0
+            int.new_with_value(0)
+          else
+            val = receiver.ruby_value % arg.ruby_value
+            if val.kind_of?(Fixnum)
+              int.new_with_value(val)
+            else
+              float.new_with_value(float)
+            end
+          end
+        else
+          receiver
         end
       end
 
@@ -174,7 +245,7 @@ module Cuby
         end
       end
 
-      number.def "==" do |receiver, arguments|
+      number.def "is" do |receiver, arguments|
         arg = arguments.first
         if arg.is_a?("Number")
           if receiver.ruby_value == arg.ruby_value
@@ -187,8 +258,23 @@ module Cuby
         end
       end
 
+      number.def "__negate!" do |receiver, arguments|
+        receiver.ruby_value = -receiver.ruby_value
+        receiver
+      end
+
       number.def :to_string do |receiver, arguments|
         @constants["String"].new_with_value(receiver.ruby_value.to_s)
+      end
+
+      number.def :clone do |receiver, arguments|
+        if receiver.is_a?("Integer")
+          int.new_with_value(receiver.ruby_value)
+        elsif receiver.is_a?("Float")
+          float.new_with_value(receiver.ruby_value)
+        else
+          nil_obj
+        end
       end
     end
 
@@ -267,6 +353,15 @@ module Cuby
         value
       end
 
+      list.def :merge! do |receiver, arguments|
+        lst = receiver.ruby_value
+        arg = arguments.first
+        if arg.is_a?("List")
+          lst.merge!(arg.ruby_value)
+        end
+        lst
+      end
+
       list.def :push do |receiver, arguments|
         receiver.ruby_value.array << arguments.first
         arguments.first
@@ -320,9 +415,9 @@ module Cuby
           if k.kind_of?(CubyClassSkeleton)
             k = k.call(:inspect).ruby_value
           else
-            k = k.to_s
+            k = k.inspect
           end
-          "#{k}=>#{v.call(:to_string).ruby_value}"
+          "#{k}=>#{v.call(:inspect).ruby_value}"
         end
         hash_str = hash_vals.join(", ")
         str = if arr_str.length > 0 && hash_str.length > 0

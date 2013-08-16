@@ -14,4 +14,8 @@ class Object
   __nil_method do
     nil
   end
+
+  __negate! do
+    self
+  end
 end

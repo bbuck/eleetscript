@@ -8,8 +8,8 @@ class TrueClass
   end
 
   and do |o|
-    if o == true
-      true
+    if o is true
+      o
     else
       false
     end
