@@ -52,8 +52,6 @@ Math.pi # parameterless calls do not require parenthesis
 ```cuby
 # Greeter sample
 class Greeter
-  property greeting # similar to ruby's attr_accessor, defines 'greeting' and 'greeting=(value)'
-
   init do |@greeting| end # from CoffeeScript, assigns @greeting to value of first argument
 
   greet do |name|
@@ -64,6 +62,50 @@ end
 greeter = Greeter.new("Hello")
 greeter.greet("World")
 # => "Hello, World"
+```
+
+```cuby
+# This is the pair class, part of the Cuby core as it's written in Cuby
+class Pair
+  # Creates a getter and setter method for each property listed, each manages an
+  # instance variable of the same name such as @key and @value
+  property key value
+
+  init do |@key, @value| end
+
+  clone do
+    Pair.new(@key.clone, @value.clone)
+  end
+end
+
+p = Pair.new("first", "second")
+p.key # => "first"
+p.value # => "second"
+p.key = "changed"
+p.key # => "changed"
+```
+
+```cuby
+# Lists in Cuby are similar to that of PHP, they are both syncronous and associative.
+a = [1, 3]
+a[0] + a[1] # => 4
+
+a = ["greeting" => "Hello", "name" => "World"]
+println(a["greeting"] + ", " + a["name"]) # => "Hello, World"
+
+a = [0, 1, "msg" => "associative"]
+a[0] # => 0
+a["msg"] # => "associative"
+
+a["other"] = "new value"
+
+# The key => value syntax is just sugar for creating a pair, so feel free to use
+# dynamic keys
+key => value # same as Pair.new(key, value)
+
+key = "dynamic key"
+a = [key => "other"]
+a["dynamic key"] # => "other"
 ```
 
 # Thanks
