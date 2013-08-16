@@ -1,0 +1,535 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Cuby by bbuck</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/bbuck/Cuby">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/bbuck/Cuby/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/bbuck/Cuby/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+
+      <section>
+        <div id="title">
+          <h1>Cuby</h1>
+          <p>A ruby hosted scripting language, designed to add a scripting component on top or ruby applications.</p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/bbuck">bbuck</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
+        </div>
+
+        <h1>
+<a name="what-is-cuby" class="anchor" href="#what-is-cuby"><span class="octicon octicon-link"></span></a>What is Cuby?</h1>
+
+<p>Cuby is a no-error scripting language built to run on top of Ruby applications for additional or easy-to-change pieces of functionality. Cuby's core libraries are meant to be few in number to provide bare essentials and not (by default) allow File or Process access/management making it easy to secure a Cuby runtime (use it's default settings!). The original purpose of Cuby was to act as scripting language for a Ruby MUD server I was building and I wanted something quick to throw in to the application that I could easily run code on and not worry about crashing the server or doing harm to the system itself. </p>
+
+<h2>
+<a name="goals" class="anchor" href="#goals"><span class="octicon octicon-link"></span></a>Goals</h2>
+
+<p>The core goals behind Cuby are to provide a single (or minimal) way to perform certain tasks and have clean syntax that is readable by itself.</p>
+
+<p>Cuby was partly inspired by Ruby where you can define blocks in two different ways:</p>
+
+<div class="highlight"><pre><span class="n">list</span><span class="o">.</span><span class="n">map</span> <span class="k">do</span> <span class="o">|</span><span class="n">item</span><span class="o">|</span>
+  <span class="n">item</span>
+<span class="k">end</span>
+
+<span class="n">list</span><span class="o">.</span><span class="n">map</span> <span class="p">{</span> <span class="o">|</span><span class="n">item</span><span class="o">|</span> <span class="n">item</span> <span class="p">}</span>
+</pre></div>
+
+<p>And those are blocks, methods look different:</p>
+
+<div class="highlight"><pre><span class="k">def</span> <span class="nf">some_method</span>
+  <span class="kp">nil</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>While I have nothing against this approach and I love working in Ruby - I wanted something that was simple and easy to get into. Once a newcomer learned how to do something I didn't want them to encounter new or strange ways to do the same thing in the future, perhaps reading another persons work.</p>
+
+<p>In Cuby, methods and blocks all use Ruby's <code>do..end</code> syntax, I chose this because a function <em>does</em> something, so when you write one, why not tell it <em>what to do</em>?</p>
+
+<pre lang="cuby"><code>some_method do
+  nil
+end
+
+items.map() do |item|
+  item
+end
+</code></pre>
+
+<h2>
+<a name="no-errors" class="anchor" href="#no-errors"><span class="octicon octicon-link"></span></a>No Errors?</h2>
+
+<p>I realize the downsides that can accompany an errorless system, for example harder to find out why exactly you code doesn't work. The reason I went this path is to open up scripting in the MUD to non-professional developers and not have to worry that their mistakes would break whatever objects they were scripting. The script would fail gracefully (and silently) and standard behavior for the object would follow instead of the coded behavior. Cuby scripts aren't meant to be chock full of logic either so with minimal actions going on in a script and a system that needs to maintain operational status I chose to not deliver any errors from the interpreter and have things silently fail.</p>
+
+<p>Some examples of silently failing:</p>
+
+<pre lang="cuby"><code>class Dummy end
+Dummy.create # While all object have a "new" method, we did not define a "create" class method here
+
+# Calling methods that don't exist invoke Object#__nil_method which simply returns nil.
+# Given the open nature of Cuby, if you needed you could override __nil_method to do what 
+# you needed per class or globally although changing core functionality is not suggested
+
+Constant = 10
+
+Constant = 20 # Normally this would prompt an error, can't reassign a Constant. It doesn't
+
+# It just simply ignores the reassignment.
+println(Constant) # =&gt; 10 
+
+some_var_that_isnt_defined # just nil
+</code></pre>
+
+<p>Cuby is built to avoid crashing on these situations to keep the execution of the script smooth.</p>
+
+<h1>
+<a name="features" class="anchor" href="#features"><span class="octicon octicon-link"></span></a>Features</h1>
+
+<p>What does Cuby have to offer as a scripting language? Honestly? Nothing groundbreaking or new. I've used quite a bit of languages and pulled features that I felt were easier and more readable from several languages. The name "Cuby" is actually a mashup (of sorts) of CoffeeScript and Ruby as those were my two base inspirations.</p>
+
+<h2>
+<a name="literals-variables-and-the-basics" class="anchor" href="#literals-variables-and-the-basics"><span class="octicon octicon-link"></span></a>Literals, Variables and the basics</h2>
+
+<h3>
+<a name="literals" class="anchor" href="#literals"><span class="octicon octicon-link"></span></a>Literals</h3>
+
+<pre lang="cuby"><code># Anything starting with a "#" is a comment to the next newline (\n) and ignored by the Lexer
+
+"Strings" # Strings can only be made with double quotes
+# Numbers all derive from "Number" at the base, but Cuby knows the difference between Integers and Floats
+10 # Is an Integer
+1.0 # Is a Float
+
+# Numbers support _ as a seperator
+100_000 # =&gt; 100000
+100_000.000_001 # =&gt; 100000.000001
+
+# Boolean values are where Cuby deviates from it's "one way only" methodology, true and
+# false have three separate (but equal) representations.
+# True - all of these evaluate to true
+true
+on
+yes
+
+# False - all of these evaluate to false
+false
+off
+no
+
+# The reason for this is readability, sometimes 'true' doesn't read the true intention
+# for example
+my_flag = true # easy to understand and recognize, but
+my_flag = on # better represents the programmers intent, to turn the flag on
+
+# Lists, Cuby's array/hash class, can be a "literal"
+[1, 2, 3] # With just array values
+
+[1, 2, "msg" =&gt; "Hello!"] # With array and hash values
+
+# The 'key =&gt; value' syntax in Cuby is really just sugar for creating a Pair, Consider:
+[1, 2, "msg" =&gt; "Hello"]
+
+# Is functionally the same as 
+List.new(1, 2, Pair.new("msg", "Hello"))
+
+# This opens this pair functionality to user defined classes and variable assignments
+</code></pre>
+
+<h3>
+<a name="varbiable-types" class="anchor" href="#varbiable-types"><span class="octicon octicon-link"></span></a>Varbiable Types</h3>
+
+<pre lang="cuby"><code># There are several different kinds of variables in Cuby, all have specific scopes.
+
+A_CONSTANT # starts with a capital letter (a la Ruby) and can contain underscores and numbers
+AlsoAConstant
+# Constants can only be assigned literal values, not evaluated expressions
+
+$global # Global values start with a $ and belong to the highest level "Namespace"
+
+@instance # Instance variables begin with a single @ and belong to an instance of a class, classes do not share instances
+
+@@class # Belongs to a class, and accessible by all instances of the class.
+
+local # Simple local names, these fallback to methods if no local is defined.
+
+# Variable names can end with ? or ! characters, these are more generally used for 
+# special method meanings where ? represents the method will return true or false
+# and that methods with ! will modify or change the object you call the method on.
+# However these can be used with variables too
+
+my_question?
+serious_bizness!
+</code></pre>
+
+<h3>
+<a name="variable-assignment-and-usage" class="anchor" href="#variable-assignment-and-usage"><span class="octicon octicon-link"></span></a>Variable Assignment and Usage</h3>
+
+<pre lang="cuby"><code># Variable assignment is a simple '='
+my_var = 10
+
+$this_global = "Hello"
+
+A_CONSTANT = "NEVER CHANGING"
+</code></pre>
+
+<h3>
+<a name="using-and-defining-methods" class="anchor" href="#using-and-defining-methods"><span class="octicon octicon-link"></span></a>Using and Defining Methods</h3>
+
+<pre lang="cuby"><code># Methods are action blocks that perform tasks when invoked.
+my_action do
+  println("It Worked!")
+end
+
+# Here I define 'my_action' as a method that prints (using println, another method) "It Worked!"
+# Methods are invoked by 'calling' them with parenthesis
+my_action() # =&gt; "It Worked!"
+
+# Methods that don't take parameters can be called without parenthesis
+my_action # =&gt; "It Worked!"
+
+# But doing this has a caveat, if a local is defined with the same name, the local will
+# be accessed instead. Using '()' will always ensure the method is called
+my_action = 10
+my_action # =&gt; 10
+my_action() # =&gt; "It Worked!"
+
+# Methods that don't take parameters can be useful, but oftentimes you'll need to
+# pass different data to them, this is done with a parameter list in pipes (|)
+add do |a, b|
+  a + b
+end
+
+# Here is an add function that takes two parameters, a and b. It's important to note,
+# the result of the last expression is always returned from a method unless an 
+# explicit return in encountered. Therefore I could use this method to add numbers
+
+ten = add(6, 4)
+println(ten) # =&gt; 10
+
+# You don't have to specify parameters to accept arguments to a function, every 
+# method has a 'magic' arguments local that is a List of all passed arguments.
+add2 do
+  arguments[0] + arguments[1]
+end
+
+# This add does the same thing, but doesn't specify parameter names
+ten = add2(6, 4)
+println(ten) # =&gt; 10
+
+# Calling methods that don't exist is nothing to fret about, there is a special method
+# used in these cases.
+println(i_dont_exist()) # =&gt; "nil"
+</code></pre>
+
+<h3>
+<a name="classes-class-methods-methods-and-instances" class="anchor" href="#classes-class-methods-methods-and-instances"><span class="octicon octicon-link"></span></a>Classes, Class Methods, Methods and Instances</h3>
+
+<p>Cuby is Object Oriented, and everything is an Object (everything). In order to suit the needs of the script you may be writing Cuby provides syntax for defining your own classes as well as modifying existing classes.</p>
+
+<pre lang="cuby"><code># Lets build a Greeter
+class Greeter end
+
+# This is a simple empty class defined in Cuby, all classes extend Object (unless a
+# different parent is specified) so even though we didn't define anything special
+# about Greeter we can still call methods on it
+g = Greeter.new
+g.class_name # =&gt; "Greeter"
+g.to_string # =&gt; "Greeter"
+g.inspect # =&gt; "Greeter"
+g.clone # =&gt; A new instance of Greeter
+g.kind_of?("Greeter") # =&gt; true
+g.kind_of?("Object") # =&gt; true
+g.kind_of?("Number") # =&gt; false
+
+# NOTE: While you can change the behavior of the 'new' function it's not recommended
+# as doing so will prevent the class from being able to spawn instances of itself,
+# if that is not necessary then feel free to do so.
+
+# This Greeter class is kind of useless, lets reopen and add features to it
+class Greeter
+  init do |greeting|
+    @greeting = greeting
+  end
+
+  greeting do
+    @greeting
+  end
+
+  greeting= do |greeting|
+    @greeting
+  end
+
+  greet do |name|
+    println("%@greeting, %name")
+  end
+end
+
+# We've reopened the Greeter class and defined 4 new methods, 'init', 'greeting', 
+# 'greeting=', and 'greet'. There are couple of things to mention for this example:
+# The 'init' function of a class is called when you create a new instance of that class,
+# and any arguments you give 'new' will be passed to 'init'. We can now do:
+g = Greeter.new("Hello") # to create a Greeter with a greeting.
+
+# The 'init' function sets the value of the instance variable @greeting
+
+# The next two function 'greeting' and 'greeting=' are getters and setters for the
+# greeting variable. In Cuby best practice getters should be named the same as the value
+# they are fetching and setters should be named the same way followed by an '='
+g.greeting # =&gt; returned "Hello"
+
+# The setter can be used just like standard method calls
+g.greeting=("Hola")
+
+# but also with a bit of sugar
+g.greeting = "Hello" # This is converted into g.greeting=("Hello") by the Parser
+
+# Finally we have the 'greet' method which prints "%@greeting, %name", this is special
+# string syntax that interpolates the values of the variables named after the %, the
+# result of calling
+g.greet("World")
+
+# is "Hello, World"
+
+# NOTE: Interpolation ONLY works on variables, not expressions or literals.
+
+# The Greeter example is "complete", but can be greatly simplified. There is a special
+# way in Cuby for assigning parameters to instance or class variables.
+
+class Greeter
+  init do |@greeting| end
+
+  greeting= do |@greeting| end
+end
+
+# Here the parameter is now named @greeting which will automatically assign this 
+# instance variable to the value passed as the first parameter.
+
+# Getters and Setters are also really common so there is a property keyword that defines
+# them for you.
+
+class Greeter
+  property greeting
+end
+
+# This property keyword takes all names listed after it and creates a getter and setter
+# like the ones defined earlier. These getters and setters will modify an instance 
+# variable with the same name, in this case @greeting
+
+# This makes the bulk of class definitions logic, and not mundane simple tasks. Take the
+# Pair class from Cuby's core
+class Pair
+  property key value
+  init do |@key, @value| end
+end
+
+# Simple, and functional. Notice how the values listed after the property keyword are 
+# not separated by commas, just spaces. They also must be on the same line.
+
+# Class variables belong to classes, not instances of the class, these are useful when
+# all instances share data, like an instantiation count
+class Counter
+  @@count = 0
+  init do
+    @@count += 1
+  end
+end
+
+# Class methods are methods that belong to a class and not an instance and they share 
+# similar syntax.
+class Counter
+  @@count do
+    @@count
+  end
+end
+
+# Now we have a class method 'count' we can use to return the value of class variable
+# '@@count'
+println(Counter.count) # =&gt; 2
+
+# To end this discussion on classes, everything in Cuby is an object, and all actions
+# are methods.
+1 + 10 # == 1.+(10)
+true and false # == true.and(false)
+not false # == false.not
+
+# Assignment operations are just sugar for assigning the result of an operation
+i += 10 # == i = i.+(10)
+
+# NOTE: Assignments are the only thing that are not function calls, but assignment 
+# operations use their respective operator function before performing the assignment.
+</code></pre>
+
+<h3>
+<a name="operators" class="anchor" href="#operators"><span class="octicon octicon-link"></span></a>Operators</h3>
+
+<h1>
+<a name="listed-in-order-of-precedence" class="anchor" href="#listed-in-order-of-precedence"><span class="octicon octicon-link"></span></a>Listed in order of precedence</h1>
+
+<table>
+<thead><tr>
+<td><strong>Precedence<strong></strong></strong></td>
+      <td><strong>Operator<strong></strong></strong></td>
+      <td><strong>Purpose</strong></td>
+      <td><strong>Example</strong></td>
+      <td><strong>Can be Overriden?</strong></td>
+    </tr></thead>
+<tbody>
+<tr>
+<td>1</td>
+      <td><code>.</code></td>
+      <td>Call a method on the object</td>
+      <td><code>a.method_name</code></td>
+      <td>No</td>
+    </tr>
+<tr>
+<td>2</td>
+      <td><code>**</code></td>
+      <td>Generally used for raising numbers to a certain power</td>
+      <td><code>2 ** 3 =&gt; 8</code></td>
+      <td>Yes</td>
+    </tr>
+<tr>
+<td>3</td>
+      <td><code>*</code></td>
+      <td>Used to multiply numbers</td>
+      <td><code>2 * 3 =&gt; 6</code></td>
+      <td>Yes</td>
+    </tr>
+<tr>
+<td>3</td>
+      <td><code>/</code></td>
+      <td>Used to divide numbers</td>
+      <td><code>6 / 2 =&gt; 3</code></td>
+      <td>Yes</td>
+    </tr>
+<tr>
+<td>3</td>
+      <td><code>%</code></td>
+      <td>Used to modularly divide numbers</td>
+      <td><code>7 % 2 =&gt; 1</code></td>
+      <td>Yes</td>
+    </tr>
+<tr>
+<td>4</td>
+      <td><code>+</code></td>
+      <td>Add two numbers together</td>
+      <td><code>2 + 3 =&gt; 5</code></td>
+      <td>Yes</td>
+    </tr>
+<tr>
+<td>4</td>
+      <td><code>-</code></td>
+      <td>Subtract two numbers</td>
+      <td><code>10 - 5 =&gt; 5</code></td>
+      <td>Yes</td>
+    </tr>
+<tr>
+<td>5</td>
+      <td><code>&gt;</code></td>
+      <td>Compare if numbers are Greater than other numbers</td>
+      <td><code>10 &gt; 2 =&gt; true</code></td>
+      <td>Yes</td>
+    </tr>
+<tr>
+<td>5</td>
+      <td><code>&gt;=</code></td>
+      <td>Determine if numbers are greater than or equal to</td>
+      <td><code>10 &gt; 10 =&gt; true</code></td>
+      <td>Yes</td>
+    </tr>
+<tr>
+<td>5</td>
+      <td><code></code></td>
+      <td>Determine if number is less than other</td>
+      <td><code>6  true</code></td>
+      <td>Yes</td>
+    </tr>
+<tr>
+<td>5</td>
+      <td><code></code></td>
+      <td>Determine if number is less than or equal to other number</td>
+      <td><code>10  true</code></td>
+      <td>Yes</td>
+    </tr>
+<tr>
+<td>6</td>
+      <td><code>is</code></td>
+      <td>Determine if two values are equal</td>
+      <td><code>10 is 10 =&gt; true</code></td>
+      <td>Yes</td>
+    </tr>
+<tr>
+<td>6</td>
+      <td><code>isnt</code></td>
+      <td>Determine if values are not equal</td>
+      <td><code>10 isnt 8 =&gt; true</code></td>
+      <td>Yes</td>
+    </tr>
+<tr>
+<td>7</td>
+      <td><code>not</code></td>
+      <td>Negate boolean value</td>
+      <td><code>not true =&gt; false</code></td>
+      <td>Yes</td>
+    </tr>
+<tr>
+<td>8</td>
+      <td><code>and</code></td>
+      <td>The result is true if both sides are true</td>
+      <td><code>yes and on =&gt; true</code></td>
+      <td>Yes</td>
+    </tr>
+<tr>
+<td>9</td>
+      <td><code>or</code></td>
+      <td>The result is true if one side is true</td>
+      <td><code>no or yes =&gt; true</code></td>
+      <td>Yes</td>
+    </tr>
+<tr>
+<td>10</td>
+      <td><code>=</code></td>
+      <td>Assign one value to a variable (includes all assignment operations)*</td>
+      <td><code>i = 10</code></td>
+      <td>Yes</td>
+    </tr>
+</tbody>
+</table><p><em><strong>Assignment Operations</strong>: <code>+=</code> <code>-=</code> <code>/=</code> <code>*=</code> <code>%=</code> `</em>*=`</p>
+      </section>
+
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-43235042-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>
