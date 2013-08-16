@@ -28,6 +28,10 @@ module Cuby
     def class?
       false
     end
+
+    def is_a?(name)
+      false
+    end
   end
 
   class CubyClass < CubyClassSkeleton
@@ -118,6 +122,10 @@ module Cuby
       to_s[0..-2] + " @class_methods(#{@class_methods.keys.join(", ")}) @instance_methods(#{@instance_methods.keys.join(", ")})>"
     end
 
+    def is_a?(value)
+      false
+    end
+
     private
 
     def has_super_class?
@@ -151,6 +159,16 @@ module Cuby
 
     def inspect
       to_s
+    end
+
+    def is_a?(value)
+      names = ["Object", runtime_class.name]
+      cur_class = runtime_class
+      while cur_class.super_class.name != "Object"
+        names << cur_class.super_class.name
+        cur_class = cur_class.super_class
+      end
+      names.include?(value)
     end
   end
 end

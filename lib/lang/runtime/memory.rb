@@ -1,4 +1,3 @@
-require "lang/runtime/object"
 require "lang/runtime/class"
 require "lang/runtime/context"
 require "lang/runtime/method"
@@ -10,7 +9,7 @@ module Cuby
     attr_reader :constants, :globals, :root, :root_context
 
     ROOT_OBJECTS = ["Object", "Number", "String", "List", "TrueClass",
-                    "FalseClass", "NilClass", "Pair"]
+                    "FalseClass", "NilClass"]
 
     def initialize
       @constants = {}
@@ -46,10 +45,13 @@ module Cuby
       load_object_methods
       load_string_methods
       load_number_methods
-      load_list_methods
       load_boolean_methods
       load_nil_methods
-      loader.load(File.join(@root_path, "pair.cb"))
+      load_list_methods
+      files = Dir.glob(File.join(@root_path, "**", "*.cb"))
+      files.each do |file|
+        loader.load(file)
+      end
     end
 
     private
@@ -73,15 +75,6 @@ module Cuby
         nil_obj
       end
 
-      object.def :to_string do |receiver, arguments|
-        cls_name = receiver.runtime_class.name
-        @constants["String"].new_with_value(cls_name)
-      end
-
-      object.def :inspect do |receiver, arguments|
-        receiver.call(:to_string)
-      end
-
       object.def :kind_of? do |receiver, arguments|
         t = @constants["true"]
         f = @constants["false"]
@@ -100,24 +93,43 @@ module Cuby
         names.include?(name) ? t : f
       end
 
-      object.def :__nil_method do |receiver, arguments|
-        @constants["nil"]
-      end
-
       object.def :class_name do |receiver, arguments|
         @constants["String"].new_with_value(receiver.runtime_class.name)
+      end
+
+      object.def "==" do |receiver, arguments|
+        if receiver == arguments.first
+          @constants["true"]
+        else
+          @constants["false"]
+        end
+      end
+
+      object.def :clone do |receiver, arguments|
+        cls_name = receiver.runtime_class.name
+        if ["Integer", "Float", "String", "List"].include?(cls_name)
+          receiver.runtime_class.new_with_value(receiver.ruby_value.dup)
+        else
+          ins = reciever.runtime_class.call(:new)
+          ins.ruby_value = receiver.ruby_value.dup
+        end
       end
     end
 
     def load_string_methods
       string = @constants["String"]
 
-      string.def :to_string do |receiver, arguments|
+      string.def "+" do |receiver, arguments|
+        arg = arguments.first
+        arg_str = if arg.class?
+          arg.name
+        elsif arg.instance? && arg.runtime_class.name == "String"
+          arg.ruby_value
+        else
+          arg.call(:to_string).ruby_value
+        end
+        receiver.ruby_value += arg_str
         receiver
-      end
-
-      string.def :inspect do |receiver, arguments|
-        @constants["String"].new_with_value('"' + receiver.ruby_value + '"')
       end
     end
 
@@ -136,8 +148,68 @@ module Cuby
         end
       end
 
+      number.def "<" do |receiver, arguments|
+        arg = arguments.first
+        if arg.is_a?("Number")
+          if receiver.ruby_value < arg.ruby_value
+            @constants["true"]
+          else
+            @constants["false"]
+          end
+        else
+          @constants["false"]
+        end
+      end
+
+      number.def ">" do |receiver, arguments|
+        arg = arguments.first
+        if arg.is_a?("Number")
+          if receiver.ruby_value > arg.ruby_value
+            @constants["true"]
+          else
+            @constants["false"]
+          end
+        else
+          @constants["false"]
+        end
+      end
+
+      number.def "==" do |receiver, arguments|
+        arg = arguments.first
+        if arg.is_a?("Number")
+          if receiver.ruby_value == arg.ruby_value
+            @constants["true"]
+          else
+            @constants["false"]
+          end
+        else
+          @constants["false"]
+        end
+      end
+
       number.def :to_string do |receiver, arguments|
         @constants["String"].new_with_value(receiver.ruby_value.to_s)
+      end
+    end
+
+    def load_boolean_methods
+      true_cls = @constants["TrueClass"]
+      false_cls = @constants["FalseClass"]
+
+      true_cls.def :clone do |receiver, arguments|
+        true_cls.new_with_value(true)
+      end
+
+      false_cls.def :clone do |receiver, arguments|
+        false_cls.new_with_value(false)
+      end
+    end
+
+    def load_nil_methods
+      nil_cls = @constants["NilClass"]
+
+      nil_cls.def :clone do |receiver, arguments|
+        nil_cls.new_with_value(nil)
       end
     end
 
@@ -263,26 +335,6 @@ module Cuby
           ""
         end
         @constants["String"].new_with_value("[#{str}]")
-      end
-    end
-
-    def load_boolean_methods
-      true_class = @constants["TrueClass"]
-      false_class = @constants["FalseClass"]
-      true_class.def :to_string do |receiver, arguments|
-        @constants["String"].new_with_value("true")
-      end
-
-      false_class.def :to_string do |receiver, arguments|
-        @constants["String"].new_with_value("false")
-      end
-    end
-
-    def load_nil_methods
-      nil_class = @constants["NilClass"]
-
-      nil_class.def :to_string do |receiver, arguments|
-        @constants["String"].new_with_value("nil")
       end
     end
   end

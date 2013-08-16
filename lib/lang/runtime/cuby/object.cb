@@ -1,0 +1,17 @@
+class Object
+  @@kind_of? do
+    no
+  end
+
+  to_string do
+    class_name
+  end
+
+  inspect do
+    to_string
+  end
+
+  __nil_method do
+    nil
+  end
+end

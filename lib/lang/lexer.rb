@@ -10,10 +10,10 @@ module Cuby
 
     TOKEN_RX = {
       identifiers: /\A([a-z_][\w\d]*[?!]?)/,
-      constants: /\A([A-Z][\w\d]*)/,
-      globals: /\A(\$[a-z][\w\d]*)/i,
-      class_var: /\A(\@\@[a-z][\w\d]*)/i,
-      instance_var: /\A(\@[a-z][\w\d]*)/i,
+      constants: /\A([A-Z][\w\d]*[?!]?)/,
+      globals: /\A(\$[a-z][\w\d]*[?!]?)/i,
+      class_var: /\A(\@\@[a-z][\w\d]*[!?]?)/i,
+      instance_var: /\A(\@[a-z][\w\d]*[!?]?)/i,
       operator: /\A(=>|[+\-\*\/%<>=!]=|\*\*=|\*\*|[+\-\*\/%=><]|or|and|not|isnt|is|\||\(|\)|\[|\]|\{|\}|::|[.,?:])/,
       whitespace: /\A([ \t]+)/,
       terminator: /\A([;\n])/,
@@ -32,7 +32,10 @@ module Cuby
       i = 0
       while i < code.length
         chunk = code[i..-1]
-        if constant = chunk[TOKEN_RX[:constants]]
+        if operator = chunk[TOKEN_RX[:operator]]
+          tokens << [operator, operator]
+          i += operator.length
+        elsif constant = chunk[TOKEN_RX[:constants]]
           tokens << [:CONSTANT, constant]
           i += constant.length
         elsif global = chunk[TOKEN_RX[:globals]]
@@ -70,9 +73,6 @@ module Cuby
           i += 1
         elsif space = chunk[TOKEN_RX[:whitespace]]
           i += space.length # ignore spaces and tab characters
-        elsif operator = chunk[TOKEN_RX[:operator]]
-          tokens << [operator, operator]
-          i += operator.length
         else
           raise LexicalError.new(code[i], line)
         end

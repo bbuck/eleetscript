@@ -1,0 +1,21 @@
+class FalseClass
+  to_string do
+    "false"
+  end
+
+  not do
+    true
+  end
+
+  and do
+    false
+  end
+
+  or do |o|
+    if o
+      true
+    else
+      false
+    end
+  end
+end

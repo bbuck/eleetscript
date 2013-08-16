@@ -163,6 +163,7 @@ module Cuby
   class PropertyNode < Node.new(:properties); end
 
   class NextNode < NodeType
+    def eval(context, memory); end
     def ==(o)
       o.kind_of?(NextNode)
     end

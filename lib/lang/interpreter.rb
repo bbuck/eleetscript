@@ -39,13 +39,71 @@ module Cuby
   end
   H = InterpHelpers
 
+  module Returnable
+    def returned
+      @returned = true
+    end
+
+    def returned?
+      @returned
+    end
+
+    def reset_returned
+      @returned = false
+    end
+  end
+
+  module Nextable
+    def nexted
+      @nexted = true
+    end
+
+    def nexted?
+      @nexted
+    end
+
+    def reset_nexted
+      @nexted = false
+    end
+  end
+
+  module NodeMethods
+    def returnable?
+      self.class.included_modules.include?(Returnable)
+    end
+
+    def nextable?
+      self.class.included_modules.include?(Nextable)
+    end
+  end
+
   class Nodes
+    include Returnable
+    include Nextable
+
     def eval(context, memory)
       return_value = nil
       nodes.each do |node|
-        return_value = node.eval(context, memory)
+        if node.kind_of?(ReturnNode)
+          returned
+          break return_value = node.eval(context, memory)
+        elsif node.kind_of?(NextNode)
+          nexted
+          break
+        else
+          return_value = node.eval(context, memory)
+        end
+        if node.returnable? && node.returned?
+          returned
+          node.reset_returned
+          break
+        elsif node.nextable? && node.nexted?
+          node.reset_nexted
+          nexted
+          break
+        end
       end
-      return_value || memory.constants["nil"]
+      return_value || memory.nil_obj
     end
   end
 
@@ -150,6 +208,12 @@ module Cuby
     end
   end
 
+  class NilNode
+    def eval(context, memory)
+      memory.nil_obj
+    end
+  end
+
   class ClassNode
     def eval(context, memory)
       cls = context.constants[name] || memory.constants[name]
@@ -207,6 +271,96 @@ module Cuby
       else
         context.current_class.instance_methods[method_name] = method_obj
       end
+    end
+  end
+
+  class SelfNode
+    def eval(context, memory)
+      context.current_self
+    end
+  end
+
+  class IfNode
+    include Returnable
+    include Nextable
+
+    def eval(context, memory)
+      cond = condition.eval(context, memory)
+      cond = (cond.class? ? cond : cond.ruby_value)
+      if cond
+        ret = body.eval(context, memory)
+        if body.returnable? && body.returned?
+          body.reset_returned
+          returned
+        elsif body.nextable? && body.nexted?
+          body.reset_nexted
+          nexted
+          return memory.nil_obj
+        end
+        ret
+      else
+        unless else_node.nil?
+          ret = else_node.eval(context, memory)
+          if else_node.returned?
+            else_node.reset_returned
+            returned
+          elsif else_node.nexted?
+            else_node.reset_nexted
+            nexted
+            return memory.nil_obj
+          end
+          ret
+        end
+      end
+    end
+  end
+
+  class ElseNode
+    include Returnable
+    include Nextable
+
+    def eval(context, memory)
+      ret = body.eval(context, memory)
+      if body.returnable? and body.returned?
+        body.reset_returned
+        returned
+      elsif body.nextable? && body.nexted?
+        body.reset_nexted
+        nexted
+        return memory.nil_obj
+      end
+      ret
+    end
+  end
+
+  class ReturnNode
+    def eval(context, memory)
+      if expression
+        expression.eval(context, memory)
+      else
+        memory.nil_obj
+      end
+    end
+  end
+
+  class WhileNode
+    include Returnable
+
+    def eval(context, memory)
+      val = condition.eval(context, memory)
+      while val.ruby_value
+        ret = body.eval(context, memory)
+        if body.returnable? && body.returned?
+          body.reset_returned
+          returned
+          return ret
+        elsif body.nextable? && body.nexted?
+          body.reset_nexted
+          next
+        end
+        val = condition.eval(context, memory)
+      end
+      memory.nil_obj
     end
   end
 end

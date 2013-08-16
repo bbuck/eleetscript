@@ -83,6 +83,15 @@ describe "Cuby::Interpreter" do
       $stdout.should_receive(:puts).with("10%")
       interpreter.eval(code)
     end
+
+    it "should have a * function" do
+      code = <<-CODE
+      a = "Hello"
+      println(a * 3)
+      CODE
+      $stdout.should_receive(:puts).with("HelloHelloHello")
+      interpreter.eval(code)
+    end
   end
 
   describe "methods" do
@@ -171,6 +180,181 @@ describe "Cuby::Interpreter" do
       CODE
       $stdout.should_receive(:puts).with("Hello, World")
       interpreter.eval(code)
+    end
+
+    describe "if statements" do
+      it "should have functional if statements" do
+        code = <<-CODE
+        if true
+          println("yes")
+        end
+        if yes
+          println("yes")
+        end
+        if on
+          println("yes")
+        end
+        CODE
+        $stdout.should_receive(:puts).with("yes").exactly(3)
+        interpreter.eval(code)
+      end
+
+      it "should be truthy" do
+        code = <<-CODE
+        if Object
+          println("yes")
+        end
+        if Pair.new(1, 2)
+          println("yes")
+        end
+        CODE
+        $stdout.should_receive(:puts).with("yes").exactly(2)
+        interpreter.eval(code)
+      end
+
+      it "should fallback to else statements" do
+        code = <<-CODE
+        if no
+          println("no")
+        else
+          println("yes")
+        end
+        CODE
+        $stdout.should_receive(:puts).with("yes")
+        interpreter.eval(code)
+      end
+
+      it "should use elsifs properly" do
+        code = <<-CODE
+        if no
+          println("no")
+        elsif yes
+          println("yes")
+        end
+        CODE
+        $stdout.should_receive(:puts).with("yes")
+        interpreter.eval(code)
+      end
+
+      it "should fallback to chained elsifs" do
+        code = <<-CODE
+        if no
+          println("no")
+        elsif nil
+          println("no")
+        elsif yes
+          println("yes")
+        end
+        CODE
+        $stdout.should_receive(:puts).with("yes")
+        interpreter.eval(code)
+      end
+    end
+
+    describe "returns" do
+      it "should be implicit" do
+        code = <<-CODE
+        msg do
+          "Message"
+        end
+        msg()
+        CODE
+        ret = interpreter.eval(code)
+        ret.ruby_value.should eq("Message")
+      end
+
+      it "should obey explicit" do
+        code = <<-CODE
+        msg do
+          return "first"
+          "second"
+        end
+        msg()
+        CODE
+        ret = interpreter.eval(code)
+        ret.ruby_value.should eq("first")
+      end
+
+      it "should return nested implicitly" do
+        code = <<-CODE
+        msg do |val|
+          if val
+            "first"
+          else
+            "second"
+          end
+        end
+        msg(on)
+        CODE
+        ret = interpreter.eval(code)
+        ret.ruby_value.should eq("first")
+      end
+
+      it "should obey nested" do
+        code = <<-CODE
+        msg do |val|
+          if val
+            return "first"
+          end
+          "second"
+        end
+        msg(yes)
+        CODE
+        ret = interpreter.eval(code)
+        ret.ruby_value.should eq("first")
+      end
+
+      it "should work within a loop" do
+        code = <<-CODE
+        get do |i|
+          n = 0
+          while n < 10
+            if n == i
+              return n
+            end
+            n += 1
+          end
+          nil
+        end
+        println(get(6))
+        CODE
+        $stdout.should_receive(:puts).with("6")
+        interpreter.eval(code)
+      end
+    end
+
+    describe "while" do
+      it "should function" do
+        code = <<-CODE
+        i = 0
+        sum = 0
+        while i < 10
+          sum += i
+          i += 1
+        end
+        println(sum)
+        CODE
+        $stdout.should_receive(:puts).with("45")
+        interpreter.eval(code)
+      end
+
+      it "should skip execution on next nodes" do
+        code = <<-CODE
+        i = 0
+        sum = 0
+        while i < 10
+          if i == 1
+            i += 1
+            next
+          end
+          sum += i
+          i += 1
+        end
+        println(sum)
+        CODE
+        $stdout.should_receive(:puts).with("44")
+        interpreter.eval(code)
+      end
     end
   end
 
