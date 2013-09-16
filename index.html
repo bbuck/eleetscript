@@ -41,16 +41,19 @@
         <h1>
 <a name="what-is-cuby" class="anchor" href="#what-is-cuby"><span class="octicon octicon-link"></span></a>What is Cuby?</h1>
 
-<p>Cuby is a no-error scripting language built to run on top of Ruby applications for additional or easy-to-change pieces of functionality. Cuby's core libraries are meant to be few in number to provide bare essentials and not (by default) allow File or Process access/management making it easy to secure a Cuby runtime (use it's default settings!). The original purpose of Cuby was to act as scripting language for a Ruby MUD server I was building and I wanted something quick to throw in to the application that I could easily run code on and not worry about crashing the server or doing harm to the system itself. </p>
+<p>Cuby is a "errorless" scripting language built to run on top of Ruby applications for additional or easy-to-change pieces of functionality. Cuby's core libraries are meant to be few in number to provide bare essentials and not (by default) allow File or Process access/management making it easy to secure a Cuby runtime (use it's default settings!). The original purpose of Cuby was to act as scripting language for a Ruby MUD server I was building and I wanted something quick to throw in to the application that I could easily run code on and not worry about crashing the server or doing harm to the system itself. </p>
 
 <h2>
 <a name="goals" class="anchor" href="#goals"><span class="octicon octicon-link"></span></a>Goals</h2>
 
 <p>The core goals behind Cuby are to provide a single (or minimal) way to perform certain tasks and have clean syntax that is readable by itself.</p>
 
+<h3>
+<a name="inspiration" class="anchor" href="#inspiration"><span class="octicon octicon-link"></span></a>Inspiration</h3>
+
 <p>Cuby was partly inspired by Ruby where you can define blocks in two different ways:</p>
 
-<div class="highlight"><pre><span class="n">list</span><span class="o">.</span><span class="n">map</span> <span class="k">do</span> <span class="o">|</span><span class="n">item</span><span class="o">|</span>
+<div class="highlight highlight-ruby"><pre><span class="n">list</span><span class="o">.</span><span class="n">map</span> <span class="k">do</span> <span class="o">|</span><span class="n">item</span><span class="o">|</span>
   <span class="n">item</span>
 <span class="k">end</span>
 
@@ -59,7 +62,7 @@
 
 <p>And those are blocks, methods look different:</p>
 
-<div class="highlight"><pre><span class="k">def</span> <span class="nf">some_method</span>
+<div class="highlight highlight-ruby"><pre><span class="k">def</span> <span class="nf">some_method</span>
   <span class="kp">nil</span>
 <span class="k">end</span>
 </pre></div>
@@ -77,25 +80,81 @@ items.map() do |item|
 end
 </code></pre>
 
+<p>Aside from that there are some features cherry picked from other languages. Such as Javascripts magical <code>arguments</code> variable in every function, CoffeeScripts instance/class assignment parameters and an assignment operator I've dreamed of using since I first wrote <code>name = name.substring(a, b);</code>.</p>
+
+<pre lang="cuby"><code># Magic Arguments
+something do 
+  keys = arguments.keys
+  for key in keys
+    println(arguments[key])
+  end
+end
+
+class Person
+  property name
+  init do |@name| end # Assigns @name by the first parameter
+end
+
+some_str = "do_something"
+some_str .= substr(3, -1) # Equivalent to some_str = some_str.substr(3, -1)
+</code></pre>
+
 <h2>
-<a name="no-errors" class="anchor" href="#no-errors"><span class="octicon octicon-link"></span></a>No Errors?</h2>
+<a name="what-i-mean-by-errorless" class="anchor" href="#what-i-mean-by-errorless"><span class="octicon octicon-link"></span></a>What I mean by "Errorless"</h2>
 
-<p>I realize the downsides that can accompany an errorless system, for example harder to find out why exactly you code doesn't work. The reason I went this path is to open up scripting in the MUD to non-professional developers and not have to worry that their mistakes would break whatever objects they were scripting. The script would fail gracefully (and silently) and standard behavior for the object would follow instead of the coded behavior. Cuby scripts aren't meant to be chock full of logic either so with minimal actions going on in a script and a system that needs to maintain operational status I chose to not deliver any errors from the interpreter and have things silently fail.</p>
+<p>I realize that throwing errors helps solve runtime issues that weren't visible at the time of writing
+your code so with Cuby I created an "invisible" error handling solution that doesn't effect the execution of your application. If an error occurs a new Error will be appended to the <code>Errors</code> global list and you can peek this list to check for errors.</p>
 
-<p>Some examples of silently failing:</p>
+<pre lang="cuby"><code>a = b + 2
+a.this_method_doesnt_exist
+
+println(Errors)
+
+# =&gt;
+# [UndefinedVarError(b), UndefinedMethodError(a, this_method_doesnt_exist)]
+
+# And at any time, clear it to make see if your section is causing the problems
+Errors.clear
+# ... do things ...
+if Errors.length &gt; 0
+  # oops
+end
+</code></pre>
+
+<p>There are some errors that are a bit to complex to try and prevent such as infinite loops. Trying to "guess" how many iterations you meant is rather difficult so you still need to keep watch on your loops to prevent infinite iteration.</p>
+
+<h3>
+<a name="error-free-examples" class="anchor" href="#error-free-examples"><span class="octicon octicon-link"></span></a>"Error free" Examples</h3>
 
 <pre lang="cuby"><code>class Dummy end
 Dummy.create # While all object have a "new" method, we did not define a "create" class method here
 
-# Calling methods that don't exist invoke Object#__nil_method which simply returns nil.
-# Given the open nature of Cuby, if you needed you could override __nil_method to do what 
-# you needed per class or globally although changing core functionality is not suggested
+# Calling methods that don't exist invoke Object#no_method or Object.no_method which simply 
+# returns nil. Given the open nature of Cuby, if you needed you could override no_method
+# to do what you needed per class or globally
+
+# Pretty list access
+class Config
+  init do 
+    @list = []
+  end
+
+  no_method do |name, value|
+    if name.ends_with?("=")
+      name .= substr(0, -2)
+      @list[name] = value
+    else
+      @list[name]
+    end
+  end
+end
+config = Config.new
+config.my_value = "some awesome string"
 
 Constant = 10
+Constant = 20 # Normally this would prompt an error, can't reassign a Constant. Check Errors
 
-Constant = 20 # Normally this would prompt an error, can't reassign a Constant. It doesn't
-
-# It just simply ignores the reassignment.
+# It just ignores the reassignment.
 println(Constant) # =&gt; 10 
 
 some_var_that_isnt_defined # just nil
@@ -107,6 +166,8 @@ some_var_that_isnt_defined # just nil
 <a name="features" class="anchor" href="#features"><span class="octicon octicon-link"></span></a>Features</h1>
 
 <p>What does Cuby have to offer as a scripting language? Honestly? Nothing groundbreaking or new. I've used quite a bit of languages and pulled features that I felt were easier and more readable from several languages. The name "Cuby" is actually a mashup (of sorts) of CoffeeScript and Ruby as those were my two base inspirations.</p>
+
+<p>Again, the core reasoning behind Cuby's syntax was to try and create something that would be easy to jump into with little to memorize and no risk of complete failure (crashing) Cuby could be used to introduced new and budding developers into a project as scripters (and was my intention with the MUD).</p>
 
 <h2>
 <a name="literals-variables-and-the-basics" class="anchor" href="#literals-variables-and-the-basics"><span class="octicon octicon-link"></span></a>Literals, Variables and the basics</h2>
@@ -154,6 +215,18 @@ my_flag = on # better represents the programmers intent, to turn the flag on
 List.new(1, 2, Pair.new("msg", "Hello"))
 
 # This opens this pair functionality to user defined classes and variable assignments
+some_complex_class.set_config_value("config_name" =&gt; "config_value")
+
+# It's important to add that since the pair literal is converted to a 
+# new call at runtime you can use dynamic keys (unlike other languages)
+my_dynamic_key = if some_flag_is_on
+  "one"
+else
+  "two"
+end
+
+some_pair = my_dynamic_key =&gt; "a value"
+some_pair.key is my_dynamic_key # =&gt; true
 </code></pre>
 
 <h3>
@@ -171,7 +244,17 @@ $global # Global values start with a $ and belong to the highest level "Namespac
 
 @@class # Belongs to a class, and accessible by all instances of the class.
 
-local # Simple local names, these fallback to methods if no local is defined.
+local # Simple local names.
+# local variables attach to different scopes such depending on where defined
+this_local # is bound to the context of this script
+
+class Sample
+  this_local # is bound to the execution inside this class definition (not methods or instances)
+end
+
+method_name do 
+  this_local # is bound to this execution of the method
+end
 
 # Variable names can end with ? or ! characters, these are more generally used for 
 # special method meanings where ? represents the method will return true or false
@@ -222,7 +305,7 @@ end
 
 # Here is an add function that takes two parameters, a and b. It's important to note,
 # the result of the last expression is always returned from a method unless an 
-# explicit return in encountered. Therefore I could use this method to add numbers
+# explicit return is encountered. Therefore I could use this method to add numbers
 
 ten = add(6, 4)
 println(ten) # =&gt; 10
@@ -258,9 +341,9 @@ g.class_name # =&gt; "Greeter"
 g.to_string # =&gt; "Greeter"
 g.inspect # =&gt; "Greeter"
 g.clone # =&gt; A new instance of Greeter
-g.kind_of?("Greeter") # =&gt; true
-g.kind_of?("Object") # =&gt; true
-g.kind_of?("Number") # =&gt; false
+g.kind_of?(Greeter) # =&gt; true
+g.kind_of?(Object) # =&gt; true
+g.kind_of?(Number) # =&gt; false
 
 # NOTE: While you can change the behavior of the 'new' function it's not recommended
 # as doing so will prevent the class from being able to spawn instances of itself,
@@ -515,7 +598,7 @@ i += 10 # == i = i.+(10)
       <td>Yes</td>
     </tr>
 </tbody>
-</table><p><em><strong>Assignment Operations</strong>: <code>+=</code> <code>-=</code> <code>/=</code> <code>*=</code> <code>%=</code> `</em>*=`</p>
+</table><p>*__Assignment Operations__: <code>+=</code> <code>-=</code> <code>/=</code> <code>*=</code> <code>%=</code> <code>**=</code> <code>.=</code></p>
       </section>
 
     </div>
