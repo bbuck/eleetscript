@@ -1,5 +1,5 @@
-module Cuby
-  class CubyClassSkeleton
+module EleetScript
+  class EleetScriptClassSkeleton
     attr_accessor :ruby_value
     attr_reader :memory
 

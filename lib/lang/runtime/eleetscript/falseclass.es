@@ -18,4 +18,8 @@ class FalseClass
       false
     end
   end
+
+  to_string do
+    "false"
+  end
 end

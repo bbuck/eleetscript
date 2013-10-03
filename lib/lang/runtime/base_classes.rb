@@ -1,4 +1,4 @@
-module Cuby
+module EleetScript
   class ListBase
     attr_reader :array, :hash
 
@@ -10,6 +10,10 @@ module Cuby
     def merge!(o)
       @array.concat(o.array)
       @hash.merge!(o.hash)
+    end
+
+    def clone
+      dup
     end
 
     def dup

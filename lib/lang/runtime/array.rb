@@ -1,5 +1,5 @@
-module Cuby
-  class CubyArray < CubyClass
+module EleetScript
+  class EleetScriptArray < EleetScriptClass
     attr_reader :hash, :array
 
     def initialize(memory, super_class = nil)
@@ -9,7 +9,7 @@ module Cuby
     end
 
     def to_s
-      str = "<CubyArray"
+      str = "<EleetScriptArray"
       hash_data = @hash.map do |key, value|
         "#{key}=#{value}"
       end

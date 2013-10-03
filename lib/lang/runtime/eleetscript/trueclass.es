@@ -18,4 +18,8 @@ class TrueClass
   or do
     true
   end
+
+  to_string do
+    "true"
+  end
 end

@@ -3,7 +3,7 @@ class List
     self.push(value)
   end
 
-  ** do |other|
+  + do |other|
     if other.kind_of?(List)
       self.merge!(other)
     else

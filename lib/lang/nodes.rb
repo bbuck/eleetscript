@@ -1,6 +1,6 @@
-require "cuby"
+require "eleetscript"
 
-module Cuby
+module EleetScript
   module NodeMethods
     def spaces(level)
       "  " * level
@@ -30,7 +30,7 @@ module Cuby
     end
 
     def to_s(level = 0)
-      str = "#{spaces(level)}<Cuby::Nodes\n"
+      str = "#{spaces(level)}<EleetScript::Nodes\n"
       nodes.each do |node|
         str += node.to_s(level + 1)
       end
@@ -69,7 +69,7 @@ module Cuby
   class CallNode < Node.new(:receiver, :method_name, :arguments, :block)
     def to_s(level = 0)
       tabs = spaces(level)
-      str = "#{tabs}<Cuby::CallNode\n"
+      str = "#{tabs}<EleetScript::CallNode\n"
       if receiver.nil?
         str += "#{tabs}  @receiver=nil\n"
       else
@@ -125,7 +125,7 @@ module Cuby
   class DefMethodNode < Node.new(:method_name, :method)
     def to_s(level = 0)
       tabs = spaces(level)
-      str = "#{tabs}<Cuby::DefMethodNode \"#{method_name}\"\n"
+      str = "#{tabs}<EleetScript::DefMethodNode \"#{method_name}\"\n"
       str += "#{tabs}  @method=(\n"
       str += method.to_s(level + 2)
       str + "#{tabs}  )\n#{tabs}>\n"
@@ -134,7 +134,7 @@ module Cuby
   class MethodNode < Node.new(:params, :body)
     def to_s(level = 0)
       tabs = spaces(level)
-      str = "#{tabs}<Cuby::MethodNode\n"
+      str = "#{tabs}<EleetScript::MethodNode\n"
       str += "#{tabs}  @params=#{params.inspect}\n"
       if body.nodes.length > 0
         str += "#{tabs}  @body=(\n"
@@ -156,7 +156,7 @@ module Cuby
   class ClassNode < Node.new(:name, :parent, :body)
     def to_s(level = 0)
       tabs = spaces(level)
-      str = "#{tabs}<Cuby::ClassNode \"#{name}\"\n"
+      str = "#{tabs}<EleetScript::ClassNode \"#{name}\"\n"
       str += "#{tabs}  @extends=\"#{parent || "Object"}\"\n"
       str += "#{tabs}  @body=(\n"
       str += body.to_s(level + 2)

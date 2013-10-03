@@ -304,7 +304,7 @@ end
 require "lang/lexer"
 require "lang/nodes"
 
-module Cuby
+module EleetScript
 
 ---- inner
 def debug
@@ -322,4 +322,4 @@ def next_token
 end
 
 ---- footer
-end # module Cuby
+end # module EleetScript

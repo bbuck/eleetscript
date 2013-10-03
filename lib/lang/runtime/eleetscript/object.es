@@ -3,6 +3,14 @@ class Object
     no
   end
 
+  @@no_method do
+    nil
+  end
+
+  @@inspect do
+    class_name
+  end
+
   to_string do
     class_name
   end
@@ -12,6 +20,10 @@ class Object
   end
 
   __nil_method do
+    nil
+  end
+
+  no_method do
     nil
   end
 

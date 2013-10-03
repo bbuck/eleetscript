@@ -2,7 +2,7 @@ require "lang/parser"
 require "lang/runtime/memory"
 require "pry"
 
-module Cuby
+module EleetScript
   class Interpreter
     attr_reader :memory
     def initialize(memory = nil)
@@ -220,9 +220,9 @@ module Cuby
       unless cls
         cls = if parent
           parent = context.constants[parent] || memory.constants[parent]
-          CubyClass.create(memory, name, parent)
+          EleetScriptClass.create(memory, name, parent)
         else
-          CubyClass.create(memory, name)
+          EleetScriptClass.create(memory, name)
         end
         if context != memory.root_context
           context.constants[name] = cls
@@ -265,7 +265,7 @@ module Cuby
 
   class DefMethodNode
     def eval(context, memory)
-      method_obj = CubyMethod.new(method.params, method.body)
+      method_obj = EleetScriptMethod.new(method.params, method.body)
       if method_name.start_with? "@@"
         context.current_class.class_methods[H::class_var_name(method_name)] = method_obj
       else

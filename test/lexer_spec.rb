@@ -1,20 +1,20 @@
 require "lang/lexer"
 
-describe "Cuby::Lexer" do
-  let(:lexer) { CB::Lexer.new }
+describe "EleetScript::Lexer" do
+  let(:lexer) { ES::Lexer.new }
 
   it "should raise LexicalErrors when unknown characters are encountered" do
     code = "^"
     expect {
       lexer.tokenize(code)
-    }.to raise_error(CB::LexicalError)
+    }.to raise_error(ES::LexicalError)
   end
 
   it "should report line numbers in LexicalErrors" do
     code = "+\n^\n-"
     begin
       lexer.tokenize(code)
-    rescue CB::LexicalError => e
+    rescue ES::LexicalError => e
       e.message.should eq("Unknown character encountered '^' on line #2")
     end
   end

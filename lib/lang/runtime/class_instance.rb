@@ -1,13 +1,13 @@
 require "lang/runtime/class_skeleton"
 
-module Cuby
-  class CubyClassInstance < CubyClassSkeleton
+module EleetScript
+  class EleetScriptClassInstance < EleetScriptClassSkeleton
     attr_accessor :instance_vars, :runtime_class
     set_is_instance
 
     def call(method_name, arguments = [])
       method = @runtime_class.instance_lookup(method_name.to_s)
-      if method.kind_of?(CubyMethod)
+      if method.kind_of?(EleetScriptMethod)
         method.call(self, arguments, runtime_class.memory)
       else
         method.call(self, arguments)
@@ -22,7 +22,7 @@ module Cuby
     end
 
     def to_s
-      "<CubyClassInstance @instance_of=\"#{runtime_class.name || "Unnamed"}\">"
+      "<EleetScriptClassInstance @instance_of=\"#{runtime_class.name || "Unnamed"}\">"
     end
 
     def inspect
@@ -46,7 +46,7 @@ module Cuby
     def eql?(o)
       p self
       p o
-      if o.kind_of?(CubyClassInstance)
+      if o.kind_of?(EleetScriptClassInstance)
         if literal_type?
           ruby_value == o.ruby_value
         else

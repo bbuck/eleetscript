@@ -13,6 +13,10 @@ class String
     end
   end
 
+  isnt do |value|
+    not self is value
+  end
+
   to_string do
     self
   end

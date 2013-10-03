@@ -1,4 +1,4 @@
-module Cuby
+module EleetScript
   class Context
     attr_reader :locals, :constants, :current_class, :current_self
 

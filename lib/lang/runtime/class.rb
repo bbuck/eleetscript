@@ -1,5 +1,7 @@
-module Cuby
-  class CubyClassSkeleton
+module EleetScript
+  NO_METHOD = "no_method"
+
+  class EleetScriptClassSkeleton
     attr_accessor :ruby_value
     attr_reader :memory
 
@@ -34,14 +36,14 @@ module Cuby
     end
   end
 
-  class CubyClass < CubyClassSkeleton
+  class EleetScriptClass < EleetScriptClassSkeleton
     attr_accessor :class_methods, :instance_methods, :class_vars, :context, :name
     attr_reader :super_class, :memory
     set_is_class
 
     class << self
       def create(memory, name, super_class = nil)
-        cls = CubyClass.new(memory, super_class)
+        cls = EleetScriptClass.new(memory, super_class)
         cls.name = name
         cls
       end
@@ -60,10 +62,15 @@ module Cuby
 
     def call(method_name, arguments = [])
       method = lookup(method_name.to_s)
-      if method.kind_of?(CubyMethod)
-        method.call(self, arguments, @memory)
+      if method
+        if method.kind_of?(EleetScriptMethod)
+          method.call(self, arguments, @memory)
+        else
+          method.call(self, arguments)
+        end
       else
-        method.call(self, arguments)
+        es_method_name = @memory.constants["String"].new_with_value(method_name.to_s)
+        call(NO_METHOD, arguments.dup.unshift(es_method_name))
       end
     end
 
@@ -72,7 +79,7 @@ module Cuby
       if method.nil? && has_super_class?
         return super_class.lookup(method_name)
       end
-      method || @memory.nil_method
+      method
     end
 
     def instance_lookup(method_name)
@@ -80,43 +87,43 @@ module Cuby
       if method.nil? && has_super_class?
         return super_class.instance_lookup(method_name)
       end
-      method || @memory.nil_method
+      method
     end
 
     def super_class
       @super_class || @memory.constants["Object"]
     end
 
-    def def(method_name, cuby_block = nil, &block)
+    def def(method_name, es_block = nil, &block)
       method_name = method_name.to_s
       if block_given?
         @instance_methods[method_name] = block
       else
-        @instance_methods[method_name] = cuby_method
+        @instance_methods[method_name] = es_method
       end
     end
 
-    def class_def(method_name, cuby_block = nil, &block)
+    def class_def(method_name, es_block = nil, &block)
       method_name = method_name.to_s
       if block_given?
         @class_methods[method_name] = block
       else
-        @class_methods[method_name] = cuby_method
+        @class_methods[method_name] = es_method
       end
     end
 
     def new
-      CubyClassInstance.new(@memory, self)
+      EleetScriptClassInstance.new(@memory, self)
     end
 
     def new_with_value(value)
-      cls = CubyClassInstance.new(@memory, self)
+      cls = EleetScriptClassInstance.new(@memory, self)
       cls.ruby_value = value
       cls
     end
 
     def to_s
-      "<CubyClass \"#{name || "Unnamed"}\">"
+      "<EleetScriptClass \"#{name || "Unnamed"}\">"
     end
 
     def inspect
@@ -130,20 +137,25 @@ module Cuby
     private
 
     def has_super_class?
-      @super_class || (@super_class.nil? && name != "Object")
+      !!@super_class || (@super_class.nil? && name != "Object")
     end
   end
 
-  class CubyClassInstance < CubyClassSkeleton
+  class EleetScriptClassInstance < EleetScriptClassSkeleton
     attr_accessor :instance_vars, :runtime_class
     set_is_instance
 
     def call(method_name, arguments = [])
       method = @runtime_class.instance_lookup(method_name.to_s)
-      if method.kind_of?(CubyMethod)
-        method.call(self, arguments, runtime_class.memory)
+      if method
+        if method.kind_of?(EleetScriptMethod)
+          method.call(self, arguments, runtime_class.memory)
+        else
+          method.call(self, arguments)
+        end
       else
-        method.call(self, arguments)
+        es_method_name = @memory.constants["String"].new_with_value(method_name.to_s)
+        call(NO_METHOD, arguments.dup.unshift(es_method_name))
       end
     end
 
@@ -155,7 +167,7 @@ module Cuby
     end
 
     def to_s
-      "<CubyClassInstance @instance_of=\"#{runtime_class.name || "Unnamed"}\">"
+      "<EleetScriptClassInstance @instance_of=\"#{runtime_class.name || "Unnamed"}\">"
     end
 
     def inspect

@@ -9,7 +9,7 @@ require 'racc/parser.rb'
 require "lang/lexer"
 require "lang/nodes"
 
-module Cuby
+module EleetScript
 
 class Parser < Racc::Parser
 
@@ -1073,42 +1073,42 @@ Racc_debug_parser = true
 
 module_eval(<<'.,.,', 'grammar.y', 23)
   def _reduce_1(val, _values, result)
-     result = Nodes.new([]) 
+     result = Nodes.new([])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 24)
   def _reduce_2(val, _values, result)
-     result = val[0] 
+     result = val[0]
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 28)
   def _reduce_3(val, _values, result)
-     result = Nodes.new(val) 
+     result = Nodes.new(val)
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 29)
   def _reduce_4(val, _values, result)
-     result = val[0] << val[2] 
+     result = val[0] << val[2]
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 30)
   def _reduce_5(val, _values, result)
-     result = val[0] 
+     result = val[0]
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 31)
   def _reduce_6(val, _values, result)
-     result = Nodes.new([]) 
+     result = Nodes.new([])
     result
   end
 .,.,
@@ -1121,14 +1121,14 @@ module_eval(<<'.,.,', 'grammar.y', 31)
 
 module_eval(<<'.,.,', 'grammar.y', 38)
   def _reduce_10(val, _values, result)
-     result = SelfNode.new 
+     result = SelfNode.new
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 39)
   def _reduce_11(val, _values, result)
-     result = NextNode.new 
+     result = NextNode.new
     result
   end
 .,.,
@@ -1163,84 +1163,84 @@ module_eval(<<'.,.,', 'grammar.y', 39)
 
 module_eval(<<'.,.,', 'grammar.y', 54)
   def _reduce_26(val, _values, result)
-     result = val[1] 
+     result = val[1]
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 58)
   def _reduce_27(val, _values, result)
-     result = GetConstantNode.new(val[0]) 
+     result = GetConstantNode.new(val[0])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 59)
   def _reduce_28(val, _values, result)
-     result = GetGlobalNode.new(val[0]) 
+     result = GetGlobalNode.new(val[0])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 60)
   def _reduce_29(val, _values, result)
-     result = GetClassVarNode.new(val[0]) 
+     result = GetClassVarNode.new(val[0])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 61)
   def _reduce_30(val, _values, result)
-     result = GetInstanceVarNode.new(val[0]) 
+     result = GetInstanceVarNode.new(val[0])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 62)
   def _reduce_31(val, _values, result)
-     result = GetLocalNode.new(val[0]) 
+     result = GetLocalNode.new(val[0])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 66)
   def _reduce_32(val, _values, result)
-     result = IntegerNode.new(val[0].to_i) 
+     result = IntegerNode.new(val[0].to_i)
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 67)
   def _reduce_33(val, _values, result)
-     result = FloatNode.new(val[0].to_f) 
+     result = FloatNode.new(val[0].to_f)
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 68)
   def _reduce_34(val, _values, result)
-     result = StringNode.new(val[0]) 
+     result = StringNode.new(val[0])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 69)
   def _reduce_35(val, _values, result)
-     result = TrueNode.new 
+     result = TrueNode.new
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 70)
   def _reduce_36(val, _values, result)
-     result = FalseNode.new 
+     result = FalseNode.new
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 71)
   def _reduce_37(val, _values, result)
-     result = NilNode.new 
+     result = NilNode.new
     result
   end
 .,.,
@@ -1249,49 +1249,49 @@ module_eval(<<'.,.,', 'grammar.y', 71)
 
 module_eval(<<'.,.,', 'grammar.y', 76)
   def _reduce_39(val, _values, result)
-     result = CallNode.new(val[0], "[]=", [val[2], val[5]]) 
+     result = CallNode.new(val[0], "[]=", [val[2], val[5]])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 77)
   def _reduce_40(val, _values, result)
-     result = CallNode.new(val[0], "[]", [val[2]]) 
+     result = CallNode.new(val[0], "[]", [val[2]])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 81)
   def _reduce_41(val, _values, result)
-     result = CallNode.new(GetConstantNode.new("List"), "new", []) 
+     result = CallNode.new(GetConstantNode.new("List"), "new", [])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 82)
   def _reduce_42(val, _values, result)
-     result = CallNode.new(GetConstantNode.new("List"), "new", val[1]) 
+     result = CallNode.new(GetConstantNode.new("List"), "new", val[1])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 86)
   def _reduce_43(val, _values, result)
-     result = val 
+     result = val
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 87)
   def _reduce_44(val, _values, result)
-     result = val[0] << val[2] 
+     result = val[0] << val[2]
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 91)
   def _reduce_45(val, _values, result)
-     result = CallNode.new(GetConstantNode.new("Pair"), "new", [val[0], val[2]]) 
+     result = CallNode.new(GetConstantNode.new("Pair"), "new", [val[0], val[2]])
     result
   end
 .,.,
@@ -1310,175 +1310,175 @@ module_eval(<<'.,.,', 'grammar.y', 91)
 
 module_eval(<<'.,.,', 'grammar.y', 107)
   def _reduce_52(val, _values, result)
-     result = CallNode.new(val[0], "#{val[2]}=", [val[4]]) 
+     result = CallNode.new(val[0], "#{val[2]}=", [val[4]])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 111)
   def _reduce_53(val, _values, result)
-     result = CallNode.new(nil, val[0], val[1], nil) 
+     result = CallNode.new(nil, val[0], val[1], nil)
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 112)
   def _reduce_54(val, _values, result)
-     result = CallNode.new(val[0], val[2], val[3], val[4]) 
+     result = CallNode.new(val[0], val[2], val[3], val[4])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 113)
   def _reduce_55(val, _values, result)
-     result = CallNode.new(val[0], val[2], val[3], nil) 
+     result = CallNode.new(val[0], val[2], val[3], nil)
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 114)
   def _reduce_56(val, _values, result)
-     result = CallNode.new(val[0], val[2], [], nil) 
+     result = CallNode.new(val[0], val[2], [], nil)
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 115)
   def _reduce_57(val, _values, result)
-     result = CallNode.new(val[0], val[2], val[3], nil) 
+     result = CallNode.new(val[0], val[2], val[3], nil)
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 116)
   def _reduce_58(val, _values, result)
-     result = CallNode.new(val[0], val[2], [], nil) 
+     result = CallNode.new(val[0], val[2], [], nil)
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 120)
   def _reduce_59(val, _values, result)
-     result = [] 
+     result = []
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 121)
   def _reduce_60(val, _values, result)
-     result = val[1] 
+     result = val[1]
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 125)
   def _reduce_61(val, _values, result)
-     result = val 
+     result = val
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 126)
   def _reduce_62(val, _values, result)
-     result = val[0] << val[2] 
+     result = val[0] << val[2]
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 130)
   def _reduce_63(val, _values, result)
-     result = DefinedNode.new(val[2]) 
+     result = DefinedNode.new(val[2])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 134)
   def _reduce_64(val, _values, result)
-     result = NamespaceAccessNode.new(val[0], val[2]) 
+     result = NamespaceAccessNode.new(val[0], val[2])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 135)
   def _reduce_65(val, _values, result)
-     result = NamespaceAccessNode.new(nil, val[1]) 
+     result = NamespaceAccessNode.new(nil, val[1])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 139)
   def _reduce_66(val, _values, result)
-     result = CallNode.new(val[0], val[1], [val[2]]) 
+     result = CallNode.new(val[0], val[1], [val[2]])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 140)
   def _reduce_67(val, _values, result)
-     result = CallNode.new(val[0], val[1], [val[2]]) 
+     result = CallNode.new(val[0], val[1], [val[2]])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 141)
   def _reduce_68(val, _values, result)
-     result = CallNode.new(val[1], "__negate!", []) 
+     result = CallNode.new(val[1], "__negate!", [])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 142)
   def _reduce_69(val, _values, result)
-     result = CallNode.new(val[0], val[1], [val[2]]) 
+     result = CallNode.new(val[0], val[1], [val[2]])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 143)
   def _reduce_70(val, _values, result)
-     result = CallNode.new(val[0], val[1], [val[2]]) 
+     result = CallNode.new(val[0], val[1], [val[2]])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 144)
   def _reduce_71(val, _values, result)
-     result = CallNode.new(val[0], val[1], [val[2]]) 
+     result = CallNode.new(val[0], val[1], [val[2]])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 145)
   def _reduce_72(val, _values, result)
-     result = CallNode.new(val[0], val[1], [val[2]]) 
+     result = CallNode.new(val[0], val[1], [val[2]])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 146)
   def _reduce_73(val, _values, result)
-     result = CallNode.new(val[0], val[1], [val[2]]) 
+     result = CallNode.new(val[0], val[1], [val[2]])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 147)
   def _reduce_74(val, _values, result)
-     result = CallNode.new(val[0], val[1], [val[2]]) 
+     result = CallNode.new(val[0], val[1], [val[2]])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 148)
   def _reduce_75(val, _values, result)
-     result = CallNode.new(val[0], val[1], [val[2]]) 
+     result = CallNode.new(val[0], val[1], [val[2]])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 149)
   def _reduce_76(val, _values, result)
-     result = CallNode.new(val[0], val[1], [val[2]]) 
+     result = CallNode.new(val[0], val[1], [val[2]])
     result
   end
 .,.,
@@ -1487,315 +1487,315 @@ module_eval(<<'.,.,', 'grammar.y', 149)
 
 module_eval(<<'.,.,', 'grammar.y', 151)
   def _reduce_78(val, _values, result)
-     result = CallNode.new(val[1], val[0], []) 
+     result = CallNode.new(val[1], val[0], [])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 152)
   def _reduce_79(val, _values, result)
-     result = CallNode.new(val[0], val[1], [val[2]]) 
+     result = CallNode.new(val[0], val[1], [val[2]])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 153)
   def _reduce_80(val, _values, result)
-     result = CallNode.new(val[0], val[1], [val[2]]) 
+     result = CallNode.new(val[0], val[1], [val[2]])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 154)
   def _reduce_81(val, _values, result)
-     result = CallNode.new(val[0], val[1], [val[2]]) 
+     result = CallNode.new(val[0], val[1], [val[2]])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 155)
   def _reduce_82(val, _values, result)
-     result = CallNode.new(val[0], val[1], [val[2]]) 
+     result = CallNode.new(val[0], val[1], [val[2]])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 159)
   def _reduce_83(val, _values, result)
-     result = SetConstantNode.new(val[0], CallNode.new(GetConstantNode.new(val[0]), "+", [val[2]])) 
+     result = SetConstantNode.new(val[0], CallNode.new(GetConstantNode.new(val[0]), "+", [val[2]]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 160)
   def _reduce_84(val, _values, result)
-     result = SetGlobalNode.new(val[0], CallNode.new(GetGlobalNode.new(val[0]), "+", [val[2]])) 
+     result = SetGlobalNode.new(val[0], CallNode.new(GetGlobalNode.new(val[0]), "+", [val[2]]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 161)
   def _reduce_85(val, _values, result)
-     result = SetClassVarNode.new(val[0], CallNode.new(GetClassVarNode.new(val[0]), "+", [val[2]])) 
+     result = SetClassVarNode.new(val[0], CallNode.new(GetClassVarNode.new(val[0]), "+", [val[2]]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 162)
   def _reduce_86(val, _values, result)
-     result = SetInstanceVarNode.new(val[0], CallNode.new(GetInstanceVarNode.new(val[0]), "+", [val[2]])) 
+     result = SetInstanceVarNode.new(val[0], CallNode.new(GetInstanceVarNode.new(val[0]), "+", [val[2]]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 163)
   def _reduce_87(val, _values, result)
-     result = SetLocalNode.new(val[0], CallNode.new(GetLocalNode.new(val[0]), "+", [val[2]])) 
+     result = SetLocalNode.new(val[0], CallNode.new(GetLocalNode.new(val[0]), "+", [val[2]]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 164)
   def _reduce_88(val, _values, result)
-     result = SetConstantNode.new(val[0], CallNode.new(GetConstantNode.new(val[0]), "-", [val[2]])) 
+     result = SetConstantNode.new(val[0], CallNode.new(GetConstantNode.new(val[0]), "-", [val[2]]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 165)
   def _reduce_89(val, _values, result)
-     result = SetGlobalNode.new(val[0], CallNode.new(GetGlobalNode.new(val[0]), "-", [val[2]])) 
+     result = SetGlobalNode.new(val[0], CallNode.new(GetGlobalNode.new(val[0]), "-", [val[2]]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 166)
   def _reduce_90(val, _values, result)
-     result = SetClassVarNode.new(val[0], CallNode.new(GetClassVarNode.new(val[0]), "-", [val[2]])) 
+     result = SetClassVarNode.new(val[0], CallNode.new(GetClassVarNode.new(val[0]), "-", [val[2]]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 167)
   def _reduce_91(val, _values, result)
-     result = SetInstanceVarNode.new(val[0], CallNode.new(GetInstanceVarNode.new(val[0]), "-", [val[2]])) 
+     result = SetInstanceVarNode.new(val[0], CallNode.new(GetInstanceVarNode.new(val[0]), "-", [val[2]]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 168)
   def _reduce_92(val, _values, result)
-     result = SetLocalNode.new(val[0], CallNode.new(GetLocalNode.new(val[0]), "-", [val[2]])) 
+     result = SetLocalNode.new(val[0], CallNode.new(GetLocalNode.new(val[0]), "-", [val[2]]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 169)
   def _reduce_93(val, _values, result)
-     result = SetConstantNode.new(val[0], CallNode.new(GetConstantNode.new(val[0]), "*", [val[2]])) 
+     result = SetConstantNode.new(val[0], CallNode.new(GetConstantNode.new(val[0]), "*", [val[2]]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 170)
   def _reduce_94(val, _values, result)
-     result = SetGlobalNode.new(val[0], CallNode.new(GetGlobalNode.new(val[0]), "*", [val[2]])) 
+     result = SetGlobalNode.new(val[0], CallNode.new(GetGlobalNode.new(val[0]), "*", [val[2]]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 171)
   def _reduce_95(val, _values, result)
-     result = SetClassVarNode.new(val[0], CallNode.new(GetClassVarNode.new(val[0]), "*", [val[2]])) 
+     result = SetClassVarNode.new(val[0], CallNode.new(GetClassVarNode.new(val[0]), "*", [val[2]]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 172)
   def _reduce_96(val, _values, result)
-     result = SetInstanceVarNode.new(val[0], CallNode.new(GetInstanceVarNode.new(val[0]), "*", [val[2]])) 
+     result = SetInstanceVarNode.new(val[0], CallNode.new(GetInstanceVarNode.new(val[0]), "*", [val[2]]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 173)
   def _reduce_97(val, _values, result)
-     result = SetLocalNode.new(val[0], CallNode.new(GetLocalNode.new(val[0]), "*", [val[2]])) 
+     result = SetLocalNode.new(val[0], CallNode.new(GetLocalNode.new(val[0]), "*", [val[2]]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 174)
   def _reduce_98(val, _values, result)
-     result = SetConstantNode.new(val[0], CallNode.new(GetConstantNode.new(val[0]), "/", [val[2]])) 
+     result = SetConstantNode.new(val[0], CallNode.new(GetConstantNode.new(val[0]), "/", [val[2]]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 175)
   def _reduce_99(val, _values, result)
-     result = SetGlobalNode.new(val[0], CallNode.new(GetGlobalNode.new(val[0]), "/", [val[2]])) 
+     result = SetGlobalNode.new(val[0], CallNode.new(GetGlobalNode.new(val[0]), "/", [val[2]]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 176)
   def _reduce_100(val, _values, result)
-     result = SetClassVarNode.new(val[0], CallNode.new(GetClassVarNode.new(val[0]), "/", [val[2]])) 
+     result = SetClassVarNode.new(val[0], CallNode.new(GetClassVarNode.new(val[0]), "/", [val[2]]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 177)
   def _reduce_101(val, _values, result)
-     result = SetInstanceVarNode.new(val[0], CallNode.new(GetInstanceVarNode.new(val[0]), "/", [val[2]])) 
+     result = SetInstanceVarNode.new(val[0], CallNode.new(GetInstanceVarNode.new(val[0]), "/", [val[2]]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 178)
   def _reduce_102(val, _values, result)
-     result = SetLocalNode.new(val[0], CallNode.new(GetLocalNode.new(val[0]), "/", [val[2]])) 
+     result = SetLocalNode.new(val[0], CallNode.new(GetLocalNode.new(val[0]), "/", [val[2]]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 179)
   def _reduce_103(val, _values, result)
-     result = SetConstantNode.new(val[0], CallNode.new(GetConstantNode.new(val[0]), "%", [val[2]])) 
+     result = SetConstantNode.new(val[0], CallNode.new(GetConstantNode.new(val[0]), "%", [val[2]]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 180)
   def _reduce_104(val, _values, result)
-     result = SetGlobalNode.new(val[0], CallNode.new(GetGlobalNode.new(val[0]), "%", [val[2]])) 
+     result = SetGlobalNode.new(val[0], CallNode.new(GetGlobalNode.new(val[0]), "%", [val[2]]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 181)
   def _reduce_105(val, _values, result)
-     result = SetClassVarNode.new(val[0], CallNode.new(GetClassVarNode.new(val[0]), "%", [val[2]])) 
+     result = SetClassVarNode.new(val[0], CallNode.new(GetClassVarNode.new(val[0]), "%", [val[2]]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 182)
   def _reduce_106(val, _values, result)
-     result = SetInstanceVarNode.new(val[0], CallNode.new(GetInstanceVarNode.new(val[0]), "%", [val[2]])) 
+     result = SetInstanceVarNode.new(val[0], CallNode.new(GetInstanceVarNode.new(val[0]), "%", [val[2]]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 183)
   def _reduce_107(val, _values, result)
-     result = SetLocalNode.new(val[0], CallNode.new(GetLocalNode.new(val[0]), "%", [val[2]])) 
+     result = SetLocalNode.new(val[0], CallNode.new(GetLocalNode.new(val[0]), "%", [val[2]]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 184)
   def _reduce_108(val, _values, result)
-     result = SetConstantNode.new(val[0], CallNode.new(GetConstantNode.new(val[0]), "**", [val[2]])) 
+     result = SetConstantNode.new(val[0], CallNode.new(GetConstantNode.new(val[0]), "**", [val[2]]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 185)
   def _reduce_109(val, _values, result)
-     result = SetGlobalNode.new(val[0], CallNode.new(GetGlobalNode.new(val[0]), "**", [val[2]])) 
+     result = SetGlobalNode.new(val[0], CallNode.new(GetGlobalNode.new(val[0]), "**", [val[2]]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 186)
   def _reduce_110(val, _values, result)
-     result = SetClassVarNode.new(val[0], CallNode.new(GetClassVarNode.new(val[0]), "**", [val[2]])) 
+     result = SetClassVarNode.new(val[0], CallNode.new(GetClassVarNode.new(val[0]), "**", [val[2]]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 187)
   def _reduce_111(val, _values, result)
-     result = SetInstanceVarNode.new(val[0], CallNode.new(GetInstanceVarNode.new(val[0]), "**", [val[2]])) 
+     result = SetInstanceVarNode.new(val[0], CallNode.new(GetInstanceVarNode.new(val[0]), "**", [val[2]]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 188)
   def _reduce_112(val, _values, result)
-     result = SetLocalNode.new(val[0], CallNode.new(GetLocalNode.new(val[0]), "**", [val[2]])) 
+     result = SetLocalNode.new(val[0], CallNode.new(GetLocalNode.new(val[0]), "**", [val[2]]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 192)
   def _reduce_113(val, _values, result)
-     result = SetConstantNode.new(val[0], val[2]) 
+     result = SetConstantNode.new(val[0], val[2])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 193)
   def _reduce_114(val, _values, result)
-     result = SetGlobalNode.new(val[0], val[2]) 
+     result = SetGlobalNode.new(val[0], val[2])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 194)
   def _reduce_115(val, _values, result)
-     result = SetClassVarNode.new(val[0], val[2]) 
+     result = SetClassVarNode.new(val[0], val[2])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 195)
   def _reduce_116(val, _values, result)
-     result = SetInstanceVarNode.new(val[0], val[2]) 
+     result = SetInstanceVarNode.new(val[0], val[2])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 196)
   def _reduce_117(val, _values, result)
-     result = SetLocalNode.new(val[0], val[2]) 
+     result = SetLocalNode.new(val[0], val[2])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 200)
   def _reduce_118(val, _values, result)
-     result = DefMethodNode.new(val[0], val[1]) 
+     result = DefMethodNode.new(val[0], val[1])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 201)
   def _reduce_119(val, _values, result)
-     result = DefMethodNode.new(val[0], val[1]) 
+     result = DefMethodNode.new(val[0], val[1])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 202)
   def _reduce_120(val, _values, result)
-     result = DefMethodNode.new(val[0], val[1]) 
+     result = DefMethodNode.new(val[0], val[1])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 206)
   def _reduce_121(val, _values, result)
-     result = MethodNode.new(val[1], val[2]) 
+     result = MethodNode.new(val[1], val[2])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 207)
   def _reduce_122(val, _values, result)
-     result = MethodNode.new(val[1], Nodes.new([])) 
+     result = MethodNode.new(val[1], Nodes.new([]))
     result
   end
 .,.,
@@ -1836,168 +1836,168 @@ module_eval(<<'.,.,', 'grammar.y', 207)
 
 module_eval(<<'.,.,', 'grammar.y', 231)
   def _reduce_140(val, _values, result)
-     result = [] 
+     result = []
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 232)
   def _reduce_141(val, _values, result)
-     result = [] 
+     result = []
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 233)
   def _reduce_142(val, _values, result)
-     result = val[1] 
+     result = val[1]
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 234)
   def _reduce_143(val, _values, result)
-     result = val[1] 
+     result = val[1]
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 238)
   def _reduce_144(val, _values, result)
-     result = val 
+     result = val
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 239)
   def _reduce_145(val, _values, result)
-     result = val[0] << val[2] 
+     result = val[0] << val[2]
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 243)
   def _reduce_146(val, _values, result)
-     result = val[0] 
+     result = val[0]
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 244)
   def _reduce_147(val, _values, result)
-     result = val[0] 
+     result = val[0]
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 245)
   def _reduce_148(val, _values, result)
-     result = val[0] 
+     result = val[0]
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 249)
   def _reduce_149(val, _values, result)
-     result = NamespaceNode.new(val[1], val[2]) 
+     result = NamespaceNode.new(val[1], val[2])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 250)
   def _reduce_150(val, _values, result)
-     result = NamespaceNode.new(val[1], val[3]) 
+     result = NamespaceNode.new(val[1], val[3])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 251)
   def _reduce_151(val, _values, result)
-     result = NamespaceNode.new(val[1], Nodes.new([])) 
+     result = NamespaceNode.new(val[1], Nodes.new([]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 255)
   def _reduce_152(val, _values, result)
-     result = ClassNode.new(val[1], nil, val[2]) 
+     result = ClassNode.new(val[1], nil, val[2])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 256)
   def _reduce_153(val, _values, result)
-     result = ClassNode.new(val[1], nil, val[3]) 
+     result = ClassNode.new(val[1], nil, val[3])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 257)
   def _reduce_154(val, _values, result)
-     result = ClassNode.new(val[1], nil, Nodes.new([])) 
+     result = ClassNode.new(val[1], nil, Nodes.new([]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 258)
   def _reduce_155(val, _values, result)
-     result = ClassNode.new(val[1], nil, Nodes.new([])) 
+     result = ClassNode.new(val[1], nil, Nodes.new([]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 259)
   def _reduce_156(val, _values, result)
-     result = ClassNode.new(val[1], val[3], val[4]) 
+     result = ClassNode.new(val[1], val[3], val[4])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 260)
   def _reduce_157(val, _values, result)
-     result = ClassNode.new(val[1], val[3], val[5]) 
+     result = ClassNode.new(val[1], val[3], val[5])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 261)
   def _reduce_158(val, _values, result)
-     result = ClassNode.new(val[1], val[3], Nodes.new([])) 
+     result = ClassNode.new(val[1], val[3], Nodes.new([]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 262)
   def _reduce_159(val, _values, result)
-     result = ClassNode.new(val[1], val[3], Nodes.new([])) 
+     result = ClassNode.new(val[1], val[3], Nodes.new([]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 266)
   def _reduce_160(val, _values, result)
-     result = IfNode.new(val[1], val[3], nil) 
+     result = IfNode.new(val[1], val[3], nil)
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 267)
   def _reduce_161(val, _values, result)
-     result = IfNode.new(val[1], val[3], val[4]) 
+     result = IfNode.new(val[1], val[3], val[4])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 271)
   def _reduce_162(val, _values, result)
-     result = ElseNode.new(val[2]) 
+     result = ElseNode.new(val[2])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 272)
   def _reduce_163(val, _values, result)
-     result = ElseNode.new(val[2]) 
+     result = ElseNode.new(val[2])
     result
   end
 .,.,
@@ -2006,63 +2006,63 @@ module_eval(<<'.,.,', 'grammar.y', 272)
 
 module_eval(<<'.,.,', 'grammar.y', 277)
   def _reduce_165(val, _values, result)
-     result = ElseNode.new(IfNode.new(val[1], val[3], nil)) 
+     result = ElseNode.new(IfNode.new(val[1], val[3], nil))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 278)
   def _reduce_166(val, _values, result)
-     result = ElseNode.new(IfNode.new(val[1], val[3], val[4])) 
+     result = ElseNode.new(IfNode.new(val[1], val[3], val[4]))
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 282)
   def _reduce_167(val, _values, result)
-     result = WhileNode.new(val[1], val[3]) 
+     result = WhileNode.new(val[1], val[3])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 286)
   def _reduce_168(val, _values, result)
-     result = ReturnNode.new(val[1]) 
+     result = ReturnNode.new(val[1])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 287)
   def _reduce_169(val, _values, result)
-     result = ReturnNode.new(nil) 
+     result = ReturnNode.new(nil)
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 291)
   def _reduce_170(val, _values, result)
-     result = PropertyNode.new([val[1]]) 
+     result = PropertyNode.new([val[1]])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 292)
   def _reduce_171(val, _values, result)
-     result = PropertyNode.new(val[1]) 
+     result = PropertyNode.new(val[1])
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 296)
   def _reduce_172(val, _values, result)
-     result = [val[0], val[1]] 
+     result = [val[0], val[1]]
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'grammar.y', 297)
   def _reduce_173(val, _values, result)
-     result = val[0] << val[1] 
+     result = val[0] << val[1]
     result
   end
 .,.,
@@ -2073,4 +2073,4 @@ end
 
 end   # class Parser
 
-end # module Cuby
+end # module EleetScript

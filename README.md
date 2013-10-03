@@ -1,6 +1,6 @@
 # Introduction
 
-Cuby is a simple and secure scripting language desgined to be hosted in
+EleetScript is a simple and secure scripting language desgined to be hosted in
 ruby applications to add a scripting component. The desire to design a language
 for this purpose instead of pursuing other options is to make a language with
 no default unsafe access to the system or execution of the software unless
@@ -14,16 +14,16 @@ as of the current state the lexer is the only thing completed.
 - Lexer (complete)
 - Parser/Grammer (complete)
 - Runtime (complete)
-- Interpreter (started)
+- Interpreter (working)
 - Bytecode Compiler
 - VM (for bytecode)
 
 ## Proposed Examples
 
-Cuby is built on top of the ruby language and so ruby syntax is borrowed
+EleetScript is built on top of the ruby language and so ruby syntax is borrowed
 heavily as well as some minor inspiration from [CoffeeScript](coffeescript.org).
 
-```cuby
+```eleetscript
 # Math sample
 class Math
   @@add do |a, b| # The @@ is a class identifier, making @@add a class method
@@ -49,7 +49,7 @@ Math.pi # parameterless calls do not require parenthesis
 # => 3.14
 ```
 
-```cuby
+```eleetscript
 # Greeter sample
 class Greeter
   init do |@greeting| end # from CoffeeScript, assigns @greeting to value of first argument
@@ -64,8 +64,8 @@ greeter.greet("World")
 # => "Hello, World"
 ```
 
-```cuby
-# This is the pair class, part of the Cuby core as it's written in Cuby
+```eleetscript
+# This is the pair class, part of the EleetScript core as it's written in EleetScript
 class Pair
   # Creates a getter and setter method for each property listed, each manages an
   # instance variable of the same name such as @key and @value
@@ -85,8 +85,8 @@ p.key = "changed"
 p.key # => "changed"
 ```
 
-```cuby
-# Lists in Cuby are similar to that of PHP, they are both syncronous and associative.
+```eleetscript
+# Lists in EleetScript are similar to that of PHP, they are both syncronous and associative.
 a = [1, 3]
 a[0] + a[1] # => 4
 
@@ -107,10 +107,6 @@ key = "dynamic key"
 a = [key => "other"]
 a["dynamic key"] # => "other"
 ```
-
-# Thanks
-
-Thanks to Nick for the name 'Cuby'
 
 # License
 

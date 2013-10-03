@@ -4,7 +4,7 @@ $:.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
 require "lang/interpreter"
 
 def exit_repl
-  puts "\n\nExiting Cuby REPL"
+  puts "\n\nExiting EleetScript REPL"
   exit
 end
 
@@ -12,8 +12,8 @@ Signal.trap("INT") do
   exit_repl
 end
 
-interp = CB::Interpreter.new
-@lexer = CB::Lexer.new
+interp = ES::Interpreter.new
+@lexer = ES::Lexer.new
 
 if ARGV.empty?
   show_nodes = false
@@ -64,7 +64,7 @@ if ARGV.empty?
         puts "Error: #{e.message}"
         next
       end
-      if value.kind_of?(CB::CubyClass) || value.kind_of?(CB::CubyClassInstance)
+      if value.kind_of?(ES::EleetScriptClass) || value.kind_of?(ES::EleetScriptClassInstance)
         if ["Integer", "Float", "String", "TrueClass", "FalseClass", "NilClass"].include?(value.class_name)
           puts " => #{value.ruby_value.inspect}"
         else

@@ -7,6 +7,6 @@ class Pair
   end
 
   to_string do
-    "<Pair " + @key + " => " + @value + ">"
+    "<Pair " + @key.inspect + " => " + @value.inspect + ">"
   end
 end

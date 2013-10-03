@@ -1,3 +1,3 @@
-module Cuby
+module EleetScript
 
 end

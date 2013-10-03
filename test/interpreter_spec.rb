@@ -1,7 +1,7 @@
 require "lang/interpreter"
 
-describe "Cuby::Interpreter" do
-  let(:interpreter) { CB::Interpreter.new }
+describe "EleetScript::Interpreter" do
+  let(:interpreter) { ES::Interpreter.new }
 
   describe "simple cases" do
     before(:each) do
@@ -372,7 +372,7 @@ describe "Cuby::Interpreter" do
     end
   end
 
-  describe "Cuby core" do
+  describe "EleetScript core" do
     it "should have a working Pair class" do
       code = <<-CODE
       print_pair do |pair|
@@ -457,11 +457,11 @@ describe "Cuby::Interpreter" do
         interpreter.eval(code)
       end
 
-      it "should use ** method" do
+      it "should use + method" do
         code = <<-CODE
         l1 = [1, 2]
         l2 = [3, 4]
-        l1 ** l2
+        l1 + l2
         println(l1)
         CODE
         $stdout.should_receive(:puts).with("[1, 2, 3, 4]")

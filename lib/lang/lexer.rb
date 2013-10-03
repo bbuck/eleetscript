@@ -1,6 +1,6 @@
-require "cuby"
+require "eleetscript"
 
-module Cuby
+module EleetScript
   class Lexer
     KEYWORDS = [
       "do", "end", "class", "load", "if", "while", "namespace", "else", "elsif",

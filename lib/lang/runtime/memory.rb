@@ -4,7 +4,7 @@ require "lang/runtime/method"
 require "lang/runtime/array"
 require "lang/runtime/base_classes"
 
-module Cuby
+module EleetScript
   class Memory
     attr_reader :constants, :globals, :root, :root_context
 
@@ -14,7 +14,7 @@ module Cuby
     def initialize
       @constants = {}
       @globals = {}
-      @root_path = File.join(File.dirname(__FILE__), "cuby")
+      @root_path = File.join(File.dirname(__FILE__), "eleetscript")
     end
 
     def nil_method
@@ -30,10 +30,10 @@ module Cuby
       @bootstrapped = true
 
       ROOT_OBJECTS.each do |obj_name|
-        @constants[obj_name] = CubyClass.create(self, obj_name)
+        @constants[obj_name] = EleetScriptClass.create(self, obj_name)
       end
-      @constants["Integer"] = CubyClass.create(self, "Integer", @constants["Number"])
-      @constants["Float"] = CubyClass.create(self, "Float", @constants["Number"])
+      @constants["Integer"] = EleetScriptClass.create(self, "Integer", @constants["Number"])
+      @constants["Float"] = EleetScriptClass.create(self, "Float", @constants["Number"])
 
       @root = @constants["Object"].new
       @root_context = Context.new(@root)
@@ -75,6 +75,16 @@ module Cuby
         nil_obj
       end
 
+      object.class_def :print do |receiver, arguments|
+        print arguments.first.call(:to_string).ruby_value
+        nil_obj
+      end
+
+      object.class_def :println do |receiver, arguments|
+        puts arguments.first.call(:to_string).ruby_value
+        nil_obj
+      end
+
       object.def :kind_of? do |receiver, arguments|
         t = @constants["true"]
         f = @constants["false"]
@@ -95,6 +105,10 @@ module Cuby
 
       object.def :class_name do |receiver, arguments|
         @constants["String"].new_with_value(receiver.runtime_class.name)
+      end
+
+      object.class_def :class_name do |receiver, arguments|
+        @constants["String"].new_with_value(receiver.name)
       end
 
       object.def "is" do |receiver, arguments|
@@ -130,6 +144,33 @@ module Cuby
         end
         receiver.ruby_value += arg_str
         receiver
+      end
+
+      string.def "is" do |receiver, arguments|
+        compare_to = arguments.first.ruby_value
+        if compare_to == receiver.ruby_value
+          constants["true"]
+        else
+          constants["false"]
+        end
+      end
+
+      string.def "substr" do |receiver, arguments|
+        if arguments.length < 2
+          constants["nil"]
+        else
+          s, e = arguments
+          if s.is_a?("Integer") && e.is_a?("Integer")
+            range = if e.ruby_value < 0
+              (s.ruby_value..e.ruby_value)
+            else
+              (s.ruby_value...e.ruby_value)
+            end
+            constants["String"].new_with_value(receiver.ruby_value[range])
+          else
+            constants["nil"]
+          end
+        end
       end
     end
 
@@ -406,13 +447,19 @@ module Cuby
         val.nil? ? nil_obj : val
       end
 
+      list.def :length do |receiver, arguments|
+        ruby_val = receiver.ruby_value
+        length = ruby_val.array.length + ruby_val.hash.length
+        @constants["Integer"].new_with_value(length)
+      end
+
       list.def :to_string do |receiver, arguments|
         arr_vals = receiver.ruby_value.array.map do |val|
           val.call(:inspect).ruby_value
         end
         arr_str = arr_vals.join(", ")
         hash_vals = receiver.ruby_value.hash.map do |k, v|
-          if k.kind_of?(CubyClassSkeleton)
+          if k.kind_of?(EleetScriptClassSkeleton)
             k = k.call(:inspect).ruby_value
           else
             k = k.inspect

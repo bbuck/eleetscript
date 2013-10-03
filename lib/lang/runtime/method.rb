@@ -1,5 +1,5 @@
-module Cuby
-  class CubyMethod
+module EleetScript
+  class EleetScriptMethod
     def initialize(params, body, block = nil)
       @params = params
       @body = body
