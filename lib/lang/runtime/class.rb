@@ -1,40 +1,7 @@
+require "lang/runtime/class_skeleton"
+
 module EleetScript
   NO_METHOD = "no_method"
-
-  class EleetScriptClassSkeleton
-    attr_accessor :ruby_value
-    attr_reader :memory
-
-    class << self
-      def set_is_instance
-        self.class_eval do
-          def instance?
-            true
-          end
-        end
-      end
-
-      def set_is_class
-        self.class_eval do
-          def class?
-            true
-          end
-        end
-      end
-    end
-
-    def instance?
-      false
-    end
-
-    def class?
-      false
-    end
-
-    def is_a?(name)
-      false
-    end
-  end
 
   class EleetScriptClass < EleetScriptClassSkeleton
     attr_accessor :class_methods, :instance_methods, :class_vars, :context, :name
@@ -137,7 +104,7 @@ module EleetScript
     private
 
     def has_super_class?
-      !!@super_class || (@super_class.nil? && name != "Object")
+      @super_class || (@super_class.nil? && name != "Object")
     end
   end
 

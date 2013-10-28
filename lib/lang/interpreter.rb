@@ -1,6 +1,5 @@
 require "lang/parser"
 require "lang/runtime/memory"
-require "pry"
 
 module EleetScript
   class Interpreter

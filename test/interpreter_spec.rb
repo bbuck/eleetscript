@@ -50,6 +50,21 @@ describe "EleetScript::Interpreter" do
         CODE
         ->{ interpreter.eval(code) }.should_not raise_error
       end
+
+      it "should allow assignment of global variables" do
+        code = "$global = \"test\""
+        -> { interpreter.eval(code) }.should_not rais_error
+      end
+
+      it "should allow access of global variables in multiple scopes" do
+        code = <<-CODE
+        $global = "Hello"
+        test_method do
+          pritnln($global)
+        end
+        prinltn($global)
+        CODE
+      end
     end
   end
 
@@ -453,7 +468,7 @@ describe "EleetScript::Interpreter" do
         l1.merge!(l2)
         println(l1)
         CODE
-        $stdout.should_receive(:puts).with("[1, 2, 3, 4, 10=>What, msg=>Hello]")
+        $stdout.should_receive(:puts).with("[1, 2, 3, 4, 10=>\"What\", \"msg\"=>\"Hello\"]")
         interpreter.eval(code)
       end
 

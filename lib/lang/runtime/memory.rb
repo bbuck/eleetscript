@@ -8,7 +8,7 @@ module EleetScript
   class Memory
     attr_reader :constants, :globals, :root, :root_context
 
-    ROOT_OBJECTS = ["Object", "Number", "String", "List", "TrueClass",
+    ROOT_OBJECTS = ["Object", "Number", "String", "List", "TrueClass", "IO",
                     "FalseClass", "NilClass"]
 
     def initialize
@@ -43,12 +43,13 @@ module EleetScript
       @constants["nil"] = @constants["NilClass"].new_with_value(nil)
 
       load_object_methods
+      load_io_methods
       load_string_methods
       load_number_methods
       load_boolean_methods
       load_nil_methods
       load_list_methods
-      files = Dir.glob(File.join(@root_path, "**", "*.cb"))
+      files = Dir.glob(File.join(@root_path, "**", "*.es"))
       files.each do |file|
         loader.load(file)
       end
@@ -63,26 +64,6 @@ module EleetScript
         ins = receiver.new
         ins.call("init", arguments)
         ins
-      end
-
-      object.def :print do |receiver, arguments|
-        print arguments.first.call(:to_string).ruby_value
-        nil_obj
-      end
-
-      object.def :println do |receiver, arguments|
-        puts arguments.first.call(:to_string).ruby_value
-        nil_obj
-      end
-
-      object.class_def :print do |receiver, arguments|
-        print arguments.first.call(:to_string).ruby_value
-        nil_obj
-      end
-
-      object.class_def :println do |receiver, arguments|
-        puts arguments.first.call(:to_string).ruby_value
-        nil_obj
       end
 
       object.def :kind_of? do |receiver, arguments|
@@ -111,7 +92,7 @@ module EleetScript
         @constants["String"].new_with_value(receiver.name)
       end
 
-      object.def "is" do |receiver, arguments|
+      object.def :is do |receiver, arguments|
         if receiver == arguments.first
           @constants["true"]
         else
@@ -127,6 +108,24 @@ module EleetScript
           ins = reciever.runtime_class.call(:new)
           ins.ruby_value = receiver.ruby_value.dup
         end
+      end
+    end
+
+    def load_io_methods
+      io = @constants["IO"]
+
+      io.class_def :print do |receiver, arguments|
+        print arguments.first.call(:to_string).ruby_value
+        nil_obj
+      end
+
+      io.class_def :println do |receiver, arguments|
+        puts arguments.first.call(:to_string).ruby_value
+        nil_obj
+      end
+
+      io.class_def :new do |receiver, arguments|
+        io
       end
     end
 
@@ -346,9 +345,9 @@ module EleetScript
         new_list = list.new_with_value(ListBase.new(nil_obj))
         arguments.each do |arg|
           if arg.instance? && arg.runtime_class.name == "Pair"
-            new_list.ruby_value.hash[arg.call(:key).call(:to_string).ruby_value] = arg.call(:value)
+            new_list.ruby_value.hash_value[arg.call(:key)] = arg.call(:value)
           else
-            new_list.ruby_value.array << arg
+            new_list.ruby_value.array_value << arg
           end
         end
         new_list
@@ -359,17 +358,13 @@ module EleetScript
         arg = arguments.first
         if arg.instance? && arg.runtime_class.name == "Integer"
           index = arg.ruby_value
-          if index < lst.array.length
-            lst.array[index]
+          if index < lst.array_value.length
+            lst.array_value[index]
           else
-            lst.hash[arg.ruby_value]
+            lst.hash_value[arg.ruby_value]
           end
         else
-          if arg.instance?
-            lst.hash[arg.call(:to_string).ruby_value]
-          else
-            lst.hash[arg]
-          end
+          lst.hash_value[arg]
         end
       end
 
@@ -379,17 +374,13 @@ module EleetScript
         value = arguments[1]
         if key.instance? && key.runtime_class.name == "Integer"
           index = key.ruby_value
-          if index < lst.array.length
-            lst.array[index] = value
+          if index < lst.array_value.length
+            lst.array_value[index] = value
           else
-            lst.hash[key.ruby_value] = value
+            lst.hash_value[key.ruby_value] = value
           end
         else
-          if key.instance?
-            lst.hash[key.call(:to_string).ruby_value] = value
-          else
-            lst.hash[key] = value
-          end
+          lst.hash_value[key] = value
         end
         value
       end
@@ -400,65 +391,65 @@ module EleetScript
         if arg.is_a?("List")
           lst.merge!(arg.ruby_value)
         end
-        lst
+        receiver
       end
 
       list.def :push do |receiver, arguments|
-        receiver.ruby_value.array << arguments.first
+        receiver.ruby_value.array_value << arguments.first
         arguments.first
       end
 
       list.def :pop do |receiver, arguments|
-        val = receiver.ruby_value.array.pop
+        val = receiver.ruby_value.array_value.pop
         val.nil? ? nil_obj : val
       end
 
       list.def :shift do |receiver, arguments|
-        val = receiver.ruby_value.array.shift
+        val = receiver.ruby_value.array_value.shift
         val.nil? ? nil_obj : val
       end
 
       list.def :unshift do |receiver, arguments|
-        reciever.ruby_value.array.unshift(arguments.first)
+        reciever.ruby_value.array_value.unshift(arguments.first)
         arguments.first
       end
 
       list.def :keys do |receiver, arguments|
         lst = receiver.ruby_value
-        keys = (lst.array.length > 0 ? (0...lst.array.length).to_a : [])
-        keys.concat(lst.hash.keys)
+        keys = (lst.array_value.length > 0 ? (0...lst.array_value.length).to_a : [])
+        keys.concat(lst.hash_value.keys)
         list.call(:new, keys)
       end
 
       list.def :values do |receiver, arguments|
         lst = receiver.ruby_value
-        vals = (lst.array.length > 0 ? lst.array.dup : [])
-        vals.concat(lst.hash.values)
+        vals = (lst.array_value.length > 0 ? lst.array_value.dup : [])
+        vals.concat(lst.hash_value.values)
         list.call(:new, vals)
       end
 
       list.def :length do |receiver, arguments|
-        length = receiver.ruby_value.array.length + receiver.ruby_value.length
+        length = receiver.ruby_value.array_value.length + receiver.ruby_value.length
         @constants["Integer"].new_with_value(length)
       end
 
       list.def :delete do |receiver, arguments|
-        val = receiver.ruby_value.hash.delete(arguments.first)
+        val = receiver.ruby_value.hash_value.delete(arguments.first)
         val.nil? ? nil_obj : val
       end
 
       list.def :length do |receiver, arguments|
         ruby_val = receiver.ruby_value
-        length = ruby_val.array.length + ruby_val.hash.length
+        length = ruby_val.array_value.length + ruby_val.hash_value.length
         @constants["Integer"].new_with_value(length)
       end
 
       list.def :to_string do |receiver, arguments|
-        arr_vals = receiver.ruby_value.array.map do |val|
+        arr_vals = receiver.ruby_value.array_value.map do |val|
           val.call(:inspect).ruby_value
         end
         arr_str = arr_vals.join(", ")
-        hash_vals = receiver.ruby_value.hash.map do |k, v|
+        hash_vals = receiver.ruby_value.hash_value.map do |k, v|
           if k.kind_of?(EleetScriptClassSkeleton)
             k = k.call(:inspect).ruby_value
           else

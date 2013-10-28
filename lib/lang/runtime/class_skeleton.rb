@@ -32,5 +32,24 @@ module EleetScript
     def is_a?(name)
       false
     end
+
+    def hash
+      if instance?
+        ruby_value.hash
+      else
+        name.hash
+      end
+    end
+
+    def eql?(other)
+      if other.kind_of?(EleetScriptClassSkeleton)
+        if instance?
+          return call(:is, [other]).ruby_value
+        elsif class? && other.class?
+          return name == other.name
+        end
+      end
+      false
+    end
   end
 end

@@ -1,15 +1,15 @@
 module EleetScript
   class ListBase
-    attr_reader :array, :hash
+    attr_reader :array_value, :hash_value
 
     def initialize(nil_val)
-      @array = []
-      @hash = Hash.new(nil_val)
+      @array_value = []
+      @hash_value = Hash.new(nil_val)
     end
 
     def merge!(o)
-      @array.concat(o.array)
-      @hash.merge!(o.hash)
+      @array_value.concat(o.array_value)
+      @hash_value.merge!(o.hash_value)
     end
 
     def clone
@@ -18,8 +18,8 @@ module EleetScript
 
     def dup
       lst = ListBase.new
-      lst.array = @array.dup
-      lst.hash = @hash.dup
+      lst.array_value = @array_value.dup
+      lst.hash_value = @hash_value.dup
       lst
     end
   end

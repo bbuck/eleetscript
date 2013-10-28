@@ -11,16 +11,28 @@ class Object
     class_name
   end
 
+  @@println do |msg|
+    IO.println(msg)
+  end
+
+  @@print do |msg|
+    IO.print(msg)
+  end
+
   to_string do
     class_name
   end
 
-  inspect do
-    to_string
+  println do |msg|
+    IO.println(msg)
   end
 
-  __nil_method do
-    nil
+  print do |msg|
+    IO.print(msg)
+  end
+
+  inspect do
+    to_string
   end
 
   no_method do
