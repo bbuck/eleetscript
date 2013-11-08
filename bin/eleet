@@ -17,13 +17,13 @@ interp = ES::Interpreter.new
 
 if ARGV.empty?
   show_nodes = false
-  interp.memory.constants["Object"].def :__repl_show_nodes do |receiver, arguments|
+  interp.memory.root_namespace["Object"].def :__repl_show_nodes do |receiver, arguments|
     bool = !!arguments.first.ruby_value
     show_nodes = bool
     arguments.first
   end
 
-  interp.memory.constants["Object"].def :exit do |receiver, arguments|
+  interp.memory.root_namespace["Object"].def :exit do |receiver, arguments|
     exit_repl
   end
 
