@@ -6,23 +6,14 @@ require "lang/runtime/base_classes"
 
 module EleetScript
   class Memory
-    attr_reader :constants, :globals, :root, :root_context
+    attr_reader :root, :root_context, :root_namespace
 
     ROOT_OBJECTS = ["Object", "Number", "String", "List", "TrueClass", "IO",
                     "FalseClass", "NilClass"]
 
     def initialize
-      @constants = {}
-      @globals = {}
+      @root_namespace = NamespaceContext.new(nil, nil)
       @root_path = File.join(File.dirname(__FILE__), "eleetscript")
-    end
-
-    def nil_method
-      @constants["Object"].instance_methods["__nil_method"]
-    end
-
-    def nil_obj
-      @constants["nil"]
     end
 
     def bootstrap(loader)
@@ -30,17 +21,18 @@ module EleetScript
       @bootstrapped = true
 
       ROOT_OBJECTS.each do |obj_name|
-        @constants[obj_name] = EleetScriptClass.create(self, obj_name)
+        @root_namespace[obj_name] = EleetScriptClass.create(@root_namespace, obj_name)
       end
-      @constants["Integer"] = EleetScriptClass.create(self, "Integer", @constants["Number"])
-      @constants["Float"] = EleetScriptClass.create(self, "Float", @constants["Number"])
+      @root_namespace["Integer"] = EleetScriptClass.create(@root_namespace, "Integer", @root_namespace["Number"])
+      @root_namespace["Float"] = EleetScriptClass.create(@root_namespace, "Float", @root_namespace["Number"])
 
-      @root = @constants["Object"].new
-      @root_context = Context.new(@root)
+      @root = @root_namespace["Object"].new
+      @root_namespace.current_self = @root
+      @root_namespace.current_class = @root.runtime_class
 
-      @constants["true"] = @constants["TrueClass"].new_with_value(true)
-      @constants["false"] = @constants["FalseClass"].new_with_value(false)
-      @constants["nil"] = @constants["NilClass"].new_with_value(nil)
+      @root_namespace["true"] = @root_namespace["TrueClass"].new_with_value(true)
+      @root_namespace["false"] = @root_namespace["FalseClass"].new_with_value(false)
+      @root_namespace["nil"] = @root_namespace["NilClass"].new_with_value(nil)
 
       load_object_methods
       load_io_methods
@@ -49,6 +41,7 @@ module EleetScript
       load_boolean_methods
       load_nil_methods
       load_list_methods
+
       files = Dir.glob(File.join(@root_path, "**", "*.es"))
       files.each do |file|
         loader.load(file)
@@ -58,7 +51,7 @@ module EleetScript
     private
 
     def load_object_methods
-      object = @constants["Object"]
+      object = @root_namespace["Object"]
 
       object.class_def :new do |receiver, arguments|
         ins = receiver.new
@@ -67,15 +60,15 @@ module EleetScript
       end
 
       object.def :kind_of? do |receiver, arguments|
-        t = @constants["true"]
-        f = @constants["false"]
+        t = @root_namespace["true"]
+        f = @root_namespace["false"]
         if arguments.length == 0 || !arguments.first.class?
           return f
         end
         names = []
         names << receiver.runtime_class.name
         cur_class = receiver.runtime_class
-        while @constants["Object"] != cur_class.super_class
+        while @root_namespace["Object"] != cur_class.super_class
           names << cur_class.super_class.name
           cur_class = cur_class.super_class
         end
@@ -85,18 +78,18 @@ module EleetScript
       end
 
       object.def :class_name do |receiver, arguments|
-        @constants["String"].new_with_value(receiver.runtime_class.name)
+        @root_namespace["String"].new_with_value(receiver.runtime_class.name)
       end
 
       object.class_def :class_name do |receiver, arguments|
-        @constants["String"].new_with_value(receiver.name)
+        @root_namespace["String"].new_with_value(receiver.name)
       end
 
       object.def :is do |receiver, arguments|
         if receiver == arguments.first
-          @constants["true"]
+          @root_namespace["true"]
         else
-          @constants["false"]
+          @root_namespace["false"]
         end
       end
 
@@ -112,16 +105,16 @@ module EleetScript
     end
 
     def load_io_methods
-      io = @constants["IO"]
+      io = @root_namespace["IO"]
 
       io.class_def :print do |receiver, arguments|
         print arguments.first.call(:to_string).ruby_value
-        nil_obj
+        @root_namespace.es_nil
       end
 
       io.class_def :println do |receiver, arguments|
         puts arguments.first.call(:to_string).ruby_value
-        nil_obj
+        @root_namespace.es_nil
       end
 
       io.class_def :new do |receiver, arguments|
@@ -130,7 +123,7 @@ module EleetScript
     end
 
     def load_string_methods
-      string = @constants["String"]
+      string = @root_namespace["String"]
 
       string.def "+" do |receiver, arguments|
         arg = arguments.first
@@ -148,15 +141,15 @@ module EleetScript
       string.def "is" do |receiver, arguments|
         compare_to = arguments.first.ruby_value
         if compare_to == receiver.ruby_value
-          constants["true"]
+          @root_namespace["true"]
         else
-          constants["false"]
+          @root_namespace["false"]
         end
       end
 
       string.def "substr" do |receiver, arguments|
         if arguments.length < 2
-          constants["nil"]
+          @root_namespace["nil"]
         else
           s, e = arguments
           if s.is_a?("Integer") && e.is_a?("Integer")
@@ -165,18 +158,18 @@ module EleetScript
             else
               (s.ruby_value...e.ruby_value)
             end
-            constants["String"].new_with_value(receiver.ruby_value[range])
+            @root_namespace["String"].new_with_value(receiver.ruby_value[range])
           else
-            constants["nil"]
+            @root_namespace["nil"]
           end
         end
       end
     end
 
     def load_number_methods
-      number = @constants["Number"]
-      int = @constants["Integer"]
-      float = @constants["Float"]
+      number = @root_namespace["Number"]
+      int = @root_namespace["Integer"]
+      float = @root_namespace["Float"]
 
       number.def "+" do |receiver, arguments|
         arg = arguments.first
@@ -189,7 +182,7 @@ module EleetScript
           end
         elsif arg.is_a?("String")
           str = receiver.ruby_value.to_s + arg.ruby_value
-          @constants["String"].new_with_value(str)
+          @root_namespace["String"].new_with_value(str)
         else
           receiver
         end
@@ -263,12 +256,12 @@ module EleetScript
         arg = arguments.first
         if arg.is_a?("Number")
           if receiver.ruby_value < arg.ruby_value
-            @constants["true"]
+            @root_namespace["true"]
           else
-            @constants["false"]
+            @root_namespace["false"]
           end
         else
-          @constants["false"]
+          @root_namespace["false"]
         end
       end
 
@@ -276,12 +269,12 @@ module EleetScript
         arg = arguments.first
         if arg.is_a?("Number")
           if receiver.ruby_value > arg.ruby_value
-            @constants["true"]
+            @root_namespace["true"]
           else
-            @constants["false"]
+            @root_namespace["false"]
           end
         else
-          @constants["false"]
+          @root_namespace["false"]
         end
       end
 
@@ -289,22 +282,22 @@ module EleetScript
         arg = arguments.first
         if arg.is_a?("Number")
           if receiver.ruby_value == arg.ruby_value
-            @constants["true"]
+            @root_namespace["true"]
           else
-            @constants["false"]
+            @root_namespace["false"]
           end
         else
-          @constants["false"]
+          @root_namespace["false"]
         end
       end
 
-      number.def "__negate!" do |receiver, arguments|
+      number.def "not" do |receiver, arguments|
         receiver.ruby_value = -receiver.ruby_value
         receiver
       end
 
       number.def :to_string do |receiver, arguments|
-        @constants["String"].new_with_value(receiver.ruby_value.to_s)
+        @root_namespace["String"].new_with_value(receiver.ruby_value.to_s)
       end
 
       number.def :clone do |receiver, arguments|
@@ -313,14 +306,14 @@ module EleetScript
         elsif receiver.is_a?("Float")
           float.new_with_value(receiver.ruby_value)
         else
-          nil_obj
+          @root_namespace.es_nil
         end
       end
     end
 
     def load_boolean_methods
-      true_cls = @constants["TrueClass"]
-      false_cls = @constants["FalseClass"]
+      true_cls = @root_namespace["TrueClass"]
+      false_cls = @root_namespace["FalseClass"]
 
       true_cls.def :clone do |receiver, arguments|
         true_cls.new_with_value(true)
@@ -332,7 +325,7 @@ module EleetScript
     end
 
     def load_nil_methods
-      nil_cls = @constants["NilClass"]
+      nil_cls = @root_namespace["NilClass"]
 
       nil_cls.def :clone do |receiver, arguments|
         nil_cls.new_with_value(nil)
@@ -340,9 +333,9 @@ module EleetScript
     end
 
     def load_list_methods
-      list = @constants["List"]
+      list = @root_namespace["List"]
       list.class_def :new do |receiver, arguments|
-        new_list = list.new_with_value(ListBase.new(nil_obj))
+        new_list = list.new_with_value(ListBase.new(@root_namespace.es_nil))
         arguments.each do |arg|
           if arg.instance? && arg.runtime_class.name == "Pair"
             new_list.ruby_value.hash_value[arg.call(:key)] = arg.call(:value)
@@ -401,12 +394,12 @@ module EleetScript
 
       list.def :pop do |receiver, arguments|
         val = receiver.ruby_value.array_value.pop
-        val.nil? ? nil_obj : val
+        val.nil? ? @root_namespace.es_nil : val
       end
 
       list.def :shift do |receiver, arguments|
         val = receiver.ruby_value.array_value.shift
-        val.nil? ? nil_obj : val
+        val.nil? ? @root_namespace.es_nil : val
       end
 
       list.def :unshift do |receiver, arguments|
@@ -430,18 +423,18 @@ module EleetScript
 
       list.def :length do |receiver, arguments|
         length = receiver.ruby_value.array_value.length + receiver.ruby_value.length
-        @constants["Integer"].new_with_value(length)
+        @root_namespace["Integer"].new_with_value(length)
       end
 
       list.def :delete do |receiver, arguments|
         val = receiver.ruby_value.hash_value.delete(arguments.first)
-        val.nil? ? nil_obj : val
+        val.nil? ? @root_namespace.es_nil : val
       end
 
       list.def :length do |receiver, arguments|
         ruby_val = receiver.ruby_value
         length = ruby_val.array_value.length + ruby_val.hash_value.length
-        @constants["Integer"].new_with_value(length)
+        @root_namespace["Integer"].new_with_value(length)
       end
 
       list.def :to_string do |receiver, arguments|
@@ -467,7 +460,7 @@ module EleetScript
         else
           ""
         end
-        @constants["String"].new_with_value("[#{str}]")
+        @root_namespace["String"].new_with_value("[#{str}]")
       end
     end
   end

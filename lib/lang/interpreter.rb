@@ -13,7 +13,7 @@ module EleetScript
     def eval(code, show_nodes = false)
       nodes = @parser.parse(code)
       puts nodes if show_nodes
-      nodes.eval(@memory.root_context, @memory)
+      nodes.eval(@memory.root_namespace)
     end
 
     def load(file_name)
@@ -80,17 +80,17 @@ module EleetScript
     include Returnable
     include Nextable
 
-    def eval(context, memory)
+    def eval(context)
       return_value = nil
       nodes.each do |node|
         if node.kind_of?(ReturnNode)
           returned
-          break return_value = node.eval(context, memory)
+          break return_value = node.eval(context)
         elsif node.kind_of?(NextNode)
           nexted
           break
         else
-          return_value = node.eval(context, memory)
+          return_value = node.eval(context)
         end
         if node.returnable? && node.returned?
           returned
@@ -102,18 +102,18 @@ module EleetScript
           break
         end
       end
-      return_value || memory.nil_obj
+      return_value || context.es_nil
     end
   end
 
   class StringNode
     INTERPOLATE_RX = /[\\]?%(?:@|@@|\$)?[\w]+?(?=\W|$)/
 
-    def eval(context, memory)
-      memory.constants["String"].new_with_value(interpolate(context, memory))
+    def eval(context)
+      context["String"].new_with_value(interpolate(context))
     end
 
-    def interpolate(context, memory)
+    def interpolate(context)
       new_val = value.dup
       matches = value.scan(INTERPOLATE_RX)
       matches.each do |match|
@@ -122,121 +122,115 @@ module EleetScript
           next new_val.sub!(match, match[1..-1])
         end
         var = match[1..-1]
-        var_value = if var.start_with? "$"
-          memory.globals[H::global_name(var)]
-        elsif var.start_with? "@@"
-          context.class_vars[H::class_var_name(var)]
-        elsif var.start_with? "@"
-          context.instance_vars[H::instance_var_name(var)]
-        elsif var[/\A[A-Z]/]
-          (context.constants[var] || memory.constants[var])
-        else
-          context.locals[var]
-        end
-        new_val.sub!(match, (var_value.nil? ? memory.nil_obj : var_value).call(:to_string).ruby_value)
+        new_val.sub!(match, context[var].call(:to_string).ruby_value)
       end
       new_val
     end
   end
 
   class IntegerNode
-    def eval(context, memory)
-      memory.constants["Integer"].new_with_value(value)
+    def eval(context)
+      context["Integer"].new_with_value(value)
     end
   end
 
   class FloatNode
-    def eval(context, memory)
-      memory.constants["Float"].new_with_value(value)
+    def eval(context)
+      context["Float"].new_with_value(value)
+    end
+  end
+
+  class SetGlobalNode
+    def eval(context)
+      context[name] = value.eval(context)
+    end
+  end
+
+  class GetGlobalNode
+    def eval(context)
+      context[name]
     end
   end
 
   class GetLocalNode
-    def eval(context, memory)
-      context.locals[name] || context.current_self.call(name, [])
+    def eval(context)
+      val = context[name]
+      val != context.es_nil ? val : context.current_self.call(name, [])
     end
   end
 
   class SetLocalNode
-    def eval(context, memory)
-      context.locals[name] = value.eval(context, memory)
+    def eval(context)
+      context[name] = value.eval(context)
     end
   end
 
   class GetConstantNode
-    def eval(context, memory)
-      context.constants[name] || memory.constants[name]
+    def eval(context)
+      context.constants[name] || context[name]
     end
   end
 
   class SetConstantNode
-    def eval(context, memory)
-      if context == memory.root_context
-        unless memory.constants[name]
-          memory.constants[name] = value.eval(context, memory)
-        end
-      else
-        unless context.constants[name]
-          context.constants[name] = value.eval(context, memory)
-        end
+    def eval(context)
+      cur_val = context[name]
+      if cur_val == context.es_nil
+        context[name] = value.eval(context)
       end
     end
   end
 
   class SetInstanceVarNode
-    def eval(context, memory)
-      context.instance_vars[H::instance_var_name(name)] = value.eval(context, memory)
+    def eval(context)
+      context.instance_vars[H::instance_var_name(name)] = value.eval(context)
     end
   end
 
   class GetInstanceVarNode
-    def eval(context, memory)
+    def eval(context)
       context.current_self.instance_vars[H::instance_var_name(name)]
     end
   end
 
   class TrueNode
-    def eval(context, memory)
-      memory.constants["true"]
+    def eval(context)
+      context["true"]
     end
   end
 
   class FalseNode
-    def eval(context, memory)
-      memory.constants["false"]
+    def eval(context)
+      context["false"]
     end
   end
 
   class NilNode
-    def eval(context, memory)
-      memory.nil_obj
+    def eval(context)
+      context.es_nil
     end
   end
 
   class ClassNode
-    def eval(context, memory)
-      cls = context.constants[name] || memory.constants[name]
-      unless cls
+    def eval(context)
+      cls = context[name]
+      if cls == context.es_nil
         cls = if parent
-          parent = context.constants[parent] || memory.constants[parent]
-          EleetScriptClass.create(memory, name, parent)
+          parent_cls = context[parent]
+          throw "Cannot extend undefined class \"#{parent}\"." if parent_cls == context.es_nil
+          EleetScriptClass.create(context, name, parent_cls)
         else
-          EleetScriptClass.create(memory, name)
+          EleetScriptClass.create(context, name)
         end
-        if context != memory.root_context
-          context.constants[name] = cls
-        else
-          memory.constants[name] = cls
-        end
+        context[name] = cls
       end
 
-      body.eval(cls.context, memory)
+      body.eval(cls.context)
       cls
     end
   end
 
   class PropertyNode
-    def eval(context, memory)
+    def eval(context)
       cls = context.current_class
       properties.each do |prop_name|
         cls.def "#{prop_name}=" do |receiver, arguments|
@@ -251,31 +245,27 @@ module EleetScript
   end
 
   class CallNode
-    def eval(context, memory)
+    def eval(context)
       value = if receiver
-        receiver.eval(context, memory)
+        receiver.eval(context)
       else
         context.current_self
       end
-      evaled_args = arguments.map { |a| a.eval(context, memory) }
+      evaled_args = arguments.map { |a| a.eval(context) }
       value.call(method_name, evaled_args)
     end
   end
 
   class DefMethodNode
-    def eval(context, memory)
+    def eval(context)
       method_obj = EleetScriptMethod.new(method.params, method.body)
-      if method_name.start_with? "@@"
-        context.current_class.class_methods[H::class_var_name(method_name)] = method_obj
-      else
-        context.current_class.instance_methods[method_name] = method_obj
-      end
-      memory.nil_obj
+      context.current_class.methods[method_name] = method_obj
+      context.nil_obj
     end
   end
 
   class SelfNode
-    def eval(context, memory)
+    def eval(context)
       context.current_self
     end
   end
@@ -284,30 +274,30 @@ module EleetScript
     include Returnable
     include Nextable
 
-    def eval(context, memory)
-      cond = condition.eval(context, memory)
+    def eval(context)
+      cond = condition.eval(context)
       cond = (cond.class? ? cond : cond.ruby_value)
       if cond
-        ret = body.eval(context, memory)
+        ret = body.eval(context)
         if body.returnable? && body.returned?
           body.reset_returned
           returned
         elsif body.nextable? && body.nexted?
           body.reset_nexted
           nexted
-          return memory.nil_obj
+          return context.es_nil
         end
         ret
       else
         unless else_node.nil?
-          ret = else_node.eval(context, memory)
+          ret = else_node.eval(context)
           if else_node.returned?
             else_node.reset_returned
             returned
           elsif else_node.nexted?
             else_node.reset_nexted
             nexted
-            return memory.nil_obj
+            return context.es_nil
           end
           ret
         end
@@ -319,26 +309,26 @@ module EleetScript
     include Returnable
     include Nextable
 
-    def eval(context, memory)
-      ret = body.eval(context, memory)
+    def eval(context)
+      ret = body.eval(context)
       if body.returnable? and body.returned?
         body.reset_returned
         returned
       elsif body.nextable? && body.nexted?
         body.reset_nexted
         nexted
-        return memory.nil_obj
+        return context.es_nil
       end
       ret
     end
   end
 
   class ReturnNode
-    def eval(context, memory)
+    def eval(context)
       if expression
-        expression.eval(context, memory)
+        expression.eval(context)
       else
-        memory.nil_obj
+        context.es_nil
       end
     end
   end
@@ -346,10 +336,11 @@ module EleetScript
   class WhileNode
     include Returnable
 
-    def eval(context, memory)
-      val = condition.eval(context, memory)
+    def eval(context)
+      val = condition.eval(context)
+      ret = nil
       while val.ruby_value
-        ret = body.eval(context, memory)
+        ret = body.eval(context)
         if body.returnable? && body.returned?
           body.reset_returned
           returned
@@ -358,9 +349,9 @@ module EleetScript
           body.reset_nexted
           next
         end
-        val = condition.eval(context, memory)
+        val = condition.eval(context)
       end
-      memory.nil_obj
+      ret || context.es_nil
     end
   end
 end

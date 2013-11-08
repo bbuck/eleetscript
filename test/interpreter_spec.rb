@@ -52,19 +52,27 @@ describe "EleetScript::Interpreter" do
       end
 
       it "should allow assignment of global variables" do
-        code = "$global = \"test\""
-        -> { interpreter.eval(code) }.should_not rais_error
-      end
-
-      it "should allow access of global variables in multiple scopes" do
         code = <<-CODE
-        $global = "Hello"
-        test_method do
-          pritnln($global)
-        end
-        prinltn($global)
+        $global = "Hello, World"
+        println($global)
         CODE
+        -> { interpreter.eval(code) }.should_not raise_error
       end
+    end
+  end
+
+  describe "global variables" do
+    it "should be accessible in multiple scopes" do
+      code = <<-CODE
+      $global = "Hello, World"
+      test_method do
+        println($global)
+      end
+      test_method
+      println($global)
+      CODE
+      $stdout.should_receive(:puts).twice.with("Hello, World")
+      interpreter.eval(code)
     end
   end
 
@@ -384,6 +392,16 @@ describe "EleetScript::Interpreter" do
         $stdout.should_receive(:puts).with("44")
         interpreter.eval(code)
       end
+    end
+  end
+
+  describe "namespaces" do
+    it "should be interpreted" do
+      code = <<-CODE
+      namespace SomeName
+      end
+      CODE
+      -> { interpreter.eval(code) }.should_not raise_error
     end
   end
 
