@@ -265,6 +265,34 @@ describe "EleetScript::Parser" do
                   ])
           parser.parse(code).should eq(nodes)
         end
+
+        it "should parse function call/assignment operators" do
+          code = <<-CODE
+          str = "Hello"
+          str .= substr(1, -1)
+          CODE
+          nodes = ES::Nodes.new([
+                    ES::SetLocalNode.new("str", ES::StringNode.new("Hello")),
+                    ES::SetLocalNode.new(
+                      "str",
+                      ES::CallNode.new(
+                        ES::GetLocalNode.new("str"),
+                        "substr",
+                        [
+                          ES::IntegerNode.new(1),
+                          ES::CallNode.new(
+                            ES::IntegerNode.new(1),
+                            "negate",
+                            [],
+                            nil
+                          )
+                        ],
+                        nil
+                      )
+                    )
+                  ])
+          parser.parse(code).should eq(nodes)
+        end
       end
     end
 

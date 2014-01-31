@@ -29,7 +29,7 @@ module EleetScript
 
   module Helpers
     def self.throw_eleet_error(context, error)
-      context["ERRORS"].call("<", [context["String"].new_with_value(error)])
+      context["Errors"].call("<", [context["String"].new_with_value(error)])
     end
   end
 

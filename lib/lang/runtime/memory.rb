@@ -8,8 +8,20 @@ module EleetScript
   class Memory
     attr_reader :root, :root_context, :root_namespace
 
-    ROOT_OBJECTS = ["Object", "Number", "String", "List", "TrueClass", "IO",
-                    "Lambda", "FalseClass", "NilClass"]
+    ROOT_OBJECTS = {
+      "Object" => nil,
+      "Number" => nil,
+      "Integer" => "Number",
+      "Float" => "Number",
+      "Enumerable" => nil,
+      "List" => "Enumerable",
+      "String" => "Enumerable",
+      "IO" => nil,
+      "Lambda" => nil,
+      "TrueClass" => nil,
+      "FalseClass" => nil,
+      "NilClass" => nil
+    }
 
     def initialize
       @root_namespace = NamespaceContext.new(nil, nil)
@@ -20,11 +32,13 @@ module EleetScript
       return if @bootstrapped
       @bootstrapped = true
 
-      ROOT_OBJECTS.each do |obj_name|
-        @root_namespace[obj_name] = EleetScriptClass.create(@root_namespace, obj_name)
+      ROOT_OBJECTS.each do |obj_name, parent_class|
+        if parent_class.nil?
+          @root_namespace[obj_name] = EleetScriptClass.create(@root_namespace, obj_name)
+        else
+          @root_namespace[obj_name] = EleetScriptClass.create(@root_namespace, obj_name, @root_namespace[parent_class])
+        end
       end
-      @root_namespace["Integer"] = EleetScriptClass.create(@root_namespace, "Integer", @root_namespace["Number"])
-      @root_namespace["Float"] = EleetScriptClass.create(@root_namespace, "Float", @root_namespace["Number"])
 
       @root = @root_namespace["Object"].new
       @root_namespace.current_self = @root
@@ -35,7 +49,7 @@ module EleetScript
       @root_namespace["nil"] = @root_namespace["NilClass"].new_with_value(nil)
 
       # Global Errors Object
-      @root_namespace["ERRORS"] = @root_namespace["List"].new_with_value(ListBase.new(@root_namespace.es_nil))
+      @root_namespace["Errors"] = @root_namespace["List"].new_with_value(ListBase.new(@root_namespace.es_nil))
 
       load_object_methods
       load_io_methods
@@ -67,18 +81,19 @@ module EleetScript
         t = @root_namespace["true"]
         f = @root_namespace["false"]
         if arguments.length == 0 || !arguments.first.class?
-          return f
+          f
+        else
+          names = []
+          names << receiver.runtime_class.name
+          cur_class = receiver.runtime_class
+          while @root_namespace["Object"] != cur_class.super_class
+            names << cur_class.super_class.name
+            cur_class = cur_class.super_class
+          end
+          names << "Object" # Base of everything
+          name = arguments.first.name
+          names.include?(name) ? t : f
         end
-        names = []
-        names << receiver.runtime_class.name
-        cur_class = receiver.runtime_class
-        while @root_namespace["Object"] != cur_class.super_class
-          names << cur_class.super_class.name
-          cur_class = cur_class.super_class
-        end
-        names << "Object" # Base of everything
-        name = arguments.first.name
-        names.include?(name) ? t : f
       end
 
       object.def :class_name do |receiver, arguments|
@@ -102,7 +117,7 @@ module EleetScript
         if ["Integer", "Float", "String", "List"].include?(cls_name)
           receiver.runtime_class.new_with_value(receiver.ruby_value.dup)
         else
-          ins = reciever.runtime_class.call(:new)
+          ins = receiver.runtime_class.call(:new)
           ins.ruby_value = receiver.ruby_value.dup
         end
       end
@@ -129,7 +144,7 @@ module EleetScript
     def load_string_methods
       string = @root_namespace["String"]
 
-      string.def "+" do |receiver, arguments|
+      string.def :+ do |receiver, arguments|
         arg = arguments.first
         arg_str = if arg.class?
           arg.name
@@ -142,7 +157,7 @@ module EleetScript
         receiver
       end
 
-      string.def "is" do |receiver, arguments|
+      string.def :is do |receiver, arguments|
         compare_to = arguments.first.ruby_value
         if compare_to == receiver.ruby_value
           @root_namespace["true"]
@@ -151,7 +166,7 @@ module EleetScript
         end
       end
 
-      string.def "substr" do |receiver, arguments|
+      string.def :substr do |receiver, arguments|
         if arguments.length < 2
           @root_namespace["nil"]
         else
@@ -168,6 +183,48 @@ module EleetScript
           end
         end
       end
+
+      string.def :length do |receiver, arguments|
+        @root_namespace["Integer"].new_with_value(receiver.ruby_value.length)
+      end
+
+      string.def :upper_case do |receiver, arguments|
+        string.new_with_value(receiver.ruby_value.upcase)
+      end
+
+      string.def :lower_case do |receiver, arguments|
+        string.new_with_value(receiver.ruby_value.downcase)
+      end
+
+      string.def :[] do |receiver, arguments|
+        index = arguments.first
+        if index.is_a?("Integer")
+          index = index.ruby_value
+          if index < 0 || index >= receiver.ruby_value.length
+            @root_namespace.es_nil
+          else
+            string.new_with_value(receiver.ruby_value[index])
+          end
+        else
+          @root_namespace.es_nil
+        end
+      end
+
+      string.def :[]= do |receiver, arguments|
+        index, value = arguments
+        if index.is_a?("Integer")
+          index = index.ruby_value
+          if index < 0 && index >= receiver.ruby_value.length
+            @root_namespace.es_nil
+          else
+            value_str = value.call(:to_string)
+            receiver.ruby_value[index] = value_str.ruby_value
+            receiver
+          end
+        else
+          @root_namespace.es_nil
+        end
+      end
     end
 
     def load_number_methods
@@ -175,7 +232,7 @@ module EleetScript
       int = @root_namespace["Integer"]
       float = @root_namespace["Float"]
 
-      number.def "+" do |receiver, arguments|
+      number.def :+ do |receiver, arguments|
         arg = arguments.first
         if arg.is_a?("Number")
           val = receiver.ruby_value + arg.ruby_value
@@ -192,7 +249,7 @@ module EleetScript
         end
       end
 
-      number.def "-" do |receiver, arguments|
+      number.def :- do |receiver, arguments|
         arg = arguments.first
         if arg.is_a?("Number")
           val = receiver.ruby_value - arg.ruby_value
@@ -206,7 +263,7 @@ module EleetScript
         end
       end
 
-      number.def "*" do |receiver, arguments|
+      number.def :* do |receiver, arguments|
         arg = arguments.first
         if arg.is_a?("Number")
           val = receiver.ruby_value * arg.ruby_value
@@ -220,7 +277,7 @@ module EleetScript
         end
       end
 
-      number.def "/" do |receiver, arguments|
+      number.def :/ do |receiver, arguments|
         arg = arguments.first
         if arg.is_a?("Number")
           if arg.ruby_value == 0
@@ -238,7 +295,7 @@ module EleetScript
         end
       end
 
-      number.def "%" do |receiver, arguments|
+      number.def :% do |receiver, arguments|
         arg = arguments.first
         if arg.is_a?("Number")
           if arg.ruby_value == 0
@@ -256,7 +313,7 @@ module EleetScript
         end
       end
 
-      number.def "<" do |receiver, arguments|
+      number.def :< do |receiver, arguments|
         arg = arguments.first
         if arg.is_a?("Number")
           if receiver.ruby_value < arg.ruby_value
@@ -269,7 +326,7 @@ module EleetScript
         end
       end
 
-      number.def ">" do |receiver, arguments|
+      number.def :> do |receiver, arguments|
         arg = arguments.first
         if arg.is_a?("Number")
           if receiver.ruby_value > arg.ruby_value
@@ -282,7 +339,7 @@ module EleetScript
         end
       end
 
-      number.def "is" do |receiver, arguments|
+      number.def :is do |receiver, arguments|
         arg = arguments.first
         if arg.is_a?("Number")
           if receiver.ruby_value == arg.ruby_value
@@ -295,7 +352,7 @@ module EleetScript
         end
       end
 
-      number.def "not" do |receiver, arguments|
+      number.def :negate do |receiver, arguments|
         receiver.ruby_value = -receiver.ruby_value
         receiver
       end
@@ -350,7 +407,7 @@ module EleetScript
         new_list
       end
 
-      list.def "[]" do |receiver, arguments|
+      list.def :[] do |receiver, arguments|
         lst = receiver.ruby_value
         arg = arguments.first
         if arg.instance? && arg.runtime_class.name == "Integer"
@@ -365,7 +422,7 @@ module EleetScript
         end
       end
 
-      list.def "[]=" do |receiver, arguments|
+      list.def :[]= do |receiver, arguments|
         lst = receiver.ruby_value
         key = arguments.first
         value = arguments[1]
@@ -407,7 +464,7 @@ module EleetScript
       end
 
       list.def :unshift do |receiver, arguments|
-        reciever.ruby_value.array_value.unshift(arguments.first)
+        receiver.ruby_value.array_value.unshift(arguments.first)
         arguments.first
       end
 
@@ -447,6 +504,16 @@ module EleetScript
       list.def :clear do |receiver, arguments|
         receiver.ruby_value.clear
         receiver
+      end
+
+      list.def :join do |receiver, arguments|
+        str = if arguments.length > 0
+          arguments.first.call(:to_string).ruby_value
+        else
+          ", "
+        end
+        values = receiver.call(:values).ruby_value.array_value.map { |v| v.call(:to_string).ruby_value }
+        @root_namespace["String"].new_with_value(values.join(str))
       end
 
       list.def :to_string do |receiver, arguments|

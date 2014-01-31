@@ -86,11 +86,15 @@ rule
 
   List:
     '[' ']'                                                { result = CallNode.new(GetConstantNode.new("List"), "new", [], nil) }
+  | '[' Terminator ExpressionList ']'                      { result = CallNode.new(GetConstantNode.new("List"), "new", val[2], nil) }
+  | '[' Terminator ExpressionList Terminator ']'           { result = CallNode.new(GetConstantNode.new("List"), "new", val[2], nil) }
   | '[' ExpressionList ']'                                 { result = CallNode.new(GetConstantNode.new("List"), "new", val[1], nil) }
   ;
 
   ExpressionList:
     Expression                                             { result = val }
+  | ExpressionList ',' Terminator Expression               { result = val[0] << val[3] }
+  | ExpressionList Terminator ',' Expression               { result = val[0] << val[3] }
   | ExpressionList ',' Expression                          { result = val[0] << val[2] }
   ;
 
@@ -152,7 +156,7 @@ rule
   Operation:
     Expression '+' Expression                              { result = CallNode.new(val[0], val[1], [val[2]], nil) }
   | Expression '-' Expression                              { result = CallNode.new(val[0], val[1], [val[2]], nil) }
-  | '-' Expression                                         { result = CallNode.new(val[1], "not", [], nil) }
+  | '-' Expression                                         { result = CallNode.new(val[1], "negate", [], nil) }
   | Expression '*' Expression                              { result = CallNode.new(val[0], val[1], [val[2]], nil) }
   | Expression '**' Expression                             { result = CallNode.new(val[0], val[1], [val[2]], nil) }
   | Expression '/' Expression                              { result = CallNode.new(val[0], val[1], [val[2]], nil) }
@@ -200,6 +204,9 @@ rule
   | CLASS_IDENTIFIER '**=' Expression                      { result = SetClassVarNode.new(val[0], CallNode.new(GetClassVarNode.new(val[0]), "**", [val[2]], nil)) }
   | INSTANCE_IDENTIFIER '**=' Expression                   { result = SetInstanceVarNode.new(val[0], CallNode.new(GetInstanceVarNode.new(val[0]), "**", [val[2]], nil)) }
   | IDENTIFIER '**=' Expression                            { result = SetLocalNode.new(val[0], CallNode.new(GetLocalNode.new(val[0]), "**", [val[2]], nil)) }
+  | IDENTIFIER '.=' IDENTIFIER Arguments Lambda            { result = SetLocalNode.new(val[0], CallNode.new(GetLocalNode.new(val[0]), val[2], val[3], val[4])) }
+  | IDENTIFIER '.=' IDENTIFIER Arguments                   { result = SetLocalNode.new(val[0], CallNode.new(GetLocalNode.new(val[0]), val[2], val[3], nil)) }
+  | IDENTIFIER '.=' IDENTIFIER                             { result = SetLocalNode.new(val[0], CallNode.new(GetLocalNode.new(val[0]), val[2], [], nil)) }
   ;
 
   SetVariable:
@@ -214,6 +221,8 @@ rule
     IDENTIFIER MethodBlock                                 { result = DefMethodNode.new(val[0], val[1]) }
   | CLASS_IDENTIFIER MethodBlock                           { result = DefMethodNode.new(val[0], val[1]) }
   | Operator MethodBlock                                   { result = DefMethodNode.new(val[0], val[1]) }
+  | '[' ']' '=' MethodBlock                                { result = DefMethodNode.new("[]=", val[3]) }
+  | '[' ']' MethodBlock                                    { result = DefMethodNode.new("[]", val[2]) }
   ;
 
   MethodBlock:

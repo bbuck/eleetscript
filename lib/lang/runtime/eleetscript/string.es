@@ -1,16 +1,23 @@
 class String
   * do |num|
-    str = ""
-    if num.kind_of?(Number) and num > 0
-      i = 0
-      while i < num
-        i += 1
-        str += self
-      end
-      return str
+    if arguments.length is 0
+      new_str = []
+      str = self
+      num.times -> {
+        new_str < str
+      }
+      new_str.join("")
     else
-      self
+      ""
     end
+  end
+
+  reverse do
+    rev = []
+    each -> { |v|
+      rev.unshift(v)
+    }
+    rev.join("")
   end
 
   isnt do |value|

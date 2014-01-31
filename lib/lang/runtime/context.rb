@@ -236,8 +236,6 @@ module EleetScript
     init_with :handle_lambda_context
 
     def local_var(name, value = nil)
-      # require "pry"
-      # binding.pry
       if value
         if @lambda_context && (val = @lambda_context.local_var(name))
           @lambda_context.local_var(name, value)

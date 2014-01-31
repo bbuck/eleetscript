@@ -5,7 +5,7 @@ class Object
 
   @@no_method do
     cls_name = class_name
-    ERRORS < "Undefined method %name called on %cls_name."
+    Errors < "Undefined method \"%name\" called on %cls_name."
     nil
   end
 
@@ -39,7 +39,7 @@ class Object
 
   no_method do |name|
     cls_name = class_name
-    ERRORS < "Undefined method %name called on instance of %cls_name."
+    Errors < "Undefined method \"%name\" called on instance of %cls_name."
     nil
   end
 

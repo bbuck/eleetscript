@@ -56,7 +56,7 @@ describe "EleetScript::Interpreter" do
         Message = nil
         Message = "Something Else"
         println("Hello, World") # For the sake of passing the first test
-        println(ERRORS.length)
+        println(Errors.length)
         CODE
         $stdout.should_receive(:puts).with("1")
         -> { interpreter.eval(code) }.should_not raise_error
@@ -164,6 +164,16 @@ describe "EleetScript::Interpreter" do
       println(add(1, 2))
       CODE
       $stdout.should_receive(:puts).with("3")
+      interpreter.eval(code)
+    end
+
+    it "should interpret .= operators" do
+      code = <<-CODE
+      str = "Hello, World!"
+      str .= substr(0, -2)
+      println(str)
+      CODE
+      $stdout.should_receive(:puts).with("Hello, World")
       interpreter.eval(code)
     end
   end
@@ -623,6 +633,24 @@ describe "EleetScript::Interpreter" do
         CODE
         $stdout.should_receive(:puts).with("6")
         $stdout.should_receive(:puts).with("[\"one\", \"two\", \"three\"]")
+        interpreter.eval(code)
+      end
+
+      it "should have a map function" do
+        code = <<-CODE
+        class Person
+          property fname lname
+          init do |@fname, @lname| end
+        end
+        people = [
+          Person.new("Brandon", "Buck"),
+          Person.new("Kim", "Buck"),
+          Person.new("Dillon", "Curry")
+        ]
+        fnames = people.map -> { |item| item.fname }
+        println(fnames)
+        CODE
+        $stdout.should_receive(:puts).with("[\"Brandon\", \"Kim\", \"Dillon\"]")
         interpreter.eval(code)
       end
     end

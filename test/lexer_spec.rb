@@ -78,7 +78,7 @@ describe "EleetScript::Lexer" do
 
   describe "operators" do
     it "should be tokenized with the operator as the token type and value" do
-      operators = ["=>", "->", "+", "-", "*", "/", "%", "=", "+=", "-=", "*=", "/=", "%=", "==", "!=", "**", "**=", "|", "[", "]", "{", "}", "(", ")", ".", ",", "?", ":"]
+      operators = ["=>", "->", "+", "-", "*", "/", "%", "=", ".=", "+=", "-=", "*=", "/=", "%=", "==", "!=", "**", "**=", "|", "[", "]", "{", "}", "(", ")", ".", ",", "?", ":"]
       code = operators.join(" ")
       tokens = operators.map { |op| [op, op] }.concat [[:TERMINATOR, "\n"], [:EOF, :eof]]
       lexer.tokenize(code).should eq(tokens)

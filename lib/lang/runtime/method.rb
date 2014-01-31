@@ -12,6 +12,7 @@ module EleetScript
       context["lambda?"] = context["false"]
       @params.each_with_index do |param, index|
         arg = arguments[index]
+        next unless arg
         context[param] = arg
         if arg.is_a?("Lambda")
           context["lambda?"] = context["true"]

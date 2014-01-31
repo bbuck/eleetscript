@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+require "readline"
 
 $:.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
 require "lang/interpreter"
@@ -46,14 +47,14 @@ if ARGV.empty?
   code = ""
 
   while true
-    if line_depth > 0
+    prompt = if line_depth > 0
       spaces = "  " * line_depth
       stars = line.to_s.gsub(/./, "*")
-      print "#{stars} >> #{spaces}"
+      "#{stars} >> #{spaces}"
     else
-      print "#{line} >> "
+      "#{line} >> "
     end
-    input = gets.chomp.strip
+    input = Readline.readline(prompt, true)
     if code.length > 0
       input = code + "\n" + input
     end

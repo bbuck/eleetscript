@@ -1,4 +1,6 @@
 module EleetScript
+  NO_METHOD = "no_method"
+
   class EleetScriptClassSkeleton
     attr_accessor :ruby_value
     attr_reader :memory
