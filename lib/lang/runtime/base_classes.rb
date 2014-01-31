@@ -22,5 +22,10 @@ module EleetScript
       lst.hash_value = @hash_value.dup
       lst
     end
+
+    def clear
+      @array_value.clear
+      @hash_value.clear
+    end
   end
 end

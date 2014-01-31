@@ -22,6 +22,14 @@ module EleetScript
       @_es_nil ||= self["nil"]
     end
 
+    def root_ns
+      @parent_context ? @parent_context.root_ns : nil
+    end
+
+    def namespaces
+      @parent_context ? @parent_context.namespaces : {}
+    end
+
     def global_vars
       @parent_context ? @parent_context.global_vars : {}
     end
@@ -32,6 +40,14 @@ module EleetScript
 
     def class_vars
       @current_self.class_vars
+    end
+
+    def local_var(name, value = nil)
+      if value
+        local_vars[name] = value
+      else
+        local_vars[name] || es_nil
+      end
     end
 
     def [](key)
@@ -50,9 +66,15 @@ module EleetScript
       store[key] = value
     end
 
+    def respond_to_missing?(name, incl_priv = false)
+      @parent_context && @parent_context.respond_to?(name, incl_priv)
+    end
+
     def method_missing(name, *args)
       if @parent_context && @parent_context.respond_to?(name)
         @parent_context.send(name, *args)
+      else
+        super(name, *args)
       end
     end
 
@@ -117,6 +139,18 @@ module EleetScript
 
     init_with :init_namespace
 
+    def namespace(name)
+      ns = @namespaces[name]
+      if ns.nil? && @parent_context
+        ns = @parent_context.namespaces[ns]
+      end
+      ns
+    end
+
+    def add_namespace(name, value)
+      @namespaces[name] = value
+    end
+
     def global_vars
       if @root_ns == self
         @global_vars
@@ -127,6 +161,10 @@ module EleetScript
 
     def es_nil
       @root_ns["nil"]
+    end
+
+    def root_ns
+      @root_ns
     end
 
     def new_class_context(current_self, current_class = nil)
@@ -171,8 +209,8 @@ module EleetScript
       ctx
     end
 
-    def new_method_context
-      ctx = MethodContext.new(current_self, current_class)
+    def new_method_context(lambda_context = nil)
+      ctx = MethodContext.new(current_self, current_class, lambda_context)
       ctx.parent_context = self
       ctx
     end
@@ -187,13 +225,41 @@ module EleetScript
       {}
     end
 
-    def new_method_context
-      ctx = MethodContext.new(current_self, current_class)
+    def new_method_context(lambda_context = nil)
+      ctx = MethodContext.new(current_self, current_class, lambda_context)
       ctx.parent_context = self
       ctx
     end
   end
 
   class MethodContext < BaseContext
+    init_with :handle_lambda_context
+
+    def local_var(name, value = nil)
+      # require "pry"
+      # binding.pry
+      if value
+        if @lambda_context && (val = @lambda_context.local_var(name))
+          @lambda_context.local_var(name, value)
+        else
+          local_vars[name] = value
+        end
+      else
+        val = super
+        if val == es_nil && @lambda_context
+          @lambda_context.local_var(name)
+        elsif val
+          val
+        else
+          es_nil
+        end
+      end
+    end
+
+    private
+
+    def handle_lambda_context(lambda_context)
+      @lambda_context = lambda_context
+    end
   end
 end

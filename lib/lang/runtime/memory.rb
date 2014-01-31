@@ -9,7 +9,7 @@ module EleetScript
     attr_reader :root, :root_context, :root_namespace
 
     ROOT_OBJECTS = ["Object", "Number", "String", "List", "TrueClass", "IO",
-                    "FalseClass", "NilClass"]
+                    "Lambda", "FalseClass", "NilClass"]
 
     def initialize
       @root_namespace = NamespaceContext.new(nil, nil)
@@ -34,6 +34,9 @@ module EleetScript
       @root_namespace["false"] = @root_namespace["FalseClass"].new_with_value(false)
       @root_namespace["nil"] = @root_namespace["NilClass"].new_with_value(nil)
 
+      # Global Errors Object
+      @root_namespace["ERRORS"] = @root_namespace["List"].new_with_value(ListBase.new(@root_namespace.es_nil))
+
       load_object_methods
       load_io_methods
       load_string_methods
@@ -41,6 +44,7 @@ module EleetScript
       load_boolean_methods
       load_nil_methods
       load_list_methods
+      load_lambda_methods
 
       files = Dir.glob(File.join(@root_path, "**", "*.es"))
       files.each do |file|
@@ -409,7 +413,7 @@ module EleetScript
 
       list.def :keys do |receiver, arguments|
         lst = receiver.ruby_value
-        keys = (lst.array_value.length > 0 ? (0...lst.array_value.length).to_a : [])
+        keys = (lst.array_value.length > 0 ? (0...lst.array_value.length).to_a : []).map { |v| @root_namespace["Integer"].new_with_value(v) }
         keys.concat(lst.hash_value.keys)
         list.call(:new, keys)
       end
@@ -421,11 +425,6 @@ module EleetScript
         list.call(:new, vals)
       end
 
-      list.def :length do |receiver, arguments|
-        length = receiver.ruby_value.array_value.length + receiver.ruby_value.length
-        @root_namespace["Integer"].new_with_value(length)
-      end
-
       list.def :delete do |receiver, arguments|
         val = receiver.ruby_value.hash_value.delete(arguments.first)
         val.nil? ? @root_namespace.es_nil : val
@@ -435,6 +434,19 @@ module EleetScript
         ruby_val = receiver.ruby_value
         length = ruby_val.array_value.length + ruby_val.hash_value.length
         @root_namespace["Integer"].new_with_value(length)
+      end
+
+      list.def :first do |receiver, arguments|
+        receiver.ruby_value.array_value.first
+      end
+
+      list.def :last do |receiver, arguments|
+        receiver.ruby_value.array_value.last
+      end
+
+      list.def :clear do |receiver, arguments|
+        receiver.ruby_value.clear
+        receiver
       end
 
       list.def :to_string do |receiver, arguments|
@@ -461,6 +473,13 @@ module EleetScript
           ""
         end
         @root_namespace["String"].new_with_value("[#{str}]")
+      end
+    end
+
+    def load_lambda_methods
+      lambda = @root_namespace["Lambda"]
+      lambda.def :call do |receiver, arguments, context|
+        receiver.ruby_value.call(nil, arguments, context)
       end
     end
   end

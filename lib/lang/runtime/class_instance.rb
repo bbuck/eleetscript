@@ -5,9 +5,9 @@ module EleetScript
     attr_accessor :instance_vars, :runtime_class
     set_is_instance
 
-    def call(method_name, arguments = [])
+    def call(method_name, arguments = [], lambda = nil)
       method = @runtime_class.instance_lookup(method_name.to_s)
-      if method.kind_of?(EleetScriptMethod)
+      if method.arity == 4
         method.call(self, arguments, runtime_class.memory)
       else
         method.call(self, arguments)

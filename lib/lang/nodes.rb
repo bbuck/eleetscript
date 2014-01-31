@@ -66,7 +66,7 @@ module EleetScript
     end
   end
 
-  class CallNode < Node.new(:receiver, :method_name, :arguments, :block)
+  class CallNode < Node.new(:receiver, :method_name, :arguments, :lambda)
     def to_s(level = 0)
       tabs = spaces(level)
       str = "#{tabs}<EleetScript::CallNode\n"
@@ -85,11 +85,11 @@ module EleetScript
         end
         str += "#{tabs}  )\n"
       end
-      if block.nil?
-        str + "#{tabs}  @block=nil\n>\n"
+      if lambda.nil?
+        str + "#{tabs}  @lambda=nil\n>\n"
       else
-        str += "#{tabs}  @block=(\n"
-        str += block.to_s(level + 2)
+        str += "#{tabs}  @lambda=(\n"
+        str += lambda.to_s(level + 2)
       end
       str + "#{tabs}>\n"
     end
@@ -122,6 +122,7 @@ module EleetScript
   class GetInstanceVarNode < GetVarNode; end
   class SetLocalNode < SetVarNode; end
   class GetLocalNode < GetVarNode; end
+
   class DefMethodNode < Node.new(:method_name, :method)
     def to_s(level = 0)
       tabs = spaces(level)
@@ -131,6 +132,23 @@ module EleetScript
       str + "#{tabs}  )\n#{tabs}>\n"
     end
   end
+
+  class LambdaNode < Node.new(:params, :body)
+    def to_s(level = 0)
+      tabs = spaces(level)
+      str = "#{tabs}<EleetScript::LambdaNode\n"
+      str += "#{tabs}  @params=#{params.inspect}\n"
+      if body.nodes.length > 0
+        str += "#{tabs}  @body=(\n"
+        str += body.to_s(level + 2)
+        str += "#{tabs}  )\n#{tabs}>\n"
+      else
+        str += "#{tabs}  @body=nil\n#{tabs}>\n"
+      end
+      str
+    end
+  end
+
   class MethodNode < Node.new(:params, :body)
     def to_s(level = 0)
       tabs = spaces(level)
@@ -146,6 +164,7 @@ module EleetScript
       str
     end
   end
+
   class IfNode < Node.new(:condition, :body, :else_node); end
   class ElseNode < Node.new(:body); end
   class NotNode < Node.new(:value); end
@@ -153,6 +172,8 @@ module EleetScript
   class SelfNode < NodeType; end
   class DefinedNode < Node.new(:value); end
   class NamespaceNode < Node.new(:name, :body); end
+  class NamespaceAccessNode < Node.new(:namespace, :expression); end
+
   class ClassNode < Node.new(:name, :parent, :body)
     def to_s(level = 0)
       tabs = spaces(level)
@@ -163,6 +184,7 @@ module EleetScript
       str + "#{tabs}  )\n#{tabs}>\n"
     end
   end
+
   class ReturnNode < Node.new(:expression); end
   class PropertyNode < Node.new(:properties); end
 
@@ -172,6 +194,4 @@ module EleetScript
       o.kind_of?(NextNode)
     end
   end
-
-  class NamespaceAccessNode < Node.new(:namespace, :expression); end
 end

@@ -32,13 +32,13 @@ Something::Else # Access Else class in Something namespace
 # Sample Hello World
 
 class Greeter
-  property name, greeting
+  property name greeting
 
   # Bodyless functions can be defined on one line
-  init do |@name, @greeting| end
+  init do |@greeting, @name| end
 
   greet do
-    println("#{greeting} #{name}") # Parenthesis required for functions
+    println("%@greeting, %@name!") # Parenthesis required for functions
   end
 end
 

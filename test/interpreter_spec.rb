@@ -51,6 +51,17 @@ describe "EleetScript::Interpreter" do
         ->{ interpreter.eval(code) }.should_not raise_error
       end
 
+      it "should consider nil a valid assignment to a constant" do
+        code = <<-CODE
+        Message = nil
+        Message = "Something Else"
+        println("Hello, World") # For the sake of passing the first test
+        println(ERRORS.length)
+        CODE
+        $stdout.should_receive(:puts).with("1")
+        -> { interpreter.eval(code) }.should_not raise_error
+      end
+
       it "should allow assignment of global variables" do
         code = <<-CODE
         $global = "Hello, World"
@@ -403,6 +414,88 @@ describe "EleetScript::Interpreter" do
       CODE
       -> { interpreter.eval(code) }.should_not raise_error
     end
+
+    it "should contain definitions in it's own scope" do
+      code = <<-CODE
+      namespace SomeName
+        Message = "Hello, World"
+      end
+      println(Message)
+      CODE
+      $stdout.should_receive(:puts).with("nil")
+      interpreter.eval(code)
+    end
+
+    it "should allow access with qualifiers" do
+      code = <<-CODE
+      namespace SomeName
+        class Greeter
+          property greeting
+          init do |@greeting| end
+          greet do |name|
+            "%@greeting, %name"
+          end
+        end
+      end
+      a = SomeName::Greeter.new("Hello")
+      println(a.greet("World"))
+      CODE
+      $stdout.should_receive(:puts).with("Hello, World")
+      -> { interpreter.eval(code) }.should_not raise_error
+    end
+
+    it "should allow access to root namespace" do
+      code = <<-CODE
+      Message = "Hello, World!"
+      namespace Something
+        println(::Message)
+      end
+      CODE
+      $stdout.should_receive(:puts).with("Hello, World!")
+      -> { interpreter.eval(code) }.should_not raise_error
+    end
+
+    it "should allow namespaced definition" do
+      code = <<-CODE
+      Message = "Hello, World!"
+      namespace Spanish
+        Message = "Hola, Mundo!"
+      end
+      println(Message)
+      println(::Message)
+      println(Spanish::Message)
+      CODE
+      $stdout.should_receive(:puts).twice.with("Hello, World!")
+      $stdout.should_receive(:puts).with("Hola, Mundo!")
+      -> { interpreter.eval(code) }.should_not raise_error
+    end
+  end
+
+  describe "lambdas" do
+    it "should be interpreted" do
+      code = <<-CODE
+      lmb = -> { |msg| println(msg) }
+      lmb.call("Hello, World")
+      CODE
+      $stdout.should_receive(:puts).with("Hello, World")
+      interpreter.eval(code)
+    end
+
+    it "should be usable from a method" do
+      code = <<-CODE
+      add_by_lambda do |a, b, lambda|
+        if lambda?
+          lambda.call(a, b)
+        else
+          0
+        end
+      end
+      result = add_by_lambda(1, 2) -> { |a, b| a + b }
+      println(result)
+      CODE
+      $stdout.should_receive(:puts).with("3")
+      interpreter.eval(code)
+    end
   end
 
   describe "EleetScript core" do
@@ -498,6 +591,38 @@ describe "EleetScript::Interpreter" do
         println(l1)
         CODE
         $stdout.should_receive(:puts).with("[1, 2, 3, 4]")
+        interpreter.eval(code)
+      end
+
+      it "should have a working each method" do
+        code = <<-CODE
+        l = [1, 2, "three" => 3]
+        l.each -> { |value, key|
+          println("%key => %value")
+        }
+        CODE
+        $stdout.should_receive(:puts).with("0 => 1")
+        $stdout.should_receive(:puts).with("1 => 2")
+        $stdout.should_receive(:puts).with("three => 3")
+        interpreter.eval(code)
+      end
+
+      it "should have an inject function" do
+        code = <<-CODE
+        l = [1, 2, 3]
+        k = ["one" => 1, "two" => 2, "three" => 3]
+        l_sum = l.inject(0) -> { |sum, value|
+          sum + value
+        }
+        println(l_sum)
+        key_list = k.inject([]) -> { |list, value, key|
+          list < key
+          list
+        }
+        println(key_list)
+        CODE
+        $stdout.should_receive(:puts).with("6")
+        $stdout.should_receive(:puts).with("[\"one\", \"two\", \"three\"]")
         interpreter.eval(code)
       end
     end

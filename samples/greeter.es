@@ -4,3 +4,5 @@ class Greeter
     print("%@greeting, %name")
   end
 end
+g = Greeter.new("Hello")
+g.greet("World")

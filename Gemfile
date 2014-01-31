@@ -2,4 +2,7 @@ source "https://rubygems.org"
 
 gem 'racc'
 gem 'rspec'
-gem 'pry'
+
+group :development do
+  gem 'pry'
+end

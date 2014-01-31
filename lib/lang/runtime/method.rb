@@ -1,17 +1,21 @@
 module EleetScript
   class EleetScriptMethod
-    def initialize(params, body, block = nil)
+    def initialize(params, body, lambda_context = nil)
       @params = params
       @body = body
-      @block = block
+      @lambda_context = lambda_context
     end
 
     def call(receiver, arguments, parent_context)
-      context = parent_context.new_method_context
+      context = parent_context.new_method_context(@lambda_context)
 
+      context["lambda?"] = context["false"]
       @params.each_with_index do |param, index|
         arg = arguments[index]
         context[param] = arg
+        if arg.is_a?("Lambda")
+          context["lambda?"] = context["true"]
+        end
       end
 
       context["arguments"] = context["List"].call(:new, arguments)

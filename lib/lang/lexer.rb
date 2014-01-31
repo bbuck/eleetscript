@@ -14,13 +14,13 @@ module EleetScript
       globals: /\A(\$[a-z][\w\d]*[?!]?)/i,
       class_var: /\A(\@\@[a-z][\w\d]*[!?]?)/i,
       instance_var: /\A(\@[a-z][\w\d]*[!?]?)/i,
-      operator: /\A(=>|[+\-\*\/%<>=!]=|\*\*=|\*\*|[+\-\*\/%=><]|or|and|not|isnt|is|\||\(|\)|\[|\]|\{|\}|::|[.,?:])/,
+      operator: /\A(->|=>|[+\-\*\/%<>=!]=|\*\*=|\*\*|[+\-\*\/%=><]|or|and|not|isnt|is|\||\(|\)|\[|\]|\{|\}|::|[.,?:])/,
       whitespace: /\A([ \t]+)/,
       terminator: /\A([;\n])/,
       integer: /\A([\d_]+)/,
       float: /\A([\d_]*?\.[\d_]+)/,
       string: /\A\"(.*?)(?<!\\)\"/m,
-      comment: /\A#.*?(?:\n|$)/m
+      comment: /\A#.*?(?=\n|$)/m
     }
 
     def tokenize(code)

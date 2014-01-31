@@ -78,7 +78,7 @@ describe "EleetScript::Lexer" do
 
   describe "operators" do
     it "should be tokenized with the operator as the token type and value" do
-      operators = ["+", "-", "*", "/", "%", "=", "+=", "-=", "*=", "/=", "%=", "==", "!=", "**", "**=", "|", "[", "]", "{", "}", "(", ")", ".", ",", "?", ":"]
+      operators = ["=>", "->", "+", "-", "*", "/", "%", "=", "+=", "-=", "*=", "/=", "%=", "==", "!=", "**", "**=", "|", "[", "]", "{", "}", "(", ")", ".", ",", "?", ":"]
       code = operators.join(" ")
       tokens = operators.map { |op| [op, op] }.concat [[:TERMINATOR, "\n"], [:EOF, :eof]]
       lexer.tokenize(code).should eq(tokens)
@@ -109,15 +109,29 @@ describe "EleetScript::Lexer" do
 
   describe "methods" do
     it "should tokenize methods properly" do
-code = <<-CODE
-method_name do |arg1, arg2|
-  var = arg1
-end
-CODE
+      code = <<-CODE
+      method_name do |arg1, arg2|
+        var = arg1
+      end
+      CODE
       tokens = [
         [:IDENTIFIER, "method_name"], [:DO, "do"], ["|", "|"], [:IDENTIFIER, "arg1"], [",", ","], [:IDENTIFIER, "arg2"], ["|", "|"], [:TERMINATOR, "\n"],
         [:IDENTIFIER, "var"], ["=", "="], [:IDENTIFIER, "arg1"], [:TERMINATOR, "\n"],
         [:END, "end"], [:TERMINATOR, "\n"], [:EOF, :eof]
+      ]
+      lexer.tokenize(code).should eq(tokens)
+    end
+  end
+
+  describe "lambdas" do
+    it "should be parsed" do
+      code = <<-CODE
+      -> { println("Hello, World!") }
+      CODE
+      tokens = [
+        ["->", "->"], ["{", "{"], [:IDENTIFIER, "println"], ["(", "("],
+        [:STRING, "Hello, World!"], [")", ")"], ["}", "}"], [:TERMINATOR, "\n"],
+        [:EOF, :eof]
       ]
       lexer.tokenize(code).should eq(tokens)
     end
@@ -177,12 +191,12 @@ CODE
   describe "comments" do
     it "should be ignored" do
       code = <<-CODE
-a = 10
-# This is a comment
-b = 20
-CODE
+      a = 10
+      # This is a comment
+      b = 20
+      CODE
       tokens = [
-        [:IDENTIFIER, "a"], ["=", "="], [:NUMBER, 10], [:TERMINATOR, "\n"],
+        [:IDENTIFIER, "a"], ["=", "="], [:NUMBER, 10], [:TERMINATOR, "\n"], [:TERMINATOR, "\n"],
         [:IDENTIFIER, "b"], ["=", "="], [:NUMBER, 20], [:TERMINATOR, "\n"],
         [:EOF, :eof]
       ]
@@ -197,21 +211,21 @@ CODE
 
   describe "full programs" do
     it "should correctly tokenize full programs" do
-code = <<-CODE
-CONSTANT = 10
-$global = "hello"
-class Math
-  add do |a, b|
-    a + b
-  end
-end
-math = Math.new
-math.add(10, 20)
-greet do |name|
-  print("Hello, %name")
-end
-greet("World")
-CODE
+      code = <<-CODE
+      CONSTANT = 10
+      $global = "hello"
+      class Math
+        add do |a, b|
+          a + b
+        end
+      end
+      math = Math.new
+      math.add(10, 20)
+      greet do |name|
+        print("Hello, %name")
+      end
+      greet("World")
+      CODE
       tokens = [
         [:CONSTANT, "CONSTANT"], ["=", "="], [:NUMBER, 10], [:TERMINATOR, "\n"],
         [:GLOBAL, "$global"], ["=", "="], [:STRING, "hello"], [:TERMINATOR, "\n"],

@@ -2,6 +2,10 @@ require "lang/parser"
 require "lang/runtime/memory"
 
 module EleetScript
+  def throw_eleet_error
+
+  end
+
   class Interpreter
     attr_reader :memory
     def initialize(memory = nil)
@@ -23,20 +27,11 @@ module EleetScript
     end
   end
 
-  module InterpHelpers
-    def self.global_name(name)
-      name[1..-1]
-    end
-
-    def self.class_var_name(name)
-      name[2..-1]
-    end
-
-    def self.instance_var_name(name)
-      name[1..-1]
+  module Helpers
+    def self.throw_eleet_error(context, error)
+      context["ERRORS"].call("<", [context["String"].new_with_value(error)])
     end
   end
-  H = InterpHelpers
 
   module Returnable
     def returned
@@ -154,14 +149,14 @@ module EleetScript
 
   class GetLocalNode
     def eval(context)
-      val = context[name]
+      val = context.local_var(name)
       val != context.es_nil ? val : context.current_self.call(name, [])
     end
   end
 
   class SetLocalNode
     def eval(context)
-      context[name] = value.eval(context)
+      context.local_var(name, value.eval(context))
     end
   end
 
@@ -173,22 +168,35 @@ module EleetScript
 
   class SetConstantNode
     def eval(context)
-      cur_val = context[name]
-      if cur_val == context.es_nil
+      if !context.constants.has_key?(name)
         context[name] = value.eval(context)
+      else
+        Helpers.throw_eleet_error(context, "Cannot reassign constant \"#{name}\" after it's already been defined!")
       end
     end
   end
 
   class SetInstanceVarNode
     def eval(context)
-      context.instance_vars[H::instance_var_name(name)] = value.eval(context)
+      context.instance_vars[name] = value.eval(context)
     end
   end
 
   class GetInstanceVarNode
     def eval(context)
-      context.current_self.instance_vars[H::instance_var_name(name)]
+      context.current_self.instance_vars[name]
+    end
+  end
+
+  class SetClassVarNode
+    def eval(context)
+      context.current_class.class_vars[name] = value.eval(context)
+    end
+  end
+
+  class GetClassVarNode
+    def eval(context)
+      context.current_class.class_vars[name]
     end
   end
 
@@ -252,7 +260,14 @@ module EleetScript
         context.current_self
       end
       evaled_args = arguments.map { |a| a.eval(context) }
+      evaled_args << lambda.eval(context) if lambda
       value.call(method_name, evaled_args)
+    end
+  end
+
+  class LambdaNode
+    def eval(context)
+      context["Lambda"].new_with_value(EleetScriptMethod.new(params, body, context))
     end
   end
 
@@ -260,7 +275,7 @@ module EleetScript
     def eval(context)
       method_obj = EleetScriptMethod.new(method.params, method.body)
       context.current_class.methods[method_name] = method_obj
-      context.nil_obj
+      context.es_nil
     end
   end
 
@@ -352,6 +367,34 @@ module EleetScript
         val = condition.eval(context)
       end
       ret || context.es_nil
+    end
+  end
+
+  class NamespaceNode
+    def eval(context)
+      ns_ctx = context.namespace(name)
+      if ns_ctx
+        body.eval(ns_ctx)
+      else
+        ns_ctx = context.new_namespace_context
+        context.add_namespace(name, ns_ctx)
+        body.eval(ns_ctx)
+      end
+    end
+  end
+
+  class NamespaceAccessNode
+    def eval(context)
+      ns_ctx = if namespace.nil?
+        context.root_ns
+      else
+        context.namespace(namespace)
+      end
+      if ns_ctx
+        expression.eval(ns_ctx)
+      else
+        Helpers.throw_eleet_error(context, "Namespace \"#{namespace}\" does not exist.")
+      end
     end
   end
 end

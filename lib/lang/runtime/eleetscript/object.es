@@ -4,6 +4,8 @@ class Object
   end
 
   @@no_method do
+    cls_name = class_name
+    ERRORS < "Undefined method %name called on %cls_name."
     nil
   end
 
@@ -35,11 +37,13 @@ class Object
     to_string
   end
 
-  no_method do
+  no_method do |name|
+    cls_name = class_name
+    ERRORS < "Undefined method %name called on instance of %cls_name."
     nil
   end
 
-  __negate! do
+  not do
     self
   end
 end

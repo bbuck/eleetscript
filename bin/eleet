@@ -35,8 +35,8 @@ if ARGV.empty?
     end
     depth = 0
     tokens.each do |token|
-      depth += 1 if ["class", "do", "while", "if",  "("].include?(token[1])
-      depth -= 1 if ["end", ")"].include?(token[1])
+      depth += 1 if ["class", "do", "while", "if",  "(", "namespace", "{"].include?(token[1])
+      depth -= 1 if ["end", ")", "}"].include?(token[1])
     end
     depth
   end

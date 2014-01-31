@@ -165,6 +165,7 @@ module EleetScript
     end
 
     def call(method_name, arguments = [])
+      # puts "Calling #{method_name} on #{self}"
       method = @runtime_class.instance_lookup(method_name.to_s)
       if method
         if method.arity == 3

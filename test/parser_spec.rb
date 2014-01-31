@@ -81,7 +81,8 @@ describe "EleetScript::Parser" do
                     [
                       ES::StringNode.new("key"),
                       ES::StringNode.new("value")
-                    ]
+                    ],
+                    nil
                   )
                 ])
         parser.parse(code).should eq(nodes)
@@ -100,7 +101,8 @@ describe "EleetScript::Parser" do
                       ES::IntegerNode.new(2),
                       ES::IntegerNode.new(3),
                       ES::IntegerNode.new(4)
-                    ]
+                    ],
+                    nil
                   )
                 ]
               )
@@ -115,7 +117,8 @@ describe "EleetScript::Parser" do
                     ES::CallNode.new(
                       ES::GetConstantNode.new("List"),
                       "new",
-                      []
+                      [],
+                      nil
                     )
                   )
                 ])
@@ -141,9 +144,11 @@ describe "EleetScript::Parser" do
                         [
                           ES::StringNode.new("key"),
                           ES::StringNode.new("value")
-                        ]
+                        ],
+                        nil
                       )
-                    ]
+                    ],
+                    nil
                   )
                 ])
         parser.parse(code).should eq(nodes)
@@ -163,6 +168,29 @@ describe "EleetScript::Parser" do
         code = "CON = 10"
         nodes = ES::Nodes.new([
                   ES::SetConstantNode.new("CON", ES::IntegerNode.new(10))
+                ])
+        parser.parse(code).should eq(nodes)
+      end
+
+      it "should allow assigning lambdas" do
+        code = <<-CODE
+        some_var = -> { |msg| println(msg) }
+        CODE
+        nodes = ES::Nodes.new([
+                  ES::SetLocalNode.new(
+                    "some_var",
+                    ES::LambdaNode.new(
+                      ["msg"],
+                      ES::Nodes.new([
+                        ES::CallNode.new(
+                          nil,
+                          "println",
+                          [ES::GetLocalNode.new("msg")],
+                          nil
+                        )
+                      ])
+                    )
+                  )
                 ])
         parser.parse(code).should eq(nodes)
       end
@@ -191,7 +219,8 @@ describe "EleetScript::Parser" do
             ES::CallNode.new(
               ES::GetLocalNode.new("one"),
               "+",
-              [ES::GetLocalNode.new("two")]
+              [ES::GetLocalNode.new("two")],
+              nil
             )
           ])
         }
@@ -214,7 +243,8 @@ describe "EleetScript::Parser" do
                     ES::CallNode.new(
                       ES::GetLocalNode.new("one"),
                       "[]",
-                      [ES::GetLocalNode.new("two")]
+                      [ES::GetLocalNode.new("two")],
+                      nil
                     )
                   ])
           parser.parse(code).should eq(nodes)
@@ -229,7 +259,8 @@ describe "EleetScript::Parser" do
                       [
                         ES::StringNode.new("two"),
                         ES::GetLocalNode.new("three")
-                      ]
+                      ],
+                      nil
                     )
                   ])
           parser.parse(code).should eq(nodes)
@@ -275,7 +306,8 @@ describe "EleetScript::Parser" do
           ES::CallNode.new(
             ES::GetLocalNode.new("one"),
             "two=",
-            [ES::IntegerNode.new(10)]
+            [ES::IntegerNode.new(10)],
+            nil
           )
         ])
       }
@@ -315,7 +347,8 @@ describe "EleetScript::Parser" do
                 ES::CallNode.new(
                   nil,
                   "println",
-                  [ES::StringNode.new("Hello, World")]
+                  [ES::StringNode.new("Hello, World")],
+                  nil
                 )
               ])
       parser.parse(code).should eq(nodes)
@@ -332,12 +365,100 @@ describe "EleetScript::Parser" do
                       ES::CallNode.new(
                         ES::GetConstantNode.new("Sample"),
                         "new",
-                        []
+                        [],
+                        nil
                       ),
                       "msg",
-                      []
+                      [],
+                      nil
                     )
-                  ]
+                  ],
+                  nil
+                )
+              ])
+      parser.parse(code).should eq(nodes)
+    end
+
+    it "should parse no argument calls with trailing lambda" do
+      code = <<-CODE
+      each -> {
+        println("Hello, World!")
+      }
+      CODE
+      nodes = ES::Nodes.new([
+                ES::CallNode.new(
+                  nil,
+                  "each",
+                  [],
+                  ES::LambdaNode.new(
+                    [],
+                    ES::Nodes.new([
+                      ES::CallNode.new(
+                        nil,
+                        "println",
+                        [
+                          ES::StringNode.new("Hello, World!")
+                        ],
+                        nil
+                      )
+                    ])
+                  )
+                )
+              ])
+      parser.parse(code).should eq(nodes)
+    end
+
+    it "should parse argumented calls with trailing lambda" do
+      code = <<-CODE
+      each(list) -> {
+        println("Hello")
+      }
+      CODE
+      nodes = ES::Nodes.new([
+                ES::CallNode.new(
+                  nil,
+                  "each",
+                  [ES::GetLocalNode.new("list")],
+                  ES::LambdaNode.new(
+                    [],
+                    ES::Nodes.new([
+                      ES::CallNode.new(
+                        nil,
+                        "println",
+                        [ES::StringNode.new("Hello")],
+                        nil
+                      )
+                    ])
+                  )
+                )
+              ])
+      parser.parse(code).should eq(nodes)
+    end
+
+    it "should parse lambdas with arguments" do
+      code = <<-CODE
+      each -> { |item|
+        println("Hello, World!")
+      }
+      CODE
+      nodes = ES::Nodes.new([
+                ES::CallNode.new(
+                  nil,
+                  "each",
+                  [],
+                  ES::LambdaNode.new(
+                    ["item"],
+                    ES::Nodes.new([
+                      ES::CallNode.new(
+                        nil,
+                        "println",
+                        [
+                          ES::StringNode.new("Hello, World!")
+                        ],
+                        nil
+                      )
+                    ])
+                  )
                 )
               ])
       parser.parse(code).should eq(nodes)
@@ -372,7 +493,8 @@ describe "EleetScript::Parser" do
                       ES::CallNode.new(
                         ES::GetLocalNode.new("a"),
                         "+",
-                        [ES::GetLocalNode.new("b")]
+                        [ES::GetLocalNode.new("b")],
+                        nil
                       )
                     ])
                   )
@@ -416,7 +538,8 @@ describe "EleetScript::Parser" do
                       ES::CallNode.new(
                         ES::GetLocalNode.new("a"),
                         "+",
-                        [ES::GetLocalNode.new("b")]
+                        [ES::GetLocalNode.new("b")],
+                        nil
                       )
                     ])
                   )
@@ -446,23 +569,27 @@ describe "EleetScript::Parser" do
                           ES::CallNode.new(
                             ES::GetInstanceVarNode.new("@name"),
                             "length",
-                            []
+                            [],
+                            nil
                           ),
                           ">",
-                          [ES::IntegerNode.new(7)]
+                          [ES::IntegerNode.new(7)],
+                          nil
                         ),
                         ES::Nodes.new([
                           ES::CallNode.new(
                             nil,
                             "print",
-                            [ES::StringNode.new("Long")]
+                            [ES::StringNode.new("Long")],
+                            nil
                           )
                         ]),
                         ES::ElseNode.new(
                           ES::CallNode.new(
                             nil,
                             "print",
-                            [ES::StringNode.new("Short")]
+                            [ES::StringNode.new("Short")],
+                            nil
                           )
                         )
                       )
@@ -534,7 +661,8 @@ describe "EleetScript::Parser" do
                   ES::CallNode.new(
                     ES::GetLocalNode.new("a"),
                     "<",
-                    [ES::IntegerNode.new(10)]
+                    [ES::IntegerNode.new(10)],
+                    nil
                   ),
                   ES::Nodes.new([
                     ES::SetLocalNode.new(
@@ -542,13 +670,15 @@ describe "EleetScript::Parser" do
                       ES::CallNode.new(
                         ES::GetLocalNode.new("a"),
                         "+",
-                        [ES::IntegerNode.new(10)]
+                        [ES::IntegerNode.new(10)],
+                        nil
                       )
                     ),
                     ES::CallNode.new(
                       nil,
                       "print",
-                      [ES::StringNode.new("done")]
+                      [ES::StringNode.new("done")],
+                      nil
                     )
                   ])
                 )
@@ -567,7 +697,8 @@ describe "EleetScript::Parser" do
                   ES::CallNode.new(
                     ES::IntegerNode.new(1),
                     "<",
-                    [ES::IntegerNode.new(10)]
+                    [ES::IntegerNode.new(10)],
+                    nil
                   ),
                   ES::Nodes.new([
                     ES::NextNode.new
@@ -615,7 +746,8 @@ describe "EleetScript::Parser" do
                       ES::CallNode.new(
                         ES::GetInstanceVarNode.new("@names"),
                         "push",
-                        [ES::GetLocalNode.new("name")]
+                        [ES::GetLocalNode.new("name")],
+                        nil
                       ),
                       ES::ReturnNode.new(
                         ES::GetLocalNode.new("name")
@@ -842,7 +974,8 @@ describe "EleetScript::Parser" do
                             ES::CallNode.new(
                               ES::GetClassVarNode.new("@@count"),
                               "+",
-                              [ES::IntegerNode.new(1)]
+                              [ES::IntegerNode.new(1)],
+                              nil
                             )
                           ),
                           ES::GetInstanceVarNode.new("@name")
@@ -954,7 +1087,8 @@ describe "EleetScript::Parser" do
                               ES::CallNode.new(
                                 ES::GetLocalNode.new("a"),
                                 "+",
-                                [ES::GetLocalNode.new("b")]
+                                [ES::GetLocalNode.new("b")],
+                                nil
                               )
                             ])
                           )
@@ -967,7 +1101,8 @@ describe "EleetScript::Parser" do
                               ES::CallNode.new(
                                 ES::GetLocalNode.new("a"),
                                 "-",
-                                [ES::GetLocalNode.new("b")]
+                                [ES::GetLocalNode.new("b")],
+                                nil
                               )
                             ])
                           )
@@ -980,7 +1115,8 @@ describe "EleetScript::Parser" do
                               ES::CallNode.new(
                                 ES::GetLocalNode.new("a"),
                                 "/",
-                                [ES::GetLocalNode.new("b")]
+                                [ES::GetLocalNode.new("b")],
+                                nil
                               )
                             ])
                           )
@@ -993,7 +1129,8 @@ describe "EleetScript::Parser" do
                               ES::CallNode.new(
                                 ES::GetLocalNode.new("a"),
                                 "*",
-                                [ES::GetLocalNode.new("b")]
+                                [ES::GetLocalNode.new("b")],
+                                nil
                               )
                             ])
                           )
@@ -1006,7 +1143,8 @@ describe "EleetScript::Parser" do
                               ES::CallNode.new(
                                 ES::GetLocalNode.new("a"),
                                 "**",
-                                [ES::GetLocalNode.new("b")]
+                                [ES::GetLocalNode.new("b")],
+                                nil
                               )
                             ])
                           )
@@ -1020,7 +1158,8 @@ describe "EleetScript::Parser" do
                   ES::CallNode.new(
                     ES::GetConstantNode.new("Math"),
                     "new",
-                    []
+                    [],
+                    nil
                   )
                 ),
                 ES::SetLocalNode.new(
@@ -1028,20 +1167,23 @@ describe "EleetScript::Parser" do
                   ES::CallNode.new(
                     ES::GetLocalNode.new("m"),
                     "add",
-                    [ES::IntegerNode.new(10), ES::IntegerNode.new(20)]
+                    [ES::IntegerNode.new(10), ES::IntegerNode.new(20)],
+                    nil
                   )
                 ),
                 ES::IfNode.new(
                   ES::CallNode.new(
                     ES::GetLocalNode.new("a"),
                     "is",
-                    [ES::IntegerNode.new(30)]
+                    [ES::IntegerNode.new(30)],
+                    nil
                   ),
                   ES::Nodes.new([
                     ES::CallNode.new(
                       nil,
                       "print",
-                      [ES::StringNode.new("It works!")]
+                      [ES::StringNode.new("It works!")],
+                      nil
                     )
                   ])
                 )
