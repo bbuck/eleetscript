@@ -54,3 +54,8 @@ end
 
 greeter = Greeter.new("Hello", "World")
 greeter.greet # Parenthesis not required when no arguments are given
+
+# Lambdas are like ruby blocks, they can be passed to a function
+[1, 2, 3].each -> { |value, key| # Notice how the value is first, the key is second
+  println("%key => %value")
+}

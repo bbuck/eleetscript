@@ -27,9 +27,14 @@ rule
 
   Expressions:
     Expression                                             { result = Nodes.new(val) }
-  | Expressions TERMINATOR Expression                      { result = val[0] << val[2] }
-  | Expressions TERMINATOR                                 { result = val[0] }
-  | TERMINATOR                                             { result = Nodes.new([]) }
+  | Expressions Terminator Expression                      { result = val[0] << val[2] }
+  | Expressions Terminator                                 { result = val[0] }
+  | Terminator                                             { result = Nodes.new([]) }
+  ;
+
+  Terminator:
+    TERMINATOR Terminator
+  | TERMINATOR
   ;
 
   Expression:
@@ -236,10 +241,12 @@ rule
   | '<'
   ;
 
+
+
   Parameters:
     /* nothing */                                          { result = [] }
-  | TERMINATOR                                             { result = [] }
-  | '|' ParamList '|' TERMINATOR                           { result = val[1] }
+  | Terminator                                             { result = [] }
+  | '|' ParamList '|' Terminator                           { result = val[1] }
   | '|' ParamList '|'                                      { result = val[1] }
   ;
 
@@ -256,39 +263,39 @@ rule
 
   Namespace:
     NAMESPACE CONSTANT Expressions END                     { result = NamespaceNode.new(val[1], val[2]) }
-  | NAMESPACE CONSTANT TERMINATOR Expressions END          { result = NamespaceNode.new(val[1], val[3]) }
+  | NAMESPACE CONSTANT Terminator Expressions END          { result = NamespaceNode.new(val[1], val[3]) }
   | NAMESPACE CONSTANT END                                 { result = NamespaceNode.new(val[1], Nodes.new([])) }
   ;
 
   Class:
     CLASS CONSTANT Expressions END                         { result = ClassNode.new(val[1], nil, val[2]) }
-  | CLASS CONSTANT TERMINATOR Expressions END              { result = ClassNode.new(val[1], nil, val[3]) }
+  | CLASS CONSTANT Terminator Expressions END              { result = ClassNode.new(val[1], nil, val[3]) }
   | CLASS CONSTANT END                                     { result = ClassNode.new(val[1], nil, Nodes.new([])) }
-  | CLASS CONSTANT TERMINATOR END                          { result = ClassNode.new(val[1], nil, Nodes.new([])) }
+  | CLASS CONSTANT Terminator END                          { result = ClassNode.new(val[1], nil, Nodes.new([])) }
   | CLASS CONSTANT '<' CONSTANT Expressions END            { result = ClassNode.new(val[1], val[3], val[4]) }
-  | CLASS CONSTANT '<' CONSTANT TERMINATOR Expressions END { result = ClassNode.new(val[1], val[3], val[5]) }
+  | CLASS CONSTANT '<' CONSTANT Terminator Expressions END { result = ClassNode.new(val[1], val[3], val[5]) }
   | CLASS CONSTANT '<' CONSTANT END                        { result = ClassNode.new(val[1], val[3], Nodes.new([])) }
-  | CLASS CONSTANT '<' CONSTANT TERMINATOR END             { result = ClassNode.new(val[1], val[3], Nodes.new([])) }
+  | CLASS CONSTANT '<' CONSTANT Terminator END             { result = ClassNode.new(val[1], val[3], Nodes.new([])) }
   ;
 
   If:
-    IF Expression TERMINATOR Expressions END               { result = IfNode.new(val[1], val[3], nil) }
-  | IF Expression TERMINATOR Expressions Else              { result = IfNode.new(val[1], val[3], val[4]) }
+    IF Expression Terminator Expressions END               { result = IfNode.new(val[1], val[3], nil) }
+  | IF Expression Terminator Expressions Else              { result = IfNode.new(val[1], val[3], val[4]) }
   ;
 
   Else:
-    ELSE TERMINATOR Expression TERMINATOR END              { result = ElseNode.new(val[2]) }
-  | ELSE TERMINATOR Expressions END                        { result = ElseNode.new(val[2]) }
+    ELSE Terminator Expression Terminator END              { result = ElseNode.new(val[2]) }
+  | ELSE Terminator Expressions END                        { result = ElseNode.new(val[2]) }
   | ElseIf
   ;
 
   ElseIf:
-    ELSIF Expression TERMINATOR Expressions END            { result = ElseNode.new(IfNode.new(val[1], val[3], nil)) }
-  | ELSIF Expression TERMINATOR Expressions Else           { result = ElseNode.new(IfNode.new(val[1], val[3], val[4])) }
+    ELSIF Expression Terminator Expressions END            { result = ElseNode.new(IfNode.new(val[1], val[3], nil)) }
+  | ELSIF Expression Terminator Expressions Else           { result = ElseNode.new(IfNode.new(val[1], val[3], val[4])) }
   ;
 
   While:
-    WHILE Expression TERMINATOR Expressions END            { result = WhileNode.new(val[1], val[3]) }
+    WHILE Expression Terminator Expressions END            { result = WhileNode.new(val[1], val[3]) }
   ;
 
   Return:
