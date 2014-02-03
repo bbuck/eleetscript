@@ -14,9 +14,10 @@ module EleetScript
         arg = arguments[index]
         next unless arg
         context[param] = arg
-        if arg.is_a?("Lambda")
-          context["lambda?"] = context["true"]
-        end
+      end
+      if arguments.length > 0 && arguments.last.is_a?("Lambda")
+        context["lambda?"] = context["true"]
+        context["lambda"] = arguments.last
       end
 
       context["arguments"] = context["List"].call(:new, arguments)

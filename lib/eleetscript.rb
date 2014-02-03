@@ -14,3 +14,6 @@ module EleetScript
 end
 
 ES = EleetScript
+
+require "lang/interpreter"
+require "engine/engine"

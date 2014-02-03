@@ -2,6 +2,11 @@ require "eleetscript"
 
 module EleetScript
   class Lexer
+    RESERVED_WORDS = [
+      "lambda?", "lambda", "self", "nil", "true", "yes", "on", "false", "no",
+      "off", "next", "break", "return"
+    ]
+
     KEYWORDS = [
       "do", "end", "class", "load", "if", "while", "namespace", "else", "elsif",
       "return", "break", "next", "true", "yes", "on", "false", "no", "off",
@@ -14,7 +19,7 @@ module EleetScript
       globals: /\A(\$[a-z][\w\d]*[?!]?)/i,
       class_var: /\A(\@\@[a-z][\w\d]*[!?]?)/i,
       instance_var: /\A(\@[a-z][\w\d]*[!?]?)/i,
-      operator: /\A(->|=>|[.+\-\*\/%<>=!]=|\*\*=|\*\*|[+\-\*\/%=><]|or|and|not|isnt|is|\||\(|\)|\[|\]|\{|\}|::|[.,?:])/,
+      operator: /\A(->|=>|[.+\-\*\/%<>=!]=|\*\*=|\*\*|[+\-\*\/%=><]|or|and|not|isnt|is|\||\(|\)|\[|\]|\{|\}|::|[.,])/,
       whitespace: /\A([ \t]+)/,
       terminator: /\A([;\n])/,
       integer: /\A([\d_]+)/,

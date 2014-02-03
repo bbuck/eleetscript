@@ -1,6 +1,6 @@
 class String
   * do |num|
-    if arguments.length is 0
+    if arguments.length > 0
       new_str = []
       str = self
       num.times -> {

@@ -2,10 +2,6 @@ require "lang/parser"
 require "lang/runtime/memory"
 
 module EleetScript
-  def throw_eleet_error
-
-  end
-
   class Interpreter
     attr_reader :memory
     def initialize(memory = nil)
@@ -156,7 +152,11 @@ module EleetScript
 
   class SetLocalNode
     def eval(context)
-      context.local_var(name, value.eval(context))
+      if Lexer::RESERVED_WORDS.include?(name)
+        context["Errors"].call("<", [context["String"].new_with_value("Cannot assign a value to reserved word \"name\"")])
+      else
+        context.local_var(name, value.eval(context))
+      end
     end
   end
 

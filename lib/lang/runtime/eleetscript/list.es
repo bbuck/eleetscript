@@ -1,8 +1,4 @@
 class List
-  > do
-    shift
-  end
-
   < do |value|
     self.push(value)
   end
@@ -15,22 +11,22 @@ class List
     end
   end
 
-  each do |iter|
-    if lambda? and iter.kind_of?(Lambda)
+  each do
+    if lambda?
       keys = self.keys
       i = 0
       while i < keys.length
         key = keys[i]
-        iter.call(self[key], key)
+        lambda.call(self[key], key)
         i += 1
       end
     end
   end
 
   inject do |val, iter|
-    if lambda? and iter.kind_of?(Lambda)
+    if lambda?
       self.each -> { |item, key|
-        val = iter.call(val, item, key)
+        val = lambda.call(val, item, key)
       }
     end
     val
