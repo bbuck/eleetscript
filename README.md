@@ -613,6 +613,20 @@ ES
 engine.execute(script)
 ```
 
+# Name
+
+I thought I should include this little blurb about the name. I wanted to make
+it clear that this language was not named **Eleet**Script to signify that it's
+better than any other language. It was named as such becuase when I first begin
+fantasizing about what the language should look like and do and what language it
+should run on initially I had registered a company name called "Eleet Software
+Developers, L.L.C." which got it's name becuase I thought it was funny to play
+with the elitist attitude the a lot of people have and of course imply that we
+did good work.
+
+Long story short, the name evolved from that and lack of a more creative name
+to come to me before I released it.
+
 # License
 
 [MIT](http://opensource.org/licenses/MIT)
