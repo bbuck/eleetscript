@@ -274,7 +274,11 @@ module EleetScript
   class DefMethodNode
     def eval(context)
       method_obj = EleetScriptMethod.new(method.params, method.body)
-      context.current_class.methods[method_name] = method_obj
+      if context.is_a?(ClassContext)
+        context.current_class.methods[method_name] = method_obj
+      else
+        context.current_self.methods[method_name] = method_obj
+      end
       context.es_nil
     end
   end
@@ -373,13 +377,11 @@ module EleetScript
   class NamespaceNode
     def eval(context)
       ns_ctx = context.namespace(name)
-      if ns_ctx
-        body.eval(ns_ctx)
-      else
+      unless ns_ctx
         ns_ctx = context.new_namespace_context
         context.add_namespace(name, ns_ctx)
-        body.eval(ns_ctx)
       end
+      body.eval(ns_ctx)
     end
   end
 

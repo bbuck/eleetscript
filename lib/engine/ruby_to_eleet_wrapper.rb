@@ -6,7 +6,9 @@ module EleetScript
     end
 
     def call(method_name, args)
-      binding.pry
+      if method_name.to_sym == :to_string
+        method_name = :to_s
+      end
       ruby_args = args.map { |arg| Values.to_ruby_value(arg, @engine) }
       if @ruby_obj.respond_to?(method_name)
         Values.to_eleet_value(@ruby_obj.send(method_name, *ruby_args), @engine)

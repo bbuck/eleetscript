@@ -1,9 +1,10 @@
 module EleetScript
   class EleetScriptClassInstance < EleetScriptClassSkeleton
-    attr_accessor :instance_vars, :runtime_class, :context
+    attr_accessor :instance_vars, :runtime_class, :context, :methods
     set_is_instance
 
     def initialize(class_context, runtime_class)
+      @methods = MethodHash.new
       @instance_vars = ProcessedKeyHash.new
       @instance_vars.set_key_preprocessor do |key|
         key[0] == "@" ? key[1..-1] : key
@@ -15,7 +16,10 @@ module EleetScript
 
     def call(method_name, arguments = [])
       # puts "Calling #{method_name} on #{self}"
-      method = @runtime_class.instance_lookup(method_name.to_s)
+      method = @methods[method_name]
+      if method.nil?
+        method = @runtime_class.instance_lookup(method_name.to_s)
+      end
       if method
         if method.arity == 3
           method.call(self, arguments, @context)

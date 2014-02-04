@@ -174,7 +174,9 @@ module EleetScript
     end
 
     def new_namespace_context
-      ctx = NamespaceContext.new(@current_self, @current_class, @root_ns)
+      current_self = @root_ns["Object"].new
+      current_class = current_self.runtime_class
+      ctx = NamespaceContext.new(current_self, current_class, @root_ns)
       ctx.parent_context = self
       ctx
     end
