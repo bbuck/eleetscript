@@ -15,7 +15,6 @@ module EleetScript
     def execute(code)
       begin
         to_ruby_value(@interpreter.eval(code))
-        true
       rescue Exception => e
         false
       end
