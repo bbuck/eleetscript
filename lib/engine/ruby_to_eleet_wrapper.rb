@@ -9,7 +9,12 @@ module EleetScript
       if method_name.to_sym == :to_string
         method_name = :to_s
       elsif method_name.to_sym == :class_name
-        return Values.to_eleet_value(@ruby_obj.class.name, @engine)
+        cls = if @ruby_obj.class == Class
+          @ruby_obj
+        else
+          @ruby_obj.class
+        end
+        return Values.to_eleet_value(cls.name, @engine)
       end
       ruby_args = args.map { |arg| Values.to_ruby_value(arg, @engine) }
       block = if ruby_args.length > 0 && ruby_args.last.is_a?(RubyLambda)
