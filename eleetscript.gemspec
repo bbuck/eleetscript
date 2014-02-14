@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = "eleetscript"
-  s.version = "0.0.5a"
+  s.version = "0.0.6a"
   s.license = "MIT"
   s.date = "2014-01-31"
   s.summary = "EleetScript Engine"
