@@ -32,7 +32,7 @@ module EleetScript
         ns = ns.namespace(new_ns)
       end
       eleet_args = args.each do |arg|
-        to_eleet_value(arg, self)
+        to_eleet_value(arg)
       end
       to_ruby_value(ns.current_self.call(method_name, eleet_args))
     end
