@@ -30,9 +30,9 @@ module EleetScript
         elsif ruby_obj.nil?
           memory.root_namespace["nil"]
         elsif ruby_obj == true
-          memory.root_namesapce["true"]
+          memory.root_namespace["true"]
         elsif ruby_obj == false
-          memory.root_namesapce["false"]
+          memory.root_namespace["false"]
         else
           RubyToEleetWrapper.new(ruby_obj, engine)
         end

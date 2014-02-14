@@ -27,5 +27,32 @@ module EleetScript
     def raw
       @ruby_obj
     end
+
+    def is_a?(name)
+      cls = if @ruby_obj.class == Class
+        @ruby_obj
+      else
+        @ruby_obj.class
+      end
+      cls_names = cls.ancestors.map { |a| a.name.split("::").last }
+      Values.to_eleet_value(cls_names.include?(name), @engine)
+    end
+
+    def class?
+      Values.to_eleet_value(@ruby_obj.class == Class, @engine)
+    end
+
+    def instance?
+      !class?
+    end
+
+    def runtime_class
+      cls = if @ruby_obj.class == Class
+        @ruby_obj
+      else
+        @ruby_obj.class
+      end
+      Values.to_eleet_value(cls.name)
+    end
   end
 end
