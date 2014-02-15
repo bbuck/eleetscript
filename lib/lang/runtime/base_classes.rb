@@ -34,7 +34,7 @@ module EleetScript
 
     class << self
       def from_regex(regex)
-        ESRegex.new(regex.source, regex.flags)
+        ESRegex.new(regex.source, regex.options)
       end
     end
 
