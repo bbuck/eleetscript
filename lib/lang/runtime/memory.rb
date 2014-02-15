@@ -16,6 +16,7 @@ module EleetScript
       "Enumerable" => nil,
       "List" => "Enumerable",
       "String" => "Enumerable",
+      "Regex" => nil,
       "IO" => nil,
       "Lambda" => nil,
       "TrueClass" => nil,
@@ -54,6 +55,7 @@ module EleetScript
       load_object_methods
       load_io_methods
       load_string_methods
+      load_regex_methods
       load_number_methods
       load_boolean_methods
       load_nil_methods
@@ -78,8 +80,7 @@ module EleetScript
       end
 
       object.def :kind_of? do |receiver, arguments|
-        t = @root_namespace["true"]
-        f = @root_namespace["false"]
+        t, f = @root_namespace["true"], @root_namespace["false"]
         if arguments.length == 0 || !arguments.first.class?
           f
         else
@@ -94,6 +95,10 @@ module EleetScript
           name = arguments.first.name
           names.include?(name) ? t : f
         end
+      end
+
+      object.def :class do |receiver, arguments|
+        receiver.runtime_class
       end
 
       object.def :class_name do |receiver, arguments|
@@ -223,6 +228,76 @@ module EleetScript
           end
         else
           @root_namespace.es_nil
+        end
+      end
+
+      string.def :replace do |receiver, arguments|
+        if arguments.length < 2
+          string.new_with_value(receiver.ruby_value)
+        else
+          pattern, replacement = arguments
+          if !pattern.is_a?("Regex")
+            pattern = @root_namespace["Regex"].call(:new, [pattern.call(:to_string)])
+          end
+          if replacement.is_a?("Lambda")
+            new_str = if pattern.ruby_value.global?
+              receiver.ruby_value.gsub(pattern.ruby_value) do |*args|
+                args = args.map { |arg| string.new_with_value(arg) }
+                replacement.call(:call, args).call(:to_string).ruby_value
+              end
+            else
+              receiver.ruby_value.sub(pattern.ruby_value) do |*args|
+                args = args.map { |arg| string.new_with_value(arg) }
+                replacement.call(:call, args).call(:to_string).ruby_value
+              end
+            end
+          else
+            new_str = if pattern.ruby_value.global?
+              receiver.ruby_value.gsub(pattern.ruby_value, replacement.call(:to_string).ruby_value)
+            else
+              receiver.ruby_value.sub(pattern.ruby_value, replacement.call(:to_string).ruby_value)
+            end
+            string.new_with_value(new_str)
+          end
+        end
+      end
+
+      string.def :match do |receiver, arguments|
+        str_cls, list_cls = @root_namespace["String"], @root_namespace["List"]
+        rx = arguments.first
+        if rx.is_a?("Regex")
+          if rx.ruby_value.global?
+            matches = receiver.ruby_value.scan(rx.ruby_value)
+            list_args = matches.map do |match|
+              args = match.map do |a|
+                str_cls.new_with_value(a)
+              end
+              list_cls.call(:new, args)
+            end
+            list_cls.call(:new, args)
+          else
+            matches = receiver.ruby_value.match(rx.ruby_value)
+            if matches.nil?
+              list_cls.call(:new)
+            else
+              args = [str_cls.new_with_value(matches[0])]
+              if matches.names.length > 0
+                args += matches.names.map do |name|
+                  n, v = str_cls.new_with_value(name), str_cls.new_with_value(matches[name])
+                  @root_namespace["Pair"].call(:new, [n, v])
+                end
+              else
+                group_matches = matches.to_a
+                group_matches.shift # Remove full match
+                args += group_matches.map do |res|
+                  str_cls.new_with_value(res)
+                end
+              end
+              list_cls.call(:new, args)
+            end
+          end
+        else
+          @root_namespace["List"].call(:new)
         end
       end
     end
@@ -369,6 +444,63 @@ module EleetScript
         else
           @root_namespace.es_nil
         end
+      end
+    end
+
+    def load_regex_methods
+      regex = @root_namespace["Regex"]
+
+      regex.class_def :new do |receiver, arguments|
+        pattern, flags = arguments
+        pattern = (pattern ? pattern.ruby_value : "")
+        flags = (flags ? flags.ruby_value : nil)
+        regex.new_with_value(ESRegex.new(pattern, flags))
+      end
+
+      regex.def :pattern do |receiver, arguments|
+        @root_namespace["String"].new_with_value(receiver.ruby_value.source)
+      end
+
+      regex.def :flags do |receiver, arguments|
+        @root_namespace["String"].new_with_value(receiver.ruby_value.flags)
+      end
+
+      regex.def :global= do |receiver, arguments|
+        t, f = @root_namespace["true"], @root_namespace["false"]
+        receiver.ruby_value.global = arguments.first == t ? true : false
+        receiver
+      end
+
+      regex.def :multiline? do |receiver, arguments|
+        t, f = @root_namespace["true"], @root_namespace["false"]
+        receiver.ruby_value.multiline? ? t : f
+      end
+
+      regex.def :multiline= do |receiver, arguments|
+        t, f = @root_namespace["true"], @root_namespace["false"]
+        rx = receiver.ruby_value
+        if arguments.first == t
+          receiver.ruby_value = ESRegex.new(rx.source, rx.flags + "m")
+        else
+          receiver.ruby_value = ESRegex.new(rx.source, rx.flags.gsub("m", ""))
+        end
+        receiver
+      end
+
+      regex.def :ignorecase? do |receiver, arguments|
+        t, f = @root_namespace["true"], @root_namespace["false"]
+        receiver.ruby_value.ignorecase? ? t : f
+      end
+
+      regex.def :ignorecase= do |receiver, arguments|
+        t, f = @root_namespace["true"], @root_namespace["false"]
+        rx = receiver.ruby_value
+        if arguments.first == t
+          receiver.ruby_value = ESRegex.new(rx.source, rx.flags + "i")
+        else
+          receiver.ruby_value = ESRegex.new(rx.source, rx.flags.gsub("i", ""))
+        end
+        receiver
       end
     end
 
@@ -545,8 +677,22 @@ module EleetScript
 
     def load_lambda_methods
       lambda = @root_namespace["Lambda"]
+
       lambda.def :call do |receiver, arguments, context|
         receiver.ruby_value.call(nil, arguments, context)
+      end
+
+      lambda.def :apply do |receiver, arguments, context|
+        args = arguments.first
+        args = if args.is_a?("List")
+          arg_list = args.ruby_value.array_value.dup
+          arg_list + args.ruby_value.hash_value.map do |k, v|
+            @root_namespace["Pair"].call(:new, [k, v])
+          end
+        else
+          []
+        end
+        receiver.ruby_value.call(nil, args, context)
       end
     end
   end

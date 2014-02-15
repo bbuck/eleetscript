@@ -30,6 +30,20 @@ describe "EleetScript::Parser" do
       end
     end
 
+    describe "regular expressions" do
+      it "should be parsed" do
+        code = "r\"[a-z]\"gi"
+        nodes = ES::Nodes.new([ES::RegexNode.new("[a-z]", "gi")])
+        parser.parse(code).should eq(nodes)
+      end
+
+      it "should be parsed without flags" do
+        code = "r\"[a-z]\\\"\""
+        nodes = ES::Nodes.new([ES::RegexNode.new("[a-z]\"", "")])
+        parser.parse(code).should eq(nodes)
+      end
+    end
+
     describe "boolean" do
       describe "true" do
         let(:nodes) { nodes = ES::Nodes.new([ES::TrueNode.new]) }
@@ -613,12 +627,14 @@ describe "EleetScript::Parser" do
                           )
                         ]),
                         ES::ElseNode.new(
-                          ES::CallNode.new(
-                            nil,
-                            "print",
-                            [ES::StringNode.new("Short")],
-                            nil
-                          )
+                          ES::Nodes.new([
+                            ES::CallNode.new(
+                              nil,
+                              "print",
+                              [ES::StringNode.new("Short")],
+                              nil
+                            )
+                          ])
                         )
                       )
                     ])

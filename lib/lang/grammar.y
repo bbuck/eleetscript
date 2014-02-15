@@ -3,7 +3,7 @@ class Parser
 token DO END CLASS LOAD IF WHILE NAMESPACE ELSE ELSIF RETURN BREAK NEXT TRUE
 token YES ON FALSE NO OFF NIL SELF DEFINED PROPERTY RETURN
 token CONSTANT GLOBAL CLASS_IDENTIFIER INSTANCE_IDENTIFIER IDENTIFIER
-token FLOAT NUMBER STRING TERMINATOR EOF
+token FLOAT NUMBER STRING TERMINATOR EOF REGEX REGEX_FLAGS
 
 prechigh
   left '.'
@@ -76,6 +76,12 @@ rule
   | True                                                   { result = TrueNode.new }
   | False                                                  { result = FalseNode.new }
   | NIL                                                    { result = NilNode.new }
+  | Regex
+  ;
+
+  Regex:
+    REGEX REGEX_FLAGS                                      { result = RegexNode.new(val[0], val[1]) }
+  | REGEX                                                  { result = RegexNode.new(val[0], "") }
   ;
 
   ListExpression:
@@ -171,6 +177,7 @@ rule
   | Expression 'or' Expression                             { result = CallNode.new(val[0], val[1], [val[2]], nil) }
   | Expression 'is' Expression                             { result = CallNode.new(val[0], val[1], [val[2]], nil) }
   | Expression 'isnt' Expression                           { result = CallNode.new(val[0], val[1], [val[2]], nil) }
+  | Expression '=~' Expression                             { result = CallNode.new(val[0], val[1], [val[2]], nil) }
   ;
 
   OperatorAssignment:
@@ -248,9 +255,8 @@ rule
   | '>='
   | '<='
   | '<'
+  | '=~'
   ;
-
-
 
   Parameters:
     /* nothing */                                          { result = [] }
@@ -293,7 +299,7 @@ rule
   ;
 
   Else:
-    ELSE Terminator Expression Terminator END              { result = ElseNode.new(val[2]) }
+    ELSE Terminator Expressions Terminator END             { result = ElseNode.new(val[2]) }
   | ELSE Terminator Expressions END                        { result = ElseNode.new(val[2]) }
   | ElseIf
   ;

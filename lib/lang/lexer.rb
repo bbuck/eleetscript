@@ -19,12 +19,13 @@ module EleetScript
       globals: /\A(\$[a-z][\w\d]*[?!]?)/i,
       class_var: /\A(\@\@[a-z][\w\d]*[!?]?)/i,
       instance_var: /\A(\@[a-z][\w\d]*[!?]?)/i,
-      operator: /\A(->|=>|[.+\-\*\/%<>=!]=|\*\*=|\*\*|[+\-\*\/%=><]|or|and|not|isnt|is|\||\(|\)|\[|\]|\{|\}|::|[.,])/,
+      operator: /\A(->|=>|[.+\-\*\/%<>=!]=|=~|\*\*=|\*\*|[+\-\*\/%=><]|or|and|not|isnt|is|\||\(|\)|\[|\]|\{|\}|::|[.,])/,
       whitespace: /\A([ \t]+)/,
       terminator: /\A([;\n])/,
       integer: /\A([\d_]+)/,
       float: /\A([\d_]*?\.[\d_]+)/,
       string: /\A\"(.*?)(?<!\\)\"/m,
+      regex: /\Ar\"(.*?)(?<!\\)\"([gim]*)/,
       comment: /\A#.*?(?=\n|$)/m
     }
 
@@ -52,6 +53,13 @@ module EleetScript
         elsif instance_var = chunk[TOKEN_RX[:instance_var]]
           tokens << [:INSTANCE_IDENTIFIER, $1]
           i += instance_var.length
+        elsif regex = chunk[TOKEN_RX[:regex]]
+          pattern, flags = $1, $2
+          tokens << [:REGEX, pattern.gsub('\"', '"')]
+          if flags && flags.length > 0
+            tokens << [:REGEX_FLAGS, flags]
+          end
+          i += regex.length
         elsif identifier = chunk[TOKEN_RX[:identifiers]]
           if KEYWORDS.include? identifier
             tokens << [identifier.upcase.gsub(/\?\!/, "").to_sym, identifier]

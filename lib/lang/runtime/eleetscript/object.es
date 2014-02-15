@@ -37,6 +37,10 @@ class Object
     to_string
   end
 
+  =~ do
+    false
+  end
+
   no_method do |name|
     cls_name = class_name
     Errors < "Undefined method \"%name\" called on instance of %cls_name."

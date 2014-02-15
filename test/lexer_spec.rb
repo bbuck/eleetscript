@@ -78,7 +78,7 @@ describe "EleetScript::Lexer" do
 
   describe "operators" do
     it "should be tokenized with the operator as the token type and value" do
-      operators = ["=>", "->", "+", "-", "*", "/", "%", "=", ".=", "+=", "-=", "*=", "/=", "%=", "==", "!=", "**", "**=", "|", "[", "]", "{", "}", "(", ")", ".", ","]
+      operators = ["=>", "->", "+", "-", "*", "/", "%", "=", ".=", "+=", "-=", "*=", "/=", "%=", "==", "!=", "=~", "**", "**=", "|", "[", "]", "{", "}", "(", ")", ".", ","]
       code = operators.join(" ")
       tokens = operators.map { |op| [op, op] }.concat [[:TERMINATOR, "\n"], [:EOF, :eof]]
       lexer.tokenize(code).should eq(tokens)
@@ -183,6 +183,20 @@ CODE
         tokens = [
           [:IDENTIFIER, "str"], ["=", "="], [:STRING, "strings\ncan\nexist\non\nmultiple\nlines\n"], [:TERMINATOR, "\n"], [:EOF, :eof]
         ]
+        lexer.tokenize(code).should eq(tokens)
+      end
+    end
+
+    describe "regular expressions" do
+      it "should be tokenized" do
+        code = "r\"[a-z]\""
+        tokens = [[:REGEX, "[a-z]"], [:TERMINATOR, "\n"], [:EOF, :eof]]
+        lexer.tokenize(code).should eq(tokens)
+      end
+
+      it "should tokenize with flags" do
+        code = "r\"[a-z]\"gi"
+        tokens = [[:REGEX, "[a-z]"], [:REGEX_FLAGS, "gi"], [:TERMINATOR, "\n"], [:EOF, :eof]]
         lexer.tokenize(code).should eq(tokens)
       end
     end

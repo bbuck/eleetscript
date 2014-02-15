@@ -16,6 +16,11 @@ module EleetScript
       nodes.eval(@memory.root_namespace)
     end
 
+    def eval_with_context(code, context)
+      nodes = @parser.parse(code)
+      nodes.eval(context)
+    end
+
     def load(file_name)
       if File.exists?(file_name)
         eval(File.read(file_name))
@@ -54,6 +59,24 @@ module EleetScript
 
     def reset_nexted
       @nexted = false
+    end
+  end
+
+  module Interpolatable
+    INTERPOLATE_RX = /[\\]?%(?:@|@@|\$)?[\w]+?(?=\W|$)/
+
+    def interpolate(str, context)
+      new_val = str.dup
+      matches = str.scan(INTERPOLATE_RX)
+      matches.each do |match|
+        next if match.nil? || match == "%" || match == ""
+        if match.start_with?("\\")
+          next new_val.sub!(match, match[1..-1])
+        end
+        var = match[1..-1]
+        new_val.sub!(match, context[var].call(:to_string).ruby_value)
+      end
+      new_val
     end
   end
 
@@ -98,24 +121,19 @@ module EleetScript
   end
 
   class StringNode
-    INTERPOLATE_RX = /[\\]?%(?:@|@@|\$)?[\w]+?(?=\W|$)/
+    include Interpolatable
 
     def eval(context)
-      context["String"].new_with_value(interpolate(context))
+      context["String"].new_with_value(interpolate(value, context))
     end
+  end
 
-    def interpolate(context)
-      new_val = value.dup
-      matches = value.scan(INTERPOLATE_RX)
-      matches.each do |match|
-        next if match.nil? || match == "%" || match == ""
-        if match.start_with?("\\")
-          next new_val.sub!(match, match[1..-1])
-        end
-        var = match[1..-1]
-        new_val.sub!(match, context[var].call(:to_string).ruby_value)
-      end
-      new_val
+  class RegexNode
+    include Interpolatable
+
+    def eval(context)
+      f_arg = flags.length == 0 ? nil : flags
+      context["Regex"].new_with_value(ESRegex.new(interpolate(pattern, context), f_arg))
     end
   end
 

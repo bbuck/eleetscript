@@ -128,6 +128,26 @@ describe "EleetScript::Interpreter" do
     end
   end
 
+  describe "regular expressions" do
+    it "should work normally" do
+      code = "println(r\"[a-z]\")"
+      $stdout.should_receive(:puts).with("r\"[a-z]\"")
+      interpreter.eval(code)
+    end
+
+    it "should allow matches to happen" do
+      code = <<-ES
+      if "Brandon" =~ r"[A-Z][a-z]+"
+        println("Yes")
+      else
+        println("No")
+      end
+      ES
+      $stdout.should_receive(:puts).with("Yes")
+      interpreter.eval(code)
+    end
+  end
+
   describe "numbers" do
     it "should allow negative" do
       code = "println(-10)"

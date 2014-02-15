@@ -28,6 +28,28 @@ class String
     self
   end
 
+  replace_all do |pattern, replacement|
+    if pattern.kind_of?(Regex)
+      pattern.global = yes
+      replace(pattern, replacement)
+    else
+      pattern = r"%pattern"g
+      replace(pattern, replacement)
+    end
+  end
+
+  =~ do |rx|
+    if rx.kind_of?(Regex)
+      match?(rx)
+    else
+      false
+    end
+  end
+
+  match? do |rx|
+    match(rx).length > 0
+  end
+
   inspect do
     "\"" + self + "\""
   end

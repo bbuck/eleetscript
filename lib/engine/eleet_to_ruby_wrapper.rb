@@ -23,8 +23,16 @@ module EleetScript
       @eleet_obj
     end
 
+    def class(orig = false)
+      if orig
+        super
+      else
+        call(:class)
+      end
+    end
+
     def to_s
-      Values.to_ruby_value(@eleet_obj.call(:to_string), @engine)
+      call(:to_string)
     end
   end
 end

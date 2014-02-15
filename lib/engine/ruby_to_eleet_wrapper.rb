@@ -51,13 +51,21 @@ module EleetScript
       !class?
     end
 
+    def name
+      if @ruby_obj.class == Class
+        @ruby_obj.name
+      else
+        @ruby_obj.class.name
+      end
+    end
+
     def runtime_class
       cls = if @ruby_obj.class == Class
         @ruby_obj
       else
         @ruby_obj.class
       end
-      Values.to_eleet_value(cls.name)
+      Values.to_eleet_value(cls)
     end
   end
 end

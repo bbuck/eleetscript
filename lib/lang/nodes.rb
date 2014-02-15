@@ -66,6 +66,12 @@ module EleetScript
     end
   end
 
+  class RegexNode < Node.new(:pattern, :flags)
+    def to_s(level = 0)
+      "#{spaces(level)}<RegexNode patter=#{pattern} flags=#{flags}>"
+    end
+  end
+
   class CallNode < Node.new(:receiver, :method_name, :arguments, :lambda)
     def to_s(level = 0)
       tabs = spaces(level)

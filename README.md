@@ -15,6 +15,7 @@ of the different components.
 - Parser/Grammer (complete (alpha))
 - Runtime (complete (alpha))
 - Interpreter (complete (alpha))
+- Ruby Bridge (complete (alpha))
 - Bytecode Compiler (unstarted)
 - VM (for bytecode) (unstarted)
 
@@ -532,7 +533,57 @@ class MyClass
 end
 ```
 
-## Errorless
+## Regular Expressions
+
+Thanks to the Ruby backing EleetScript has full access to Ruby's unique "irRegular
+Expression" engine. You can access Regular Expressions in the language with a
+special literal syntax of by creating one with via the `Regex` class.
+
+```
+# Literal
+name_rx = r"my name is (.+)"i
+
+# Class Based
+name_rx = Regex.new("my name is (.+)", "i")
+```
+
+If you wish to test a string against a regular expression you will find that
+EleetScript supports the `=~` operator, which you might find more forgiving
+than Rubys (`String =~ Regexp` in Ruby, either way in EleetScript).
+
+```
+rx = r"my name is (.+)"i
+str = "My name is Brandon"
+
+if str =~ rx # or str.match?(rx)
+  matches = str.match(rx)
+  # matches is a list of all matches, match[0] is the full match and indexes/keys
+  # are matched groups - in this case matches[1] is equal to group 1.
+  name = matches[1]
+  println("Your name is %name")
+end
+
+rx = r"my name is (?<name>.+)"i
+if str =~ rx
+  matches = str.match(rx)
+  # Named groups are accessed by their names
+  name = matches["name"]
+  println("Your name is %name")
+end
+```
+
+The flags you can apply to a regular expression are similar to Ruby as well.
+There is a multiline flag (`m`), ignore case flag (`i`) and global flag (`g`).
+The only one not present in Ruby is the global flag which changes the scope
+of the regular expression. In Ruby that is done depending on the method used with
+the regular expression.
+
+```
+"ababab".replace(r"a", "c") # => "cbabab"
+"ababab".replace(r"a"g, "c") # => "cbcbcb"
+```
+
+## Reasoning for creating a new layer
 
 There were three main driving factors into the development of EleetScript:
 
@@ -554,7 +605,7 @@ occurs. This list can be checked to determine if certain portions of the script
 are throwing errors and can be cleared before a new section to test for errors
 there.
 
-# Engine
+# Ruby Bridge (Engine)
 
 What's a scripting engine without a language integration feature?
 
@@ -563,12 +614,27 @@ scripting engine. The engine provides an interface for manually executing
 code, calling fuctions, setting values or fetching values from withing the
 EleetScript runtime instance.
 
+There are two types of Engines that you can choose from when integrating with
+EleetScript. The one you choose is dependant on how you plan on using/access the
+script portions of your code. You can use the `SharedEngine` which uses a shared
+memory between all instances (every instance of `SharedEngine` uses the same
+core `Memory` object) and creates a unique context per instance to keep conflicts
+from arising between different scripts and `SharedEngine` instances. The
+`StandaloneEngine` creates a `Memory` object per instnace guaranteeing a completely
+standalone context per instance for scripts.
+
+If you only plan to use one engine in your program then the choice between shared
+or standalone will, ultimately, make no difference. In large applications where
+several different engines (large number of simulatneous scripts) need to be
+managed then the `SharedEngine` may be more efficient due to no duplication of
+EleetScript's core.
+
 Here is an example (with comments) of doing certain things with the engine.
 
 ```ruby
 require "eleetscript"
 
-engine = ES::Engine.new
+engine = ES::SharedEngine.new
 
 new_method = <<-ES
 return_nil do
@@ -578,6 +644,9 @@ ES
 
 engine.execute(new_method) # runs the code
 es_nil = engine.call(:new_method)
+
+es_nil == nil # => The Engine converts Strings, Integers, Floats, true, false
+# and nil to their direct ruby equivalents, no wrapper here!
 
 add_method = <<-ES
 add do |a, b|
@@ -589,10 +658,7 @@ engine.execute(add_method)
 ten = engine.call(:add, 6, 4)
 ten # => 10
 
-es_nil == nil # => The Engine converts Strings, Integers, Floats, true, false
-# and nil to their direct ruby equivalents, no wrapper here!
-
-ESList = engine.get("List") # fetch the value of "List" from the runtime
+ESList = engine["List"] # fetch the value of "List" from the runtime
 # ESList is now a EleetToRubyWrapper that allows you to interact with it as if
 # it had been defined in Ruby
 
@@ -603,7 +669,7 @@ list["Other Value"] = 1
 list["Other Value"] # => 1
 
 # If you want your script to access the file system, provide the ruby File class
-engine.set("File", File)
+engine["File"] = File
 
 script = <<-ES
 str = File.open("some_file.txt")
@@ -612,6 +678,12 @@ ES
 
 engine.execute(script)
 ```
+
+The API is the same for both engine types; however, the `SharedEngine` offers
+one feature unique to it. This feature, `SharedEngine#reset` allows you to start
+with a new context (clearing all changes made to the local context of the instance).
+**NOTE**: If you modify any core objects the modification will reflect across all
+instances of `SharedEngine`.
 
 # Name
 
