@@ -580,7 +580,7 @@ the regular expression.
 
 ```
 "ababab".replace(r"a", "c") # => "cbabab"
-"ababab".replace(r"a"g, "c") # => "cbcbcb"
+"ababab".replace(r"a"g, "c") # => "cbcbcb"A
 ```
 
 ## Reasoning for creating a new layer
