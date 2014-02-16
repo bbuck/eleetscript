@@ -10,4 +10,8 @@ class Que < List
   pop do
     shift
   end
+
+  push do |val|
+    unshift(val)
+  end
 end

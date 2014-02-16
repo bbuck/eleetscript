@@ -147,7 +147,9 @@ rule
   ;
 
   Lambda:
-   '->' '{' Parameters Expressions '}'                     { result = LambdaNode.new(val[2], val[3]) }
+    '->' '{' '}'                                           { result = LambdaNode.new([], Nodes.new([])) }
+  | '->' '{' Terminator '}'                                { result = LambdaNode.new([], Nodes.new([])) }
+  | '->' '{' Parameters Expressions '}'                    { result = LambdaNode.new(val[2], val[3]) }
   ;
 
   Defined:
