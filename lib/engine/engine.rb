@@ -128,6 +128,10 @@ module EleetScript
       @@memory ||= Memory.new
     end
 
+    def reset
+      @context = memory.root_namespace.new_namespace_context
+    end
+
     protected
 
     def eval(code)
