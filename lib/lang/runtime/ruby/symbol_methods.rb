@@ -20,7 +20,7 @@ module EleetScript
     end
 
     symbol.def :to_string do |receiver, arguments|
-      root_namespace["String"].new_with_value(":#{receiver.ruby_value.to_s}")
+      root_namespace["String"].new_with_value("#{receiver.ruby_value.to_s}")
     end
   end
 end
