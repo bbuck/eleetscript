@@ -3,7 +3,7 @@ class Parser
 token DO END CLASS LOAD IF WHILE NAMESPACE ELSE ELSIF RETURN BREAK NEXT TRUE
 token YES ON FALSE NO OFF NIL SELF DEFINED PROPERTY RETURN
 token CONSTANT GLOBAL CLASS_IDENTIFIER INSTANCE_IDENTIFIER IDENTIFIER
-token FLOAT NUMBER STRING TERMINATOR EOF REGEX REGEX_FLAGS
+token FLOAT NUMBER STRING TERMINATOR EOF REGEX REGEX_FLAGS SYMBOL
 
 prechigh
   left '.'
@@ -77,6 +77,7 @@ rule
   | False                                                  { result = FalseNode.new }
   | NIL                                                    { result = NilNode.new }
   | Regex
+  | SYMBOL                                                 { result = SymbolNode.new(val[0]) }
   ;
 
   Regex:

@@ -21,10 +21,6 @@ class Object
     IO.print(msg)
   end
 
-  to_string do
-    class_name
-  end
-
   println do |msg|
     IO.println(msg)
   end
@@ -35,6 +31,10 @@ class Object
 
   inspect do
     to_string
+  end
+
+  to_string do
+    class_name
   end
 
   =~ do

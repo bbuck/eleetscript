@@ -16,6 +16,7 @@ module EleetScript
       "Enumerable" => nil,
       "List" => "Enumerable",
       "String" => "Enumerable",
+      "Symbol" => nil,
       "Regex" => nil,
       "IO" => nil,
       "Lambda" => nil,
@@ -26,7 +27,11 @@ module EleetScript
 
     class << self
       def define_core_methods(&block)
-        (@@core_definers ||= []) << block
+        core_definers << block
+      end
+
+      def core_definers
+        @core_definers ||= []
       end
     end
 
@@ -58,7 +63,7 @@ module EleetScript
       # Global Errors Object
       root_namespace["Errors"] = root_namespace["List"].new_with_value(ListBase.new(root_namespace.es_nil))
 
-      @@core_definers.each do |definer_block|
+      self.class.core_definers.each do |definer_block|
         instance_eval(&definer_block)
       end
 

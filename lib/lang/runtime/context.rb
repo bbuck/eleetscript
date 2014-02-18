@@ -2,14 +2,20 @@ require "util/processed_key_hash"
 
 module EleetScript
   class BaseContext
-    @@_init_funcs = []
+
 
     attr_reader :constants, :local_vars, :global_vars, :namespaces
     attr_accessor :current_self, :current_class
 
     class << self
+      attr_writer :init_funcs
+
       def init_with(*func_symbols)
-        @@_init_funcs += func_symbols
+        self.init_funcs += func_symbols
+      end
+
+      def init_funcs
+        @init_funcs ||= []
       end
     end
 
@@ -128,7 +134,7 @@ module EleetScript
       @constants = ProcessedKeyHash.new
       @global_vars = {}
       @namespaces = {}
-      @@_init_funcs.each do |symbol|
+      self.class.init_funcs.each do |symbol|
         send(symbol, *args) if respond_to?(symbol, true)
       end
     end

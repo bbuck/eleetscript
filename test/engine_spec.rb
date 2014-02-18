@@ -49,6 +49,23 @@ describe "EleetScript::Engine" do
       end
     end
 
+    describe "object translation" do
+      it "should pull strings out as ruby strings" do
+        engine.evaluate("a = \"A String\"")
+        engine["a"].class.should eq(String)
+      end
+
+      it "should pull out symbols" do
+        engine.evaluate("a = :some_symbol")
+        engine["a"].class.should eq(Symbol)
+      end
+
+      it "should pass in symbols" do
+        engine["a"] = :some_other_symbol
+        engine.evaluate(":some_other_symbol is a")
+      end
+    end
+
     describe "object wrappers" do
       it "should be provided for EleetScript objects" do
         eslist = engine["List"]

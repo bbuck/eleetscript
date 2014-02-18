@@ -47,6 +47,7 @@ module EleetScript
   class IntegerNode < LiteralNode; end
   class FloatNode < LiteralNode; end
   class StringNode < LiteralNode; end
+  class SymbolNode < LiteralNode; end
 
   class TrueNode < LiteralNode
     def value

@@ -17,6 +17,8 @@ module EleetScript
           ruby_obj.instance_variable_get("@eleet_obj")
         elsif ruby_obj.kind_of?(String)
           memory.root_namespace["String"].new_with_value(ruby_obj)
+        elsif ruby_obj.kind_of?(Symbol)
+          memory.root_namespace["Symbol"].new_with_value(ruby_obj)
         elsif ruby_obj.kind_of?(Fixnum)
           memory.root_namespace["Integer"].new_with_value(ruby_obj)
         elsif ruby_obj.kind_of?(Float)
@@ -43,7 +45,7 @@ module EleetScript
       end
 
       def to_ruby_value(eleet_obj, engine)
-        ruby_values = ["TrueClass", "FalseClass", "NilClass", "String", "Integer", "Float", "Regex"]
+        ruby_values = ["TrueClass", "FalseClass", "NilClass", "String", "Integer", "Float", "Regex", "Symbol"]
         if eleet_obj.kind_of?(RubyToEleetWrapper)
           eleet_obj.instance_variable_get("@ruby_obj")
         elsif eleet_obj.class_name == "Lambda"

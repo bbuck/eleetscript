@@ -46,12 +46,37 @@ module EleetScript
       value
     end
 
-    list.def :merge! do |receiver, arguments|
-      lst = receiver.ruby_value
+    list.def :merge do |receiver, arguments|
+      lst = receiver.ruby_value.dup
       arg = arguments.first
       if arg.is_a?("List")
         lst.merge!(arg.ruby_value)
+      # For Ruby Bridge
+      elsif arg.kind_of?(RubyToEleetWrapper)
+        olst = ListBase.new(root_namespace.es_nil)
+        if arg.raw.kind_of?(Hash)
+          new_hash = Hash.new(root_namespace.es_nil)
+          keys = arg.call(:keys, [])
+          keys.raw.length.times do |i|
+            key = keys.call(:[], [root_namespace["Integer"].new_with_value(i)])
+            new_hash[key] = arg.call(:[], [key])
+          end
+          olst.hash_value = new_hash
+        elsif arg.raw.kind_of?("Array")
+          new_arr = []
+          arg.call(:length, []).ruby_value.times do |i|
+            new_arr << arg.call(:[], [root_namespace["Integer"].new_with_value(i)])
+          end
+          olst.array_value = new_arr
+        end
+        lst.merge!(olst)
       end
+      root_namespace["List"].new_with_value(lst)
+    end
+
+    list.def :merge! do |receiver, arguments|
+      new_list = receiver.call(:merge, arguments)
+      receiver.ruby_value = new_list.ruby_value
       receiver
     end
 

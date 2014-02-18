@@ -122,10 +122,16 @@ module EleetScript
   end
 
   class SharedEngine < BaseEngine
+    class << self
+      def memory
+        @memory ||= Memory.new
+      end
+    end
+
     def initialize; end
 
     def memory
-      @@memory ||= Memory.new
+      self.class.memory ||= Memory.new
     end
 
     def reset

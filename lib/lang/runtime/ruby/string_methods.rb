@@ -84,6 +84,10 @@ module EleetScript
       end
     end
 
+    string.def :to_symbol do |receiver, arguments|
+      root_namespace["Symbol"].new_with_value(receiver.ruby_value.to_sym)
+    end
+
     string.def :replace do |receiver, arguments|
       if arguments.length < 2
         string.new_with_value(receiver.ruby_value)

@@ -26,6 +26,7 @@ module EleetScript
       float: /\A([\d_]*?\.[\d_]+)/,
       string: /\A\"(.*?)(?<!\\)\"/m,
       regex: /\Ar\"(.*?)(?<!\\)\"([gim]*)/,
+      symbol: /\A:([a-z][\w\d]*?\b)/i,
       comment: /\A#.*?(?=\n|$)/m
     }
 
@@ -53,6 +54,9 @@ module EleetScript
         elsif instance_var = chunk[TOKEN_RX[:instance_var]]
           tokens << [:INSTANCE_IDENTIFIER, $1]
           i += instance_var.length
+        elsif symbol = chunk[TOKEN_RX[:symbol]]
+          tokens << [:SYMBOL, $1.to_sym]
+          i += symbol.length
         elsif regex = chunk[TOKEN_RX[:regex]]
           pattern, flags = $1, $2
           tokens << [:REGEX, pattern.gsub('\"', '"')]

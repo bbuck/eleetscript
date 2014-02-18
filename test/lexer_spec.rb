@@ -187,6 +187,14 @@ CODE
       end
     end
 
+    describe "symbols" do
+      it "should be tokenized" do
+        code = ":some_symbol"
+        tokens = [[:SYMBOL, :some_symbol], [:TERMINATOR, "\n"], [:EOF, :eof]]
+        lexer.tokenize(code).should eq(tokens)
+      end
+    end
+
     describe "regular expressions" do
       it "should be tokenized" do
         code = "r\"[a-z]\""

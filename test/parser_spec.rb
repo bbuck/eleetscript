@@ -30,6 +30,25 @@ describe "EleetScript::Parser" do
       end
     end
 
+    describe "symbols" do
+      it "should be parsed" do
+        code = ":some_symbol"
+        nodes = ES::Nodes.new([ES::SymbolNode.new(:some_symbol)])
+        parser.parse(code).should eq(nodes)
+      end
+
+      it "should be assignable" do
+        code = "a = :some_symbol"
+        nodes = ES::Nodes.new([
+                  ES::SetLocalNode.new(
+                    "a",
+                    ES::SymbolNode.new(:some_symbol)
+                  )
+                ])
+        parser.parse(code).should eq(nodes)
+      end
+    end
+
     describe "regular expressions" do
       it "should be parsed" do
         code = "r\"[a-z]\"gi"

@@ -40,7 +40,7 @@ module EleetScript
         @ruby_obj.class
       end
       cls_names = cls.ancestors.map { |a| a.name.split("::").last }
-      Values.to_eleet_value(cls_names.include?(name), @engine)
+      cls_names.include?(name)
     end
 
     def class?

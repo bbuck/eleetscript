@@ -1,8 +1,9 @@
 module EleetScript
   class ListBase
-    attr_reader :array_value, :hash_value
+    attr_accessor :array_value, :hash_value
 
     def initialize(nil_val)
+      @nil_val = nil_val
       @array_value = []
       @hash_value = Hash.new(nil_val)
     end
@@ -17,7 +18,7 @@ module EleetScript
     end
 
     def dup
-      lst = ListBase.new
+      lst = ListBase.new(@nil_val)
       lst.array_value = @array_value.dup
       lst.hash_value = @hash_value.dup
       lst
