@@ -103,6 +103,12 @@ off # All three of these evaluate to "false" and are instances of FalseClass
 nil # Instance of NilClass
 ```
 
+EleetScript supports symbols with ruby syntax.
+
+```
+:some_symbol
+```
+
 EleetScript supports literal definitions for two types of objects, Lists and
 Pairs. A List is the like a PHP `array()` or, for those not familiar with PHP,
 works as both a synchronous and associative data structure. Lists can be defined
