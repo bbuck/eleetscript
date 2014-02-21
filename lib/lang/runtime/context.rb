@@ -247,11 +247,7 @@ module EleetScript
     end
 
     def [](key)
-      value = if key[0] =~ /[A-Z]/
-        ns_context[key]
-      else
-        es_nil
-      end
+      value = ns_context[key]
       if value == es_nil
         super
       else
