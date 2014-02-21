@@ -3,7 +3,7 @@ module EleetScript
     nil_cls = root_namespace["NilClass"]
 
     nil_cls.def :clone do |receiver, arguments|
-      nil_cls.new_with_value(nil)
+      root_namespace["nil"]
     end
   end
 end

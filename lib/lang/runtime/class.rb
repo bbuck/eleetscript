@@ -38,7 +38,7 @@ module EleetScript
           method.call(self, arguments)
         end
       else
-        es_method_name = @context["String"].new_with_value(method_name.to_s)
+        es_method_name = @context["String"].new_with_value(method_name.to_s, @context.namespace_context)
         call(NO_METHOD, arguments.dup.unshift(es_method_name))
       end
     end
@@ -82,12 +82,12 @@ module EleetScript
       end
     end
 
-    def new
-      EleetScriptClassInstance.new(@context, self)
+    def new(current_context)
+      EleetScriptClassInstance.new(@context, self, current_context.namespace_context)
     end
 
-    def new_with_value(value)
-      cls = EleetScriptClassInstance.new(@context, self)
+    def new_with_value(value, current_context)
+      cls = EleetScriptClassInstance.new(@context, self, current_context.namespace_context)
       cls.ruby_value = value
       cls
     end

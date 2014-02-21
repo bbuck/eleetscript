@@ -2,19 +2,19 @@ module EleetScript
   Memory.define_core_methods do
     regex = root_namespace["Regex"]
 
-    regex.class_def :new do |receiver, arguments|
+    regex.class_def :new do |receiver, arguments, context|
       pattern, flags = arguments
       pattern = (pattern ? pattern.ruby_value : "")
       flags = (flags ? flags.ruby_value : nil)
-      receiver.new_with_value(ESRegex.new(pattern, flags))
+      receiver.new_with_value(ESRegex.new(pattern, flags), context.namespace_context)
     end
 
-    regex.def :pattern do |receiver, arguments|
-      root_namespace["String"].new_with_value(receiver.ruby_value.source)
+    regex.def :pattern do |receiver, arguments, context|
+      root_namespace["String"].new_with_value(receiver.ruby_value.source, context.namespace_context)
     end
 
-    regex.def :flags do |receiver, arguments|
-      root_namespace["String"].new_with_value(receiver.ruby_value.flags)
+    regex.def :flags do |receiver, arguments, context|
+      root_namespace["String"].new_with_value(receiver.ruby_value.flags, context.namespace_context)
     end
 
     regex.def :global= do |receiver, arguments|

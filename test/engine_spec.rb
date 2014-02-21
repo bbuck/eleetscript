@@ -31,6 +31,15 @@ describe "EleetScript::Engine" do
       t.should be_true
     end
 
+    it "should properly access namespaced constants from core classes" do
+      code = <<-ES
+      MSG = "Hello, World"
+      test do MSG end
+      ES
+      engine.evaluate(code)
+      engine.call(:test).should eq("Hello, World")
+    end
+
     describe "sharing core memory" do
       it "should succesfully add methods to defined classes" do
         code = <<-ES
@@ -103,6 +112,17 @@ describe "EleetScript::Engine" do
     it "should allow access to EleetScript objects" do
       t = engine["true"]
       t.should be_true
+    end
+
+    it "should properly access namespaced constants from core classes" do
+      code = <<-ES
+      namespace Test
+        MSG = "Hello, World"
+        test do MSG end
+      end
+      ES
+      engine.evaluate(code)
+      engine.call("Test::test").should eq("Hello, World")
     end
 
     describe "sharing core memory" do

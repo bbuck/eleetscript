@@ -2,11 +2,11 @@ module EleetScript
   Memory.define_core_methods do
     symbol = root_namespace["Symbol"]
 
-    symbol.class_def :new do |receiver, arguments|
+    symbol.class_def :new do |receiver, arguments, context|
       if arguments.length > 0
-        receiver.new_with_value(arguments.first.call(:to_string).ruby_value.intern)
+        receiver.new_with_value(arguments.first.call(:to_string).ruby_value.intern, context.namespace_context)
       else
-        reciever.new_with_value(:nil)
+        reciever.new_with_value(:nil, context.namespace_context)
       end
     end
 
@@ -19,8 +19,8 @@ module EleetScript
       end
     end
 
-    symbol.def :to_string do |receiver, arguments|
-      root_namespace["String"].new_with_value("#{receiver.ruby_value.to_s}")
+    symbol.def :to_string do |receiver, arguments, context|
+      root_namespace["String"].new_with_value("#{receiver.ruby_value.to_s}", context.namespace_context)
     end
   end
 end

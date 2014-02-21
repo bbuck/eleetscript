@@ -2,8 +2,8 @@ module EleetScript
   Memory.define_core_methods do
     object = root_namespace["Object"]
 
-    object.class_def :new do |receiver, arguments|
-      ins = receiver.new
+    object.class_def :new do |receiver, arguments, context|
+      ins = receiver.new(context.namespace_context)
       ins.call("init", arguments)
       ins
     end
@@ -30,12 +30,12 @@ module EleetScript
       receiver.runtime_class
     end
 
-    object.def :class_name do |receiver, arguments|
-      root_namespace["String"].new_with_value(receiver.runtime_class.name)
+    object.def :class_name do |receiver, arguments, context|
+      root_namespace["String"].new_with_value(receiver.runtime_class.name, context.namespace_context)
     end
 
-    object.class_def :class_name do |receiver, arguments|
-      root_namespace["String"].new_with_value(receiver.name)
+    object.class_def :class_name do |receiver, arguments, context|
+      root_namespace["String"].new_with_value(receiver.name, context.namespace_context)
     end
 
     object.def :is do |receiver, arguments|
@@ -46,10 +46,10 @@ module EleetScript
       end
     end
 
-    object.def :clone do |receiver, arguments|
+    object.def :clone do |receiver, arguments, context|
       cls_name = receiver.runtime_class.name
       if ["Integer", "Float", "String", "List"].include?(cls_name)
-        receiver.runtime_class.new_with_value(receiver.ruby_value.dup)
+        receiver.runtime_class.new_with_value(receiver.ruby_value.dup, context.namespace_context)
       else
         ins = receiver.runtime_class.call(:new)
         ins.ruby_value = receiver.ruby_value.dup

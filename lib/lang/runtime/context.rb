@@ -2,8 +2,6 @@ require "util/processed_key_hash"
 
 module EleetScript
   class BaseContext
-
-
     attr_reader :constants, :local_vars, :global_vars, :namespaces
     attr_accessor :current_self, :current_class
 
@@ -25,7 +23,7 @@ module EleetScript
     end
 
     def es_nil
-      @_es_nil ||= self["nil"]
+      @_es_nil ||= root_ns["nil"]
     end
 
     def root_ns
@@ -46,6 +44,10 @@ module EleetScript
 
     def class_vars
       @current_self.class_vars
+    end
+
+    def namespace_context
+      root_ns
     end
 
     def local_var(name, value = nil)
@@ -173,6 +175,10 @@ module EleetScript
       @root_ns
     end
 
+    def namespace_context
+      self
+    end
+
     def new_class_context(current_self, current_class = nil)
       ctx = ClassContext.new(current_self, current_class)
       ctx.parent_context = self
@@ -180,9 +186,9 @@ module EleetScript
     end
 
     def new_namespace_context
-      current_self = @root_ns["Object"].new
-      current_class = current_self.runtime_class
-      ctx = NamespaceContext.new(current_self, current_class, @root_ns)
+      ctx = NamespaceContext.new(nil, nil, @root_ns)
+      ctx.current_self = @root_ns["Object"].new(ctx)
+      ctx.current_class = current_self.runtime_class
       ctx.parent_context = self
       ctx
     end
@@ -211,8 +217,12 @@ module EleetScript
       @parent_context ? @parent_context.instance_vars : {}
     end
 
-    def new_instance_context(instance_self)
-      ctx = ClassInstanceContext.new(instance_self, current_class)
+    def namespace_context
+      @parent_context.namespace_context
+    end
+
+    def new_instance_context(instance_self, namespace)
+      ctx = ClassInstanceContext.new(instance_self, current_class, namespace)
       ctx.parent_context = self
       ctx
     end
@@ -225,6 +235,9 @@ module EleetScript
   end
 
   class ClassInstanceContext < BaseContext
+    attr_accessor :ns_context
+    init_with :set_ns_context
+
     def current_class
       @parent_context.current_class
     end
@@ -233,10 +246,33 @@ module EleetScript
       {}
     end
 
+    def [](key)
+      value = if key[0] =~ /[A-Z]/
+        ns_context[key]
+      else
+        es_nil
+      end
+      if value == es_nil
+        super
+      else
+        value
+      end
+    end
+
+    def namespace_context
+      ns_context
+    end
+
     def new_method_context(lambda_context = nil)
       ctx = MethodContext.new(current_self, current_class, lambda_context)
       ctx.parent_context = self
       ctx
+    end
+
+    private
+
+    def set_ns_context(ns_context)
+      self.ns_context = ns_context
     end
   end
 
@@ -260,6 +296,10 @@ module EleetScript
           es_nil
         end
       end
+    end
+
+    def namespace_context
+      @parent_context.namespace_context
     end
 
     private

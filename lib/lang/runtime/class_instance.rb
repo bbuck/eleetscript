@@ -3,14 +3,14 @@ module EleetScript
     attr_accessor :instance_vars, :runtime_class, :context, :methods
     set_is_instance
 
-    def initialize(class_context, runtime_class)
+    def initialize(class_context, runtime_class, namespace_context)
       @methods = MethodHash.new
       @instance_vars = ProcessedKeyHash.new
       @instance_vars.set_key_preprocessor do |key|
         key[0] == "@" ? key[1..-1] : key
       end
       @runtime_class = runtime_class
-      @context = class_context.new_instance_context(self)
+      @context = class_context.new_instance_context(self, namespace_context)
       @ruby_value = self
     end
 
@@ -27,7 +27,7 @@ module EleetScript
           method.call(self, arguments)
         end
       else
-        es_method_name = @context["String"].new_with_value(method_name.to_s)
+        es_method_name = @context["String"].new_with_value(method_name.to_s, @context.namespace_context)
         call(NO_METHOD, arguments.dup.unshift(es_method_name))
       end
     end

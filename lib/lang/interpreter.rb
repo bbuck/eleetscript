@@ -30,7 +30,7 @@ module EleetScript
 
   module Helpers
     def self.throw_eleet_error(context, error)
-      context.root_ns["Errors"].call("<", [context.root_ns["String"].new_with_value(error)])
+      context.root_ns["Errors"].call("<", [context.root_ns["String"].new_with_value(error, context.namespace_context)])
     end
   end
 
@@ -124,13 +124,13 @@ module EleetScript
     include Interpolatable
 
     def eval(context)
-      context.root_ns["String"].new_with_value(interpolate(value, context))
+      context.root_ns["String"].new_with_value(interpolate(value, context), context.namespace_context)
     end
   end
 
   class SymbolNode
     def eval(context)
-      context.root_ns["Symbol"].new_with_value(value)
+      context.root_ns["Symbol"].new_with_value(value, context.namespace_context)
     end
   end
 
@@ -139,19 +139,19 @@ module EleetScript
 
     def eval(context)
       f_arg = flags.length == 0 ? nil : flags
-      context.root_ns["Regex"].new_with_value(ESRegex.new(interpolate(pattern, context), f_arg))
+      context.root_ns["Regex"].new_with_value(ESRegex.new(interpolate(pattern, context), f_arg), context.namespace_context)
     end
   end
 
   class IntegerNode
     def eval(context)
-      context.root_ns["Integer"].new_with_value(value)
+      context.root_ns["Integer"].new_with_value(value, context.namespace_context)
     end
   end
 
   class FloatNode
     def eval(context)
-      context.root_ns["Float"].new_with_value(value)
+      context.root_ns["Float"].new_with_value(value, context.namespace_context)
     end
   end
 
@@ -177,7 +177,7 @@ module EleetScript
   class SetLocalNode
     def eval(context)
       if Lexer::RESERVED_WORDS.include?(name)
-        context.root_ns["Errors"].call("<", [context.root_ns["String"].new_with_value("Cannot assign a value to reserved word \"name\"")])
+        Helpers.throw_eleet_error(context, "Cannot assign a value to reserved word \"#{name}\"")
       else
         context.local_var(name, value.eval(context))
       end
@@ -291,7 +291,7 @@ module EleetScript
 
   class LambdaNode
     def eval(context)
-      context.root_ns["Lambda"].new_with_value(EleetScriptMethod.new(params, body, context))
+      context.root_ns["Lambda"].new_with_value(EleetScriptMethod.new(params, body, context), context.namespace_context)
     end
   end
 

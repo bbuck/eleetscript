@@ -4,11 +4,11 @@ module EleetScript
     false_cls = root_namespace["FalseClass"]
 
     true_cls.def :clone do |receiver, arguments|
-      true_cls.new_with_value(true)
+      root_namespace["true"]
     end
 
     false_cls.def :clone do |receiver, arguments|
-      false_cls.new_with_value(false)
+      root_namespace["false"]
     end
   end
 end
