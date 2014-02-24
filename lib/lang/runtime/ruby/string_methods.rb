@@ -2,6 +2,11 @@ module EleetScript
   Memory.define_core_methods do
     string = root_namespace["String"]
 
+    string.class_def :new do |receiver, arguments, context|
+      arg = arguments.length > 0 ? arguments.first.call(:to_string).ruby_value : ""
+      receiver.new_with_value(arg, context.namespace_context)
+    end
+
     string.def :+ do |receiver, arguments|
       arg = arguments.first
       arg_str = if arg.class?

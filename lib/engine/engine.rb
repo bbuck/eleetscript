@@ -50,14 +50,14 @@ module EleetScript
       to_ruby_value(ns[name])
     end
 
-    def []=(name, value)
+    def []=(name, value, options = {})
       load
       var, ns = unnest(name)
       if var[0] =~ /[A-Z]/ && ns.constants.has_key?(var)
         memory.root_namespace["Errors"].call("<", [memory.root_namespace["String"].new_with_value("Cannot reassign constant via the Engine.", memory.root_namespace)])
         return false
       else
-        ns[var] = to_eleet_value(value)
+        ns[var] = to_eleet_value(value, options)
       end
       true
     end
@@ -71,8 +71,8 @@ module EleetScript
       end
     end
 
-    def set(var, value)
-      self[var] = value
+    def set(var, value, options = {})
+      send(:[]=, var, value, options)
     end
 
     def memory
@@ -93,8 +93,8 @@ module EleetScript
       @interpreter ||= Interpreter.new(memory)
     end
 
-    def to_eleet_value(value)
-      Values.to_eleet_value(value, self)
+    def to_eleet_value(value, options = {})
+      Values.to_eleet_value(value, self, options)
     end
 
     def to_ruby_value(value)

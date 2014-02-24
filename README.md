@@ -58,7 +58,10 @@ $other_global = "Hello, World!"
 #### Class
 
 EleetScript provides class level variables that begin with the `@@` notation
-like in Ruby.
+which matches the Ruby syntax; however, unlike in Ruby these variables are
+tied to a class, not a class hierarchy so they act more like static level
+variables. This is provided becuase, unlick Ruby, EleetScript classes are not
+instances of `Object`.
 
 ```
 class MyClass
@@ -684,6 +687,73 @@ ES
 
 engine.execute(script)
 ```
+
+There may still come a need to protect certain aspects of your class from
+scripts in EleetScript. It's default security mechanisms are in place to
+protect the filesystem and process; however, you may have sensitive data, such
+as Database objects that you don't want modified from within the EleetScript
+runtime. The EleetScrpt Engine provides two methods for locking access. The
+first is more secure and reliable:
+
+Add an `eleetscript_lock_methods` function to the proper scope of the object
+(class or instance or both) that returns an array of methods names that
+EleetScript does not have access to. This array must be an array of symbols.
+
+```ruby
+class Test
+  def one
+    1
+  end
+  def two
+    2
+  end
+  def eleetscript_lock_methods
+    [:two]
+  end
+end
+
+engine = ES::SharedEngine.new
+engine["test"] = Test.new
+
+engine.evaluate("a.one") # => 1
+engine.evalaute("a.two") # => nil
+engine["Errors"].last # => Attempt to call locked method "two" failed.
+
+# This method is secure against generating new instances from within the
+# langauge
+
+engine.evaluate("b = a.class_ref.new")
+engine.evaluate("b.two") # => nil
+engine["Errors"].last # => Attempt to call locked method "two" failed.
+```
+
+The other method is to use the Engine's `set` method instead of `[]` and
+specifiying what methods to lock as either a symbol or an array of symbols.
+
+```ruby
+class Test
+  def one
+    1
+  end
+  def two
+    2
+  end
+end
+
+engine = ES::SharedEngine.new
+engine.set("a", Test.new, lock: :two)
+engine.evaluate("a.one") # => 1
+engine.evaluate("b.one") # => nil
+engine["Errors"].last # => Attempt to call locked method "two" failed.
+
+# However this can be circumvented by a smarter scripter
+
+engine.evaluate("b = a.class_ref.new")
+engine.evaluate("b.two") => 2
+```
+
+Unless you have reason to, you should always use the first method for defining
+method locks.
 
 The API is the same for both engine types; however, the `SharedEngine` offers
 one feature unique to it. This feature, `SharedEngine#reset` allows you to start

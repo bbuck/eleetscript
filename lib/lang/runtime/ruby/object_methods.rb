@@ -26,7 +26,7 @@ module EleetScript
       end
     end
 
-    object.def :class do |receiver, arguments|
+    object.def :class_ref do |receiver, arguments|
       receiver.runtime_class
     end
 

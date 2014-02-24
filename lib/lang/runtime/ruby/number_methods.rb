@@ -4,6 +4,11 @@ module EleetScript
     int = root_namespace["Integer"]
     float = root_namespace["Float"]
 
+    number.class_def :new do |receiver, arguments|
+      root_namespace["Errors"].call(:<, [root_namespace["String"].new_with_value("Cannot call new on Number", root_namespace)])
+      root_namespace["nil"]
+    end
+
     number.def :+ do |receiver, arguments, context|
       arg = arguments.first
       if arg.is_a?("Number")

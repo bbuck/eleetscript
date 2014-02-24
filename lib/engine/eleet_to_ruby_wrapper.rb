@@ -27,7 +27,7 @@ module EleetScript
       if orig
         super
       else
-        call(:class)
+        call(:class_ref)
       end
     end
 

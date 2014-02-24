@@ -66,7 +66,7 @@ if ARGV.empty?
         next
       end
       if value.kind_of?(ES::EleetScriptClass) || value.kind_of?(ES::EleetScriptClassInstance)
-        if ["Integer", "Float", "String", "TrueClass", "FalseClass", "NilClass"].include?(value.class_name)
+        if value.instance? && ["Integer", "Float", "String", "TrueClass", "FalseClass", "NilClass"].include?(value.class_name)
           puts " => #{value.ruby_value.inspect}"
         else
           puts " => #{value.call(:inspect).ruby_value}"

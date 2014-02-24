@@ -7,7 +7,7 @@ require "engine/ruby_lambda"
 module EleetScript
   module Values
     class << self
-      def to_eleet_value(ruby_obj, engine)
+      def to_eleet_value(ruby_obj, engine, options = {})
         memory = if engine.kind_of?(Memory)
           engine
         else
@@ -40,7 +40,7 @@ module EleetScript
         elsif ruby_obj == false
           memory.root_namespace["false"]
         else
-          RubyToEleetWrapper.new(ruby_obj, engine)
+          RubyToEleetWrapper.new(ruby_obj, engine, options)
         end
       end
 
