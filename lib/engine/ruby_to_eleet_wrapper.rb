@@ -42,7 +42,11 @@ module EleetScript
     def can_call_method?(method_name)
       method_name = method_name.to_sym
       return false if @options[:lock] && @options[:lock].include?(method_name)
-      return false if @ruby_obj.respond_to?(:eleetscript_lock_methods) && @ruby_obj.eleetscript_lock_methods.include?(method_name)
+      if @ruby_obj.respond_to?(:eleetscript_lock_methods)
+        val = @ruby_obj.eleetscript_lock_methods
+        return false if val == :all
+        return false if val.kind_of?(Array) && val.include?(method_name)
+      end
       true
     end
 
