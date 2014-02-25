@@ -1,5 +1,66 @@
 require "engine/engine"
 
+class BaseTest
+  def one; 1; end
+  def two; 2; end
+end
+
+class BaseLockTest < BaseTest
+  class << self
+    def set_lock_return(value)
+      @lock_return = value
+    end
+
+    def lock_return
+      @lock_return
+    end
+  end
+
+  def eleetscript_lock_methods
+    self.class.lock_return
+  end
+end
+
+class LockSpecificTest < BaseLockTest
+  set_lock_return [:two]
+end
+
+class LockAllTest < BaseLockTest
+  set_lock_return :all
+end
+
+class LockNoneTest < BaseLockTest
+  set_lock_return :none
+end
+
+class BaseAllowTest < BaseTest
+  class << self
+    def set_allow_return(value)
+      @allow_return = value
+    end
+
+    def allow_return
+      @allow_return
+    end
+  end
+
+  def eleetscript_allow_methods
+    self.class.allow_return
+  end
+end
+
+class AllowSpecificTest < BaseAllowTest
+  set_allow_return [:one]
+end
+
+class AllowAllTest < BaseAllowTest
+  set_allow_return :all
+end
+
+class AllowNoneTest < BaseAllowTest
+  set_allow_return :none
+end
+
 describe "EleetScript::Engine" do
   describe "EleetScript::BaseEngine" do
     it "should not be instantiable" do
@@ -86,6 +147,132 @@ describe "EleetScript::Engine" do
         list = eslist.new(1, 2)
         list < 3
         list.to_string.should eq("[1, 2, 3]")
+      end
+    end
+
+    describe "method locks and allows" do
+      describe "method locks" do
+        describe "manual locks" do
+          before { engine.set("a", BaseTest.new, lock: :two) }
+
+          it "should allow me to set them" do
+            -> { engine.set("a", BaseTest.new, lock: :two) }.should_not raise_error
+          end
+
+          it "should allow non-locked methods" do
+            engine.evaluate("a.one").should eq(1)
+          end
+
+          it "should lock those methods" do
+            engine.evaluate("a.two").should be_nil
+          end
+
+          it "should be circumventable" do
+            engine.evaluate("a.class_ref.new.two").should eq(2)
+          end
+        end
+
+        describe "class defined locks" do
+          describe "blacklisting methods specifically" do
+            before { engine["a"] = LockSpecificTest.new }
+
+            it "should allow non-locked methods" do
+              engine.evaluate("a.one").should eq(1)
+            end
+
+            it "should lock the method" do
+              engine.evaluate("a.two").should be_nil
+            end
+
+            it "should not be circumventable" do
+              engine.evaluate("a.class_ref.new.two").should be_nil
+            end
+          end
+
+          describe "locking all methods" do
+            before { engine["a"] = LockAllTest.new }
+
+            it "should not allow any method" do
+              engine.evaluate("a.one").should be_nil
+              engine.evaluate("a.two").should be_nil
+            end
+
+            it "should not be circumventable" do
+              engine.evaluate("a.class_ref.new.one").should be_nil
+            end
+          end
+
+          describe "locking no methods" do
+            before { engine["a"] = LockNoneTest.new }
+
+            it "should allow all methods" do
+              engine.evaluate("a.one").should eq(1)
+              engine.evaluate("a.two").should eq(2)
+            end
+          end
+        end
+      end
+
+      describe "method allows" do
+        describe "manual allows" do
+          before { engine.set("a", BaseTest.new, allow: :one) }
+
+          it "should allow me to set them" do
+            -> { engine.set("a", BaseTest.new, allow: :one) }.should_not raise_error
+          end
+
+          it "should allow allowed methods" do
+            engine.evaluate("a.one").should eq(1)
+          end
+
+          it "should lock non-allowed methods" do
+            engine.evaluate("a.two").should be_nil
+          end
+
+          it "should not circumventable" do
+            engine.evaluate("a.class_ref.new.two").should be_nil
+          end
+        end
+
+        describe "class defined allows" do
+          describe "whitelisting methods specifically" do
+            before { engine["a"] = AllowSpecificTest.new }
+
+            it "should allow allowed methods" do
+              engine.evaluate("a.one").should eq(1)
+            end
+
+            it "should lock non-allowed methods" do
+              engine.evaluate("a.two").should be_nil
+            end
+
+            it "should not be circumventable" do
+              engine.evaluate("a.class_ref.new.two").should be_nil
+            end
+          end
+
+          describe "allowing all methods" do
+            before { engine["a"] = AllowAllTest.new }
+
+            it "should allow any method" do
+              engine.evaluate("a.one").should eq(1)
+              engine.evaluate("a.two").should eq(2)
+            end
+          end
+
+          describe "allowing no methods" do
+            before { engine["a"] = AllowNoneTest.new }
+
+            it "should allow no methods" do
+              engine.evaluate("a.one").should be_nil
+              engine.evaluate("a.two").should be_nil
+            end
+
+            it "should not be circumventable" do
+              engine.evaluate("a.class_ref.new.one").should be_nil
+            end
+          end
+        end
       end
     end
   end

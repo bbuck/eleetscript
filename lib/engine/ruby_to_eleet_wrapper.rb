@@ -7,6 +7,9 @@ module EleetScript
       if @options[:lock]
         @options[:lock] = [@options[:lock]] unless @options[:lock].kind_of?(Array)
       end
+      if @options[:allow]
+        @options[:allow] = [@options[:allow]] unless @options[:allow].kind_of?(Array)
+      end
     end
 
     def call(method_name, args = [])
@@ -41,12 +44,44 @@ module EleetScript
 
     def can_call_method?(method_name)
       method_name = method_name.to_sym
-      return false if @options[:lock] && @options[:lock].include?(method_name)
+      # Check our options first, they can override class defined locks/allows.
+      if @options[:allow]
+        if @options[:allow].include?(method_name)
+          return true
+        else
+          return false
+        end
+      end
+      if @options[:lock]
+        if @options[:lock].include?(method_name)
+          return false
+        else
+          return true
+        end
+      end
+      # Check the Whitelist
+      if @ruby_obj.respond_to?(:eleetscript_allow_methods)
+        val = @ruby_obj.eleetscript_allow_methods
+        return false if val == :none
+        return true if val == :all
+        if val.kind_of?(Array) && val.include?(method_name)
+          return true
+        else
+          return false
+        end
+      end
+      # Check the Blacklist
       if @ruby_obj.respond_to?(:eleetscript_lock_methods)
         val = @ruby_obj.eleetscript_lock_methods
+        return true if val == :none
         return false if val == :all
-        return false if val.kind_of?(Array) && val.include?(method_name)
+        if val.kind_of?(Array) && val.include?(method_name)
+          return false
+        else
+          return true
+        end
       end
+      # If not specifically allowed/denied, then it can be accessed.
       true
     end
 
