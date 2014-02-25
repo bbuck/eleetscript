@@ -695,6 +695,25 @@ as Database objects that you don't want modified from within the EleetScript
 runtime. The EleetScrpt Engine provides two methods for locking access. The
 first is more secure and reliable:
 
+To whitelist methods add an `eleetscript_allow_methods` function to the proper
+scope of the object (class or instance or both) that returns an array of
+methods names that EleetScript has access to. This array must be an
+array of symbols.
+
+```ruby
+class Test
+  def one
+    1
+  end
+  def two
+    2
+  end
+  def eleetscript_allow_methods
+    [:one]
+  end
+end
+```
+
 Add an `eleetscript_lock_methods` function to the proper scope of the object
 (class or instance or both) that returns an array of methods names that
 EleetScript does not have access to. This array must be an array of symbols.
@@ -727,8 +746,20 @@ engine.evaluate("b.two") # => nil
 engine["Errors"].last # => Attempt to call locked method "two" failed.
 ```
 
+You can use two special cass modifiers when using the method definition approach:
+If you wisth to whitelist/blacklist all methods then use `:all`, if you wish to
+whitelist/blacklist no methods use `:none`. It's important to understand that
+allowing `:all` or locking `:none` is the same as not defining these methods
+while allowing `:none` and locking `:all` achieve the same goal.
+
+Only the whitelist (`eleetscript_allow_methods`) or the blacklist
+(`eleetscript_lock_methods`) will be used, allow has precedence.
+
 The other method is to use the Engine's `set` method instead of `[]` and
 specifiying what methods to lock as either a symbol or an array of symbols.
+You can manually lock methods via `:lock` or allow method with `:allow`. **NOTE**:
+Using these manual methods overrides the usage of the class methods, meaning
+the two cannot be used in unison.
 
 ```ruby
 class Test
