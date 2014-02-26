@@ -698,7 +698,7 @@ first is more secure and reliable:
 To whitelist methods add an `eleetscript_allow_methods` function to the proper
 scope of the object (class or instance or both) that returns an array of
 methods names that EleetScript has access to. This array must be an
-array of symbols.
+array of symbols. This function is a **whitelist**.
 
 ```ruby
 class Test
@@ -712,11 +712,26 @@ class Test
     [:one]
   end
 end
+
+engine = ES::SharedEngine.new
+engine["test"] = Test.new
+
+engine.evaluate("a.one") # => 1
+engine.evalaute("a.two") # => nil
+engine["Errors"].last # => Attempt to call locked method "two" failed.
+
+# This method is secure against generating new instances from within the
+# langauge
+
+engine.evaluate("b = a.class_ref.new")
+engine.evaluate("b.two") # => nil
+engine["Errors"].last # => Attempt to call locked method "two" failed.
 ```
 
 Add an `eleetscript_lock_methods` function to the proper scope of the object
 (class or instance or both) that returns an array of methods names that
 EleetScript does not have access to. This array must be an array of symbols.
+This function is a **blacklist**.
 
 ```ruby
 class Test
