@@ -983,6 +983,21 @@ describe "EleetScript::Parser" do
               ])
       parser.parse(code).should eq(nodes)
     end
+
+    it "should parse parent classes with namespace qualifiers" do
+      code = <<-CODE
+      class Test < Other::MyObject
+      end
+      CODE
+      nodes = ES::Nodes.new([
+                ES::ClassNode.new(
+                  "Test",
+                  ES::NamespaceAccessNode.new("Other", ES::GetConstantNode.new("MyObject")),
+                  ES::Nodes.new([])
+                )
+              ])
+      parser.parse(code).should eq(nodes)
+    end
   end
 
   describe "the property keyword" do

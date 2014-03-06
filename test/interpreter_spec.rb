@@ -271,6 +271,22 @@ describe "EleetScript::Interpreter" do
       $stdout.should_receive(:puts).with("Hello, World")
       -> { interpreter.eval(code) }.should_not raise_error
     end
+
+    it "should allow namespace qualifiers for parent classes" do
+      code = <<-CODE
+      namespace Test
+        class MyObject
+          test_fn do
+            println("Hello, World")
+          end
+        end
+      end
+      class TestObj < Test::MyObject end
+      TestObj.new.test_fn
+      CODE
+      $stdout.should_receive(:puts).with("Hello, World")
+      -> { interpreter.eval(code) }.should_not raise_error
+    end
   end
 
   describe "if statements" do
