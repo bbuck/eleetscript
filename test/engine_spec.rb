@@ -104,7 +104,7 @@ describe "EleetScript::Engine" do
     describe "sharing core memory" do
       it "should succesfully add methods to defined classes" do
         code = <<-ES
-        class String
+        class ::String
           test_fn do
             true
           end
@@ -315,7 +315,7 @@ describe "EleetScript::Engine" do
     describe "sharing core memory" do
       it "should succesfully add methods to defined classes" do
         code = <<-ES
-        class String
+        class ::String
           test_fn do
             true
           end

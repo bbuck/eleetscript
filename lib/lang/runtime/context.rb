@@ -6,10 +6,11 @@ module EleetScript
     attr_accessor :current_self, :current_class
 
     class << self
-      attr_writer :init_funcs
+      attr_reader :init_funcs
 
       def init_with(*func_symbols)
-        self.init_funcs += func_symbols
+        (@init_funcs ||= [])
+        @init_funcs += func_symbols
       end
 
       def init_funcs
@@ -56,6 +57,10 @@ module EleetScript
       else
         local_vars[name] || es_nil
       end
+    end
+
+    def local_constant(name)
+      constants[name] || es_nil
     end
 
     def [](key)
@@ -196,7 +201,7 @@ module EleetScript
     private
 
     def init_namespace(root = nil)
-      if @root_ns == nil
+      if root.nil?
         @root_ns = self
         @global_vars = ProcessedKeyHash.new
         @global_vars.set_key_preprocessor do |key|

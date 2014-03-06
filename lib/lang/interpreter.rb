@@ -244,20 +244,48 @@ module EleetScript
 
   class ClassNode
     def eval(context)
-      cls = context[name]
+      cls_name, ns_context, cls = details_from_class_name(context)
+      return context.es_nil if cls_name.nil? && ns_context.nil? && cls.nil?
       if cls == context.es_nil
         cls = if parent
-          parent_cls = context[parent]
-          throw "Cannot extend undefined class \"#{parent}\"." if parent_cls == context.es_nil
-          EleetScriptClass.create(context, name, parent_cls)
+          parent_cls = if parent.kind_of?(String)
+            context[parent]
+          else
+            parent.eval(context)
+          end
+          # TODO: Add to_source for all nodes
+          Helpers.throw_eleet_error("Attempt to extend undefined class.", context) if parent_cls == context.es_nil
+          EleetScriptClass.create(context, cls_name, parent_cls)
         else
-          EleetScriptClass.create(context, name)
+          EleetScriptClass.create(context, cls_name)
         end
-        context[name] = cls
+        ns_context[cls_name] = cls
       end
 
       body.eval(cls.context)
       cls
+    end
+
+    def details_from_class_name(context)
+      if name.kind_of?(String)
+        return name, context.namespace_context, context.local_constant(name)
+      else
+        ns = if name.namespace.nil?
+          context.root_ns
+        else
+          context.namespace(name.namespace)
+        end
+        exp = name.expression
+        while exp.kind_of?(NamespaceAccessNode)
+          ns = ns.namespace(exp.namespace)
+          exp = exp.expression
+        end
+        if !exp.kind_of?(GetConstantNode)
+          Helpers.throw_eleet_error("Invalid class name given.", context)
+          return nil, nil, nil
+        end
+        return exp.name, ns, ns.local_constant(exp.name)
+      end
     end
   end
 
