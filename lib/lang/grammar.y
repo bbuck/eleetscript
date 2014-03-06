@@ -29,6 +29,7 @@ rule
     Expression                                               { result = Nodes.new(val) }
   | Expressions Terminator Expression                        { result = val[0] << val[2] }
   | Expressions Terminator                                   { result = val[0] }
+  | Terminator Expression                                    { result = Nodes.new([val[1]]) }
   | Terminator                                               { result = Nodes.new([]) }
   ;
 

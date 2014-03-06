@@ -3,6 +3,28 @@ require "lang/parser"
 describe "EleetScript::Parser" do
   let(:parser) { ES::Parser.new }
 
+  describe "comments" do
+    it "should be parsed" do
+      code = "#This is a comment"
+      parser.parse(code).should eq(ES::Nodes.new([]))
+    end
+
+    it "should be parsed with code after" do
+      code = <<-CODE
+      #comments
+      println("Hello, World")
+      CODE
+      nodes = ES::Nodes.new([
+                ES::CallNode.new(
+                  nil,
+                  "println",
+                  [ES::StringNode.new("Hello, World")]
+                )
+              ])
+      parser.parse(code).should eq(nodes)
+    end
+  end
+
   describe "literals" do
     it "should parse numbers as integers" do
       code = "10"
