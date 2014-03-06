@@ -31,7 +31,7 @@ module EleetScript
       false
     end
 
-    def is_a?(name)
+    def is_a?(*names)
       false
     end
 

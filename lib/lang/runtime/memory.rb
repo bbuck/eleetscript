@@ -22,7 +22,8 @@ module EleetScript
       "Lambda" => nil,
       "TrueClass" => nil,
       "FalseClass" => nil,
-      "NilClass" => nil
+      "NilClass" => nil,
+      "Random" => nil
     }
 
     class << self

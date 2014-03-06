@@ -90,7 +90,15 @@ module EleetScript
     end
 
     string.def :to_symbol do |receiver, arguments, context|
-      root_namespace["Symbol"].new_with_value(receiver.ruby_value.to_sym, context.namespace_context)
+      root_namespace["Symbol"].new_with_value(receiver.ruby_value.gsub(/\s+/, "_").to_sym, context.namespace_context)
+    end
+
+    string.def :to_integer do |receiver, arguments, context|
+      root_namespace["Integer"].new_with_value(receiver.ruby_value.to_i, context.namespace_context)
+    end
+
+    string.def :to_float do |receiver, arguments, context|
+      root_namespace["Float"].new_with_value(receiver.ruby_value.to_f, context.namespace_context)
     end
 
     string.def :replace do |receiver, arguments, context|

@@ -100,10 +100,6 @@ module EleetScript
       to_s[0..-2] + " @methods(#{@methods.keys.join(", ")})>"
     end
 
-    def is_a?(value)
-      false
-    end
-
     private
 
     def has_super_class?
