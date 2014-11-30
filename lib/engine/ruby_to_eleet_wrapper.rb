@@ -95,8 +95,14 @@ module EleetScript
       else
         @ruby_obj.class
       end
-      cls_names = cls.ancestors.map { |a| a.name.split("::").last }
-      cls_names.include?(name)
+      cls_names = cls.ancestors.map do |a|
+        if a.name.nil?
+          nil
+        else
+          a.name.split("::").last
+        end
+      end
+      cls_names.compact.include?(name)
     end
 
     def class?
