@@ -47,7 +47,7 @@ module EleetScript
     def [](name)
       load
       var, ns = unnest(name)
-      to_ruby_value(ns[name])
+      to_ruby_value(ns[var])
     end
 
     def []=(name, value, options = {})
@@ -106,6 +106,7 @@ module EleetScript
     end
 
     def unnest(name)
+      name = name.to_s
       if name.start_with?("::")
         name = name[2..-1]
         ns = memory.root_namespace
