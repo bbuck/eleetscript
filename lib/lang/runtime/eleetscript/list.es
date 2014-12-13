@@ -41,4 +41,10 @@ class List
       end
     }
   end
+
+  pairs do
+    lst = []
+    self.each -> { |val, key| lst < (key => val) }
+    lst
+  end
 end
