@@ -1,3 +1,5 @@
+[![Gem Version](https://badge.fury.io/rb/eleetscript.svg)](http://badge.fury.io/rb/eleetscript)
+
 # Introduction
 
 EleetScript is a simple and secure scripting language designed to be hosted in

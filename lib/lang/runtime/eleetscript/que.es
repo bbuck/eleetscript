@@ -11,7 +11,7 @@ class Que < List
     shift
   end
 
-  push do |val|
-    unshift(val)
+  unshift do |val|
+    push(val)
   end
 end
