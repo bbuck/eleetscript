@@ -1,4 +1,8 @@
 class TrueClass
+  @@new do
+    true
+  end
+
   to_string do
     "true"
   end

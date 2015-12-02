@@ -1,4 +1,8 @@
 class FalseClass
+  @@new do 
+    false
+  end
+
   to_string do
     "false"
   end

@@ -37,6 +37,10 @@ class Object
     class_name
   end
 
+  isnt do |arg|
+    not self is arg
+  end
+
   =~ do
     false
   end
