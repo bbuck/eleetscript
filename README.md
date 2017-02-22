@@ -62,7 +62,7 @@ $other_global = "Hello, World!"
 EleetScript provides class level variables that begin with the `@@` notation
 which matches the Ruby syntax; however, unlike in Ruby these variables are
 tied to a class, not a class hierarchy so they act more like static level
-variables. This is provided becuase, unlick Ruby, EleetScript classes are not
+variables. This is provided becuase, unlike Ruby, EleetScript classes are not
 instances of `Object`.
 
 ```
