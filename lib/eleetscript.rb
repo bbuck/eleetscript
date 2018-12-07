@@ -1,4 +1,6 @@
 module EleetScript
+  VERSION = "0.0.23a"
+
   class LexicalError < RuntimeError
     def initialize(char, line)
       @char = char

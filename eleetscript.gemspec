@@ -1,6 +1,8 @@
+require "lib/eleetscript"
+
 Gem::Specification.new do |s|
   s.name = "eleetscript"
-  s.version = "0.0.23a"
+  s.version = EleetScript::VERSION
   s.license = "MIT"
   s.date = "2018-12-07"
   s.summary = "EleetScript Engine"
