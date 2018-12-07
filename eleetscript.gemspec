@@ -1,4 +1,6 @@
-require "lib/eleetscript"
+$:.unshift('./lib')
+
+require 'eleetscript'
 
 Gem::Specification.new do |s|
   s.name = "eleetscript"
