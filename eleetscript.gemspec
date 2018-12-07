@@ -1,8 +1,8 @@
 Gem::Specification.new do |s|
   s.name = "eleetscript"
-  s.version = "0.0.22a"
+  s.version = "0.0.23a"
   s.license = "MIT"
-  s.date = "2014-03-06"
+  s.date = "2018-12-07"
   s.summary = "EleetScript Engine"
   s.description = "EleetScript scripting engine for use in Ruby applications"
   s.authors = ["Brandon Buck"]
