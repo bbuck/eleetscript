@@ -154,13 +154,6 @@ module EleetScript
     end
   end
 
-  class Engine < SharedEngine
-    def initialize
-      super
-      puts "WARNING: EleetScript::Engine has been deprecated, please use EleetScript::SharedEngine or EleetScript::StandaloneEngine."
-    end
-  end
-
   class StandaloneEngine < BaseEngine
     def initialize; end
   end

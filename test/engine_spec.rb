@@ -64,32 +64,32 @@ end
 describe "EleetScript::Engine" do
   describe "EleetScript::BaseEngine" do
     it "should not be instantiable" do
-      -> { ES::BaseEngine.new }.should raise_error
+      expect(-> { ES::BaseEngine.new }).to raise_error
     end
   end
 
-  describe "EleetScript::SharedEngine" do
+#  describe "EleetScript::SharedEngine" do
+  shared_examples_for 'EleetScript engine' do
     let(:engine) { ES::SharedEngine.new }
 
     it "should execute code" do
-      engine.evaluate("10 + 10").should eq(20)
+      expect(engine.evaluate("10 + 10")).to eq(20)
     end
 
     it "should store values" do
       engine.evaluate("a = 10 + 10")
-      engine["a"].should eq(20)
+      expect(engine["a"]).to eq(20)
     end
 
     it "should have it's own context" do
       o_engine = ES::SharedEngine.new
       engine.evaluate("a = 10 + 10")
-      o_engine["a"].should eq(nil)
-      engine["a"].should eq(20)
+      expect(o_engine["a"]).to be_nil
+      expect(engine["a"]).to eq(20)
     end
 
     it "should allow access to EleetScript objects" do
-      t = engine["true"]
-      t.should be_true
+      expect(engine["true"]).to eq(true)
     end
 
     it "should properly access namespaced constants from core classes" do
@@ -98,7 +98,7 @@ describe "EleetScript::Engine" do
       test do MSG end
       ES
       engine.evaluate(code)
-      engine.call(:test).should eq("Hello, World")
+      expect(engine.call(:test)).to eq("Hello, World")
     end
 
     describe "sharing core memory" do
@@ -110,43 +110,43 @@ describe "EleetScript::Engine" do
           end
         end
         ES
-        engine.evaluate(code).should_not be_false
+        expect(engine.evaluate(code)).to_not eq(false)
       end
 
       it "should be able to access added methods" do
         engine2 = ES::SharedEngine.new
-        engine2.evaluate("\"code\".test_fn").should be_true
+        expect(engine2.evaluate("\"code\".test_fn")).to eq(true)
       end
     end
 
     describe "object translation" do
       it "should pull strings out as ruby strings" do
         engine.evaluate("a = \"A String\"")
-        engine["a"].class.should eq(String)
+        expect(engine["a"].class).to eq(String)
       end
 
       it "should pull out symbols" do
         engine.evaluate("a = :some_symbol")
-        engine["a"].class.should eq(Symbol)
+        expect(engine["a"].class).to eq(Symbol)
       end
 
       it "should pass in symbols" do
         engine["a"] = :some_other_symbol
-        engine.evaluate(":some_other_symbol is a")
+        expect(engine.evaluate(":some_other_symbol is a")).to eq(true)
       end
     end
 
     describe "object wrappers" do
       it "should be provided for EleetScript objects" do
         eslist = engine["List"]
-        eslist.class_name.should eq("List")
+        expect(eslist.class_name).to eq("List")
       end
 
       it "should be usable like a class" do
         eslist = engine["List"]
         list = eslist.new(1, 2)
         list < 3
-        list.to_string.should eq("[1, 2, 3]")
+        expect(list.to_string).to eq("[1, 2, 3]")
       end
     end
 
@@ -156,19 +156,19 @@ describe "EleetScript::Engine" do
           before { engine.set("a", BaseTest.new, lock: :two) }
 
           it "should allow me to set them" do
-            -> { engine.set("a", BaseTest.new, lock: :two) }.should_not raise_error
+            expect(-> { engine.set("a", BaseTest.new, lock: :two) }).to_not raise_error
           end
 
           it "should allow non-locked methods" do
-            engine.evaluate("a.one").should eq(1)
+            expect(engine.evaluate("a.one")).to eq(1)
           end
 
           it "should lock those methods" do
-            engine.evaluate("a.two").should be_nil
+            expect(engine.evaluate("a.two")).to be_nil
           end
 
           it "should be circumventable" do
-            engine.evaluate("a.class_ref.new.two").should eq(2)
+            expect(engine.evaluate("a.class_ref.new.two")).to eq(2)
           end
         end
 
@@ -177,15 +177,15 @@ describe "EleetScript::Engine" do
             before { engine["a"] = LockSpecificTest.new }
 
             it "should allow non-locked methods" do
-              engine.evaluate("a.one").should eq(1)
+              expect(engine.evaluate("a.one")).to eq(1)
             end
 
             it "should lock the method" do
-              engine.evaluate("a.two").should be_nil
+              expect(engine.evaluate("a.two")).to be_nil
             end
 
             it "should not be circumventable" do
-              engine.evaluate("a.class_ref.new.two").should be_nil
+              expect(engine.evaluate("a.class_ref.new.two")).to be_nil
             end
           end
 
@@ -193,12 +193,12 @@ describe "EleetScript::Engine" do
             before { engine["a"] = LockAllTest.new }
 
             it "should not allow any method" do
-              engine.evaluate("a.one").should be_nil
-              engine.evaluate("a.two").should be_nil
+              expect(engine.evaluate("a.one")).to be_nil
+              expect(engine.evaluate("a.two")).to be_nil
             end
 
             it "should not be circumventable" do
-              engine.evaluate("a.class_ref.new.one").should be_nil
+              expect(engine.evaluate("a.class_ref.new.one")).to be_nil
             end
           end
 
@@ -206,8 +206,8 @@ describe "EleetScript::Engine" do
             before { engine["a"] = LockNoneTest.new }
 
             it "should allow all methods" do
-              engine.evaluate("a.one").should eq(1)
-              engine.evaluate("a.two").should eq(2)
+              expect(engine.evaluate("a.one")).to eq(1)
+              expect(engine.evaluate("a.two")).to eq(2)
             end
           end
         end
@@ -218,19 +218,19 @@ describe "EleetScript::Engine" do
           before { engine.set("a", BaseTest.new, allow: :one) }
 
           it "should allow me to set them" do
-            -> { engine.set("a", BaseTest.new, allow: :one) }.should_not raise_error
+            expect(-> { engine.set("a", BaseTest.new, allow: :one) }).to_not raise_error
           end
 
           it "should allow allowed methods" do
-            engine.evaluate("a.one").should eq(1)
+            expect(engine.evaluate("a.one")).to eq(1)
           end
 
           it "should lock non-allowed methods" do
-            engine.evaluate("a.two").should be_nil
+            expect(engine.evaluate("a.two")).to be_nil
           end
 
           it "should not circumventable" do
-            engine.evaluate("a.class_ref.new.two").should be_nil
+            expect(engine.evaluate("a.class_ref.new.two")).to be_nil
           end
         end
 
@@ -239,15 +239,15 @@ describe "EleetScript::Engine" do
             before { engine["a"] = AllowSpecificTest.new }
 
             it "should allow allowed methods" do
-              engine.evaluate("a.one").should eq(1)
+              expect(engine.evaluate("a.one")).to eq(1)
             end
 
             it "should lock non-allowed methods" do
-              engine.evaluate("a.two").should be_nil
+              expect(engine.evaluate("a.two")).to be_nil
             end
 
             it "should not be circumventable" do
-              engine.evaluate("a.class_ref.new.two").should be_nil
+              expect(engine.evaluate("a.class_ref.new.two")).to be_nil
             end
           end
 
@@ -255,8 +255,8 @@ describe "EleetScript::Engine" do
             before { engine["a"] = AllowAllTest.new }
 
             it "should allow any method" do
-              engine.evaluate("a.one").should eq(1)
-              engine.evaluate("a.two").should eq(2)
+              expect(engine.evaluate("a.one")).to eq(1)
+              expect(engine.evaluate("a.two")).to eq(2)
             end
           end
 
@@ -264,12 +264,12 @@ describe "EleetScript::Engine" do
             before { engine["a"] = AllowNoneTest.new }
 
             it "should allow no methods" do
-              engine.evaluate("a.one").should be_nil
-              engine.evaluate("a.two").should be_nil
+              expect(engine.evaluate("a.one")).to be_nil
+              expect(engine.evaluate("a.two")).to be_nil
             end
 
             it "should not be circumventable" do
-              engine.evaluate("a.class_ref.new.one").should be_nil
+              expect(engine.evaluate("a.class_ref.new.one")).to be_nil
             end
           end
         end
@@ -278,70 +278,16 @@ describe "EleetScript::Engine" do
   end
 
   describe "EleetScript::StandaloneEngine" do
-    let(:engine) { ES::StandaloneEngine.new }
+    let(:engine_class) { EleetScript::StandaloneEngine }
+    let(:engine) { engine_class.new }
 
-    it "should execute code" do
-      engine.evaluate("10 + 10").should eq(20)
-    end
+    include_examples 'EleetScript engine'
+  end
 
-    it "should store values" do
-      engine.evaluate("a = 10 + 10")
-      engine["a"].should eq(20)
-    end
+  describe "EleetScript::SharedEngine" do
+    let(:engine_class) { EleetScript::SharedEngine }
+    let(:engine) { engine_class.new }
 
-    it "should have it's own context" do
-      o_engine = ES::SharedEngine.new
-      engine.evaluate("a = 10 + 10")
-      o_engine["a"].should eq(nil)
-      engine["a"].should eq(20)
-    end
-
-    it "should allow access to EleetScript objects" do
-      t = engine["true"]
-      t.should be_true
-    end
-
-    it "should properly access namespaced constants from core classes" do
-      code = <<-ES
-      namespace Test
-        MSG = "Hello, World"
-        test do MSG end
-      end
-      ES
-      engine.evaluate(code)
-      engine.call("Test::test").should eq("Hello, World")
-    end
-
-    describe "sharing core memory" do
-      it "should succesfully add methods to defined classes" do
-        code = <<-ES
-        class ::String
-          test_fn do
-            true
-          end
-        end
-        ES
-        engine.evaluate(code).should_not be_false
-      end
-
-      it "should be unable to access added methods" do
-        engine2 = ES::StandaloneEngine.new
-        engine2.evaluate("\"code\".test_fn").should be_nil
-      end
-    end
-
-    describe "object wrappers" do
-      it "should be provided for EleetScript objects" do
-        eslist = engine["List"]
-        eslist.class_name.should eq("List")
-      end
-
-      it "should be usable like a class" do
-        eslist = engine["List"]
-        list = eslist.new(1, 2)
-        list < 3
-        list.to_string.should eq("[1, 2, 3]")
-      end
-    end
+    include_examples 'EleetScript engine'
   end
 end

@@ -3,7 +3,7 @@ require "lang/nodes"
 describe "EleetScript syntax nodes" do
   describe "Nodes class should contain list of nodes" do
     it "should exist" do
-      (defined?(ES::Nodes) == "constant" && ES::Nodes.class == Class).should be_true
+      (defined?(ES::Nodes) == "constant" && ES::Nodes.class == Class).should eq(true)
     end
 
     it "should respond to 'nodes'" do
@@ -24,7 +24,7 @@ describe "EleetScript syntax nodes" do
 
     describe "string" do
       it "should exist" do
-        (defined?(ES::StringNode) == "constant" && ES::StringNode.class == Class).should be_true
+        (defined?(ES::StringNode) == "constant" && ES::StringNode.class == Class).should eq(true)
       end
 
       it "should respond to value" do
@@ -40,7 +40,7 @@ describe "EleetScript syntax nodes" do
     describe "numbers" do
       describe "integers" do
         it "should exist" do
-          (defined?(ES::IntegerNode) == "constant" && ES::IntegerNode.class == Class).should be_true
+          (defined?(ES::IntegerNode) == "constant" && ES::IntegerNode.class == Class).should eq(true)
         end
 
         it "should respond to 'value'" do
@@ -55,7 +55,7 @@ describe "EleetScript syntax nodes" do
 
       describe "floats" do
         it "should exist" do
-          (defined?(ES::FloatNode) == "constant" && ES::FloatNode.class == Class).should be_true
+          (defined?(ES::FloatNode) == "constant" && ES::FloatNode.class == Class).should eq(true)
         end
 
         it "should respond to 'value'" do
@@ -71,7 +71,7 @@ describe "EleetScript syntax nodes" do
 
     describe "true node" do
       it "should exist" do
-        (defined?(ES::TrueNode) == "constant" && ES::TrueNode.class == Class).should be_true
+        (defined?(ES::TrueNode) == "constant" && ES::TrueNode.class == Class).should eq(true)
       end
 
       it "should respond to value" do
@@ -80,13 +80,13 @@ describe "EleetScript syntax nodes" do
 
       it "should return true regardless of what is passed to it" do
         node = ES::TrueNode.new(false)
-        node.value.should be_true
+        node.value.should eq(true)
       end
     end
 
     describe "false node" do
       it "should exist" do
-        (defined?(ES::FalseNode) == "constant" && ES::FalseNode.class == Class).should be_true
+        (defined?(ES::FalseNode) == "constant" && ES::FalseNode.class == Class).should eq(true)
       end
 
       it "should respond to value" do
@@ -95,13 +95,13 @@ describe "EleetScript syntax nodes" do
 
       it "should return false regardless of what is passed to it" do
         node = ES::FalseNode.new(true)
-        node.value.should be_false
+        node.value.should be(false)
       end
     end
 
     describe "nil node" do
       it "should exist" do
-        (defined?(ES::NilNode) == "constant" && ES::NilNode.class == Class).should be_true
+        (defined?(ES::NilNode) == "constant" && ES::NilNode.class == Class).should eq(true)
       end
 
       it "should respond to value" do
@@ -117,7 +117,7 @@ describe "EleetScript syntax nodes" do
 
   describe "call node" do
     it "should exist" do
-      (defined?(ES::CallNode) == "constant" && ES::CallNode.class == Class).should be_true
+      (defined?(ES::CallNode) == "constant" && ES::CallNode.class == Class).should eq(true)
     end
 
     it "should respond to 'receiver'" do
@@ -136,7 +136,7 @@ describe "EleetScript syntax nodes" do
   describe "constants" do
     describe "set constant node" do
       it "should exist" do
-        (defined?(ES::SetConstantNode) == "constant" && ES::SetConstantNode.class == Class).should be_true
+        (defined?(ES::SetConstantNode) == "constant" && ES::SetConstantNode.class == Class).should eq(true)
       end
 
       it "should respond to 'name'" do
@@ -150,7 +150,7 @@ describe "EleetScript syntax nodes" do
 
     describe "get constant node" do
       it "should exist" do
-        (defined?(ES::GetConstantNode) == "constant" && ES::GetConstantNode.class == Class).should be_true
+        (defined?(ES::GetConstantNode) == "constant" && ES::GetConstantNode.class == Class).should eq(true)
       end
 
       it "should respond to 'name'" do
@@ -162,7 +162,7 @@ describe "EleetScript syntax nodes" do
   describe "globals" do
     describe "set global node" do
       it "should exist" do
-        (defined?(ES::SetGlobalNode) == "constant" && ES::SetGlobalNode.class == Class).should be_true
+        (defined?(ES::SetGlobalNode) == "constant" && ES::SetGlobalNode.class == Class).should eq(true)
       end
 
       it "should respond to 'name'" do
@@ -176,7 +176,7 @@ describe "EleetScript syntax nodes" do
 
     describe "get global node" do
       it "should exist" do
-        (defined?(ES::GetGlobalNode) == "constant" && ES::GetGlobalNode.class == Class).should be_true
+        (defined?(ES::GetGlobalNode) == "constant" && ES::GetGlobalNode.class == Class).should eq(true)
       end
 
       it "should respond to 'name'" do
@@ -188,7 +188,7 @@ describe "EleetScript syntax nodes" do
   describe "globals" do
     describe "set global node" do
       it "should exist" do
-        (defined?(ES::SetGlobalNode) == "constant" && ES::SetGlobalNode.class == Class).should be_true
+        (defined?(ES::SetGlobalNode) == "constant" && ES::SetGlobalNode.class == Class).should eq(true)
       end
 
       it "should respond to 'name'" do
@@ -202,7 +202,7 @@ describe "EleetScript syntax nodes" do
 
     describe "get global node" do
       it "should exist" do
-        (defined?(ES::GetGlobalNode) == "constant" && ES::GetGlobalNode.class == Class).should be_true
+        (defined?(ES::GetGlobalNode) == "constant" && ES::GetGlobalNode.class == Class).should eq(true)
       end
 
       it "should respond to 'name'" do
@@ -214,7 +214,7 @@ describe "EleetScript syntax nodes" do
   describe "class variables" do
     describe "set class var node" do
       it "should exist" do
-        (defined?(ES::SetClassVarNode) == "constant" && ES::SetClassVarNode.class == Class).should be_true
+        (defined?(ES::SetClassVarNode) == "constant" && ES::SetClassVarNode.class == Class).should eq(true)
       end
 
       it "should respond to 'name'" do
@@ -228,7 +228,7 @@ describe "EleetScript syntax nodes" do
 
     describe "get class var node" do
       it "should exist" do
-        (defined?(ES::GetClassVarNode) == "constant" && ES::GetClassVarNode.class == Class).should be_true
+        (defined?(ES::GetClassVarNode) == "constant" && ES::GetClassVarNode.class == Class).should eq(true)
       end
 
       it "should respond to 'name'" do
@@ -240,7 +240,7 @@ describe "EleetScript syntax nodes" do
   describe "instance variables" do
     describe "set instance var node" do
       it "should exist" do
-        (defined?(ES::SetInstanceVarNode) == "constant" && ES::SetInstanceVarNode.class == Class).should be_true
+        (defined?(ES::SetInstanceVarNode) == "constant" && ES::SetInstanceVarNode.class == Class).should eq(true)
       end
 
       it "should respond to 'name'" do
@@ -254,7 +254,7 @@ describe "EleetScript syntax nodes" do
 
     describe "get instance var node" do
       it "should exist" do
-        (defined?(ES::GetInstanceVarNode) == "constant" && ES::GetInstanceVarNode.class == Class).should be_true
+        (defined?(ES::GetInstanceVarNode) == "constant" && ES::GetInstanceVarNode.class == Class).should eq(true)
       end
 
       it "should respond to 'name'" do
@@ -266,7 +266,7 @@ describe "EleetScript syntax nodes" do
   describe "locals" do
     describe "set local node" do
       it "should exist" do
-        (defined?(ES::SetLocalNode) == "constant" && ES::SetLocalNode.class == Class).should be_true
+        (defined?(ES::SetLocalNode) == "constant" && ES::SetLocalNode.class == Class).should eq(true)
       end
 
       it "should respond to 'name'" do
@@ -280,7 +280,7 @@ describe "EleetScript syntax nodes" do
 
     describe "get local node" do
       it "should exist" do
-        (defined?(ES::GetLocalNode) == "constant" && ES::GetLocalNode.class == Class).should be_true
+        (defined?(ES::GetLocalNode) == "constant" && ES::GetLocalNode.class == Class).should eq(true)
       end
 
       it "should respond to 'name'" do
@@ -291,7 +291,7 @@ describe "EleetScript syntax nodes" do
 
   describe "define method node" do
     it "should exist" do
-      (defined?(ES::DefMethodNode) == "constant" && ES::DefMethodNode.class == Class).should be_true
+      (defined?(ES::DefMethodNode) == "constant" && ES::DefMethodNode.class == Class).should eq(true)
     end
 
     it "should respond to 'method_name'" do
@@ -315,7 +315,7 @@ describe "EleetScript syntax nodes" do
 
   describe "if node" do
     it "should exist" do
-      (defined?(ES::IfNode) == "constant" && ES::IfNode.class == Class).should be_true
+      (defined?(ES::IfNode) == "constant" && ES::IfNode.class == Class).should eq(true)
     end
 
     it "should respond to 'condition'" do
@@ -333,7 +333,7 @@ describe "EleetScript syntax nodes" do
 
   describe "else node" do
     it "should exist" do
-      (defined?(ES::ElseNode) == "constant" && ES::ElseNode.class == Class).should be_true
+      (defined?(ES::ElseNode) == "constant" && ES::ElseNode.class == Class).should eq(true)
     end
 
     it "should respond to 'body'" do
@@ -343,7 +343,7 @@ describe "EleetScript syntax nodes" do
 
   describe "not node" do
     it "should exist" do
-      (defined?(ES::NotNode) == "constant" && ES::NotNode.class == Class).should be_true
+      (defined?(ES::NotNode) == "constant" && ES::NotNode.class == Class).should eq(true)
     end
 
     it "should respond to 'value'" do
@@ -353,7 +353,7 @@ describe "EleetScript syntax nodes" do
 
   describe "while node" do
     it "should exist" do
-      (defined?(ES::WhileNode) == "constant" && ES::WhileNode.class == Class).should be_true
+      (defined?(ES::WhileNode) == "constant" && ES::WhileNode.class == Class).should eq(true)
     end
 
     it "should respond to 'condition'" do
@@ -367,13 +367,13 @@ describe "EleetScript syntax nodes" do
 
   describe "self node" do
     it "should exist" do
-      (defined?(ES::SelfNode) == "constant" && ES::SelfNode.class == Class).should be_true
+      (defined?(ES::SelfNode) == "constant" && ES::SelfNode.class == Class).should eq(true)
     end
   end
 
   describe "defined node" do
     it "should exist" do
-      (defined?(ES::DefinedNode) == "constant" && ES::DefinedNode.class == Class).should be_true
+      (defined?(ES::DefinedNode) == "constant" && ES::DefinedNode.class == Class).should eq(true)
     end
 
     it "should respond to 'value'" do
@@ -383,7 +383,7 @@ describe "EleetScript syntax nodes" do
 
   describe "namespace node" do
     it "should exist" do
-      (defined?(ES::NamespaceNode) == "constant" && ES::NamespaceNode.class == Class).should be_true
+      (defined?(ES::NamespaceNode) == "constant" && ES::NamespaceNode.class == Class).should eq(true)
     end
 
     it "should respond to 'name'" do
@@ -397,7 +397,7 @@ describe "EleetScript syntax nodes" do
 
   describe "class node" do
     it "should exist" do
-      (defined?(ES::ClassNode) == "constant" && ES::ClassNode.class == Class).should be_true
+      (defined?(ES::ClassNode) == "constant" && ES::ClassNode.class == Class).should eq(true)
     end
 
     it "should respond to 'name'" do
