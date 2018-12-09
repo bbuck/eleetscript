@@ -1,5 +1,5 @@
 module EleetScript
-  VERSION = "0.0.24"
+  VERSION = "0.0.30"
 
   class LexicalError < RuntimeError
     def initialize(char, line)
