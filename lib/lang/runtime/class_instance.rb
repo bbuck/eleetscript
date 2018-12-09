@@ -20,15 +20,22 @@ module EleetScript
 
     def call(method_name, arguments = [])
       method = find_method(method_name)
-      if method
-        if method.arity == 3
-          method.call(self, arguments, @context)
-        else
-          method.call(self, arguments)
-        end
+      call_method(method_name, method, arguments)
+    end
+
+    def super_call(method_name, arguments = [])
+      kls = @runtime_class
+      super_kls = kls.super_class
+      if kls == super_kls
+        str = @context['String'].new_with_value(
+          "Cannot call super implementation for #{method_name} without a super class",
+          @context
+        )
+        @context['Errors'].call(:<, str)
+        @context['nil']
       else
-        es_method_name = @context["String"].new_with_value(method_name.to_s, @context.namespace_context)
-        call(NO_METHOD, arguments.dup.unshift(es_method_name))
+        method = super_kls.instance_lookup(method_name)
+        call_method(method_name, method, arguments)
       end
     end
 
@@ -63,6 +70,21 @@ module EleetScript
 
     def class_name
       @runtime_class.name
+    end
+
+    private
+
+    def call_method(method_name, method, arguments)
+      if method
+        if method.arity == 3
+          method.call(self, arguments, @context)
+        else
+          method.call(self, arguments)
+        end
+      else
+        es_method_name = @context["String"].new_with_value(method_name.to_s, @context.namespace_context)
+        call(NO_METHOD, arguments.dup.unshift(es_method_name))
+      end
     end
   end
 end

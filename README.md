@@ -426,8 +426,37 @@ class B < A
 end
 ```
 
-**NOTE** Currently, EleetScript does not support the ability to call the super
-class's implmentation of a method.
+You can call the super implementaiton for a method with the `super` keyword.
+Unlike in Ruby, however, you do have to explicitly pass the expected parameters
+through `super`.
+
+```
+class Greeter
+  init do
+    @@greeting = "Hello"
+  end
+
+  greet do |name|
+    greeting = @@greeting
+    "%greeting, %name!"
+  end
+end
+
+class SPGreeter < Greeter
+  init do
+    @@greeting = "Hola"
+  end
+
+  greet do |name|
+    "¡" + super(name)
+  end
+end
+```
+
+Calling `Greeter.new.greet('World')` should return `"Hello, World!"` while
+`SPGreeter.new.greet('Mundo')` should return `"¡Hola, Mundo!"`, having
+pre-pended the inverted exclamation point, and otherwise shared the same
+implemenation as the parent
 
 ## Namespaces
 

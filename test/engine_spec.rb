@@ -150,6 +150,69 @@ describe "EleetScript::Engine" do
       end
     end
 
+    describe "super implementations for methods" do
+      context "basic usage" do
+        before do
+          code = <<-CODE
+          class A
+            add do |a, b|
+              a + b
+            end
+          end
+
+          class B < A
+            add do |a, b|
+              super(a + 1, b + 1)
+            end
+          end
+          CODE
+          engine.execute(code)
+        end
+
+        it "should allow the base to function normally" do
+          expect(engine.execute("A.new.add(1, 2)")).to eq(3)
+        end
+
+        it "should call the super implemenation with changes" do
+          expect(engine.execute("B.new.add(1, 2)")).to eq(5)
+        end
+      end
+
+      context "with context" do
+        before do
+          code = <<-CODE
+          class Greeter
+            init do
+              @@greeting = "Hello"
+            end
+
+            greet do |name|
+              greeting = @@greeting
+              "%greeting, %name!"
+            end
+          end
+          class SPGreeter < Greeter
+            init do
+              @@greeting = "Hola"
+            end
+            greet do |name|
+              "¡" + super(name)
+            end
+          end
+          CODE
+          engine.execute(code)
+        end
+
+        it "returns the correct base result" do
+          expect(engine.execute('Greeter.new.greet("World")')).to eq('Hello, World!')
+        end
+
+        it "returns the correct super result" do
+          expect(engine.execute('SPGreeter.new.greet("Mundo")')).to eq('¡Hola, Mundo!')
+        end
+      end
+    end
+
     describe "method locks and allows" do
       describe "method locks" do
         describe "manual locks" do

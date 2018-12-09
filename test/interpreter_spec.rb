@@ -730,5 +730,24 @@ describe "EleetScript::Interpreter" do
       expect($stdout).to receive(:puts).with("false")
       interpreter.eval(code)
     end
+
+    it "handles 'super'" do
+      code = <<-CODE
+      class Test
+        first do
+          super
+        end
+
+        second do |a|
+          super(a)
+        end
+
+        last do
+          super -> { |i| i }
+        end
+      end
+      CODE
+      expect(-> { interpreter.eval(code) }).to_not raise_error
+    end
   end
 end

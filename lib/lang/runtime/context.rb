@@ -232,10 +232,10 @@ module EleetScript
       ctx
     end
 
-    def new_method_context(lambda_context = nil)
-      ctx = MethodContext.new(current_self, current_class, lambda_context)
-      ctx.parent_context = self
-      ctx
+    def new_method_context(name, lambda_context = nil)
+      MethodContext.new(current_self, current_class, name, lambda_context).tap do |ctx|
+        ctx.parent_context = self
+      end
     end
   end
 
@@ -264,10 +264,10 @@ module EleetScript
       ns_context
     end
 
-    def new_method_context(lambda_context = nil)
-      ctx = MethodContext.new(current_self, current_class, lambda_context)
-      ctx.parent_context = self
-      ctx
+    def new_method_context(name, lambda_context = nil)
+      MethodContext.new(current_self, current_class, name, lambda_context).tap do |ctx|
+        ctx.parent_context = self
+      end
     end
 
     private
@@ -278,11 +278,13 @@ module EleetScript
   end
 
   class MethodContext < BaseContext
-    init_with :handle_lambda_context
+    attr_reader :name
+
+    init_with :init_method_context
 
     def local_var(name, value = nil)
       if value
-        if @lambda_context && (val = @lambda_context.local_var(name))
+        if @lambda_context && @lambda_context.local_var(name)
           @lambda_context.local_var(name, value)
         else
           local_vars[name] = value
@@ -303,9 +305,14 @@ module EleetScript
       @parent_context.namespace_context
     end
 
+    def lambda?
+      !@lambda_context.nil?
+    end
+
     private
 
-    def handle_lambda_context(lambda_context)
+    def init_method_context(name, lambda_context)
+      @name = name
       @lambda_context = lambda_context
     end
   end

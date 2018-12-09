@@ -31,16 +31,7 @@ module EleetScript
 
     def call(method_name, arguments = [])
       method = lookup(method_name.to_s)
-      if method
-        if method.arity == 3
-          method.call(self, arguments, @context)
-        else
-          method.call(self, arguments)
-        end
-      else
-        es_method_name = @context['String'].new_with_value(method_name.to_s, @context.namespace_context)
-        call(NO_METHOD, arguments.dup.unshift(es_method_name))
-      end
+      call_method(method_name, method, arguments)
     end
 
     def lookup(method_name)
@@ -58,6 +49,22 @@ module EleetScript
         return super_class.instance_lookup(method_name)
       end
       method
+    end
+
+    def super_call(method_name, arguments = [])
+      if super_class == self
+        @context['Errors'].call(
+          :<,
+          @context['String'].new_with_value(
+            "Cannot call super implmentation for #{method_name} if there is no super class",
+            @context
+          )
+        )
+        @context['nil']
+      else
+        method = super_class.lookup(method_name)
+        call_method(method_name, method, arguments)
+      end
     end
 
     def super_class
@@ -105,6 +112,19 @@ module EleetScript
     end
 
     private
+
+    def call_method(method_name, method, arguments)
+      if method
+        if method.arity == 3
+          method.call(self, arguments, @context)
+        else
+          method.call(self, arguments)
+        end
+      else
+        es_method_name = @context['String'].new_with_value(method_name.to_s, @context.namespace_context)
+        call(NO_METHOD, arguments.dup.unshift(es_method_name))
+      end
+    end
 
     def has_super_class?
       @super_class || (@super_class.nil? && name != 'Object')

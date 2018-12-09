@@ -319,13 +319,14 @@ module EleetScript
 
   class LambdaNode
     def eval(context)
-      context.root_ns["Lambda"].new_with_value(EleetScriptMethod.new(params, body, context), context.namespace_context)
+      method = EleetScriptMethod.new(nil, params, body, context)
+      context.root_ns["Lambda"].new_with_value(method, context)
     end
   end
 
   class DefMethodNode
     def eval(context)
-      method_obj = EleetScriptMethod.new(method.params, method.body)
+      method_obj = EleetScriptMethod.new(method_name, method.params, method.body)
       if context.is_a?(ClassContext)
         context.current_class.methods[method_name] = method_obj
       else
@@ -338,6 +339,22 @@ module EleetScript
   class SelfNode
     def eval(context)
       context.current_self
+    end
+  end
+
+  class SuperNode
+    def eval(context)
+      if context.lambda?
+        str = context['String'].new_with_value(
+          'Cannot call super in a lambda',
+          context
+        )
+        context['Errors'].call(:<, [str])
+        context['nil']
+      else
+        args = arguments.map { |arg| arg.eval(context) }
+        context.current_self.super_call(context.name, args)
+      end
     end
   end
 

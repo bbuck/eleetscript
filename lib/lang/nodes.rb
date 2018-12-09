@@ -102,6 +102,8 @@ module EleetScript
     end
   end
 
+  class SuperNode < Node.new(:arguments, :lambda); end
+
   class SetVarNode < Node.new(:name, :value)
     def to_s(level = 0)
       tabs = spaces(level)
