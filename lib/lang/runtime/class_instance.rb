@@ -14,12 +14,12 @@ module EleetScript
       @ruby_value = self
     end
 
+    def es_responds_to?(method_name)
+      !find_method(method_name).nil?
+    end
+
     def call(method_name, arguments = [])
-      # puts "Calling #{method_name} on #{self}"
-      method = @methods[method_name]
-      if method.nil?
-        method = @runtime_class.instance_lookup(method_name.to_s)
-      end
+      method = find_method(method_name)
       if method
         if method.arity == 3
           method.call(self, arguments, @context)
@@ -30,6 +30,14 @@ module EleetScript
         es_method_name = @context["String"].new_with_value(method_name.to_s, @context.namespace_context)
         call(NO_METHOD, arguments.dup.unshift(es_method_name))
       end
+    end
+
+    def find_method(method_name)
+      method = @methods[method_name]
+      if method.nil?
+        method = @runtime_class.instance_lookup(method_name.to_s)
+      end
+      method
     end
 
     def to_s

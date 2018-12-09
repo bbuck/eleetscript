@@ -1,21 +1,21 @@
 module EleetScript
   Memory.define_core_methods do
-    string = root_namespace["String"]
+    string = root_namespace['String']
 
     string.class_def :new do |receiver, arguments, context|
-      arg = arguments.length > 0 ? arguments.first.call(:to_string).ruby_value : ""
+      arg = arguments.length > 0 ? arguments.first.call(:to_string).ruby_value : ''
       receiver.new_with_value(arg, context.namespace_context)
     end
 
     string.def :+ do |receiver, arguments|
       arg = arguments.first
       arg_str = if arg.class?
-        arg.name
-      elsif arg.instance? && arg.runtime_class.name == "String"
-        arg.ruby_value
-      else
-        arg.call(:to_string).ruby_value
-      end
+                  arg.name
+                elsif arg.instance? && arg.runtime_class.name == 'String'
+                  arg.ruby_value
+                else
+                  arg.call(:to_string).ruby_value
+                end
       receiver.ruby_value += arg_str
       receiver
     end
@@ -23,32 +23,32 @@ module EleetScript
     string.def :is do |receiver, arguments|
       compare_to = arguments.first.ruby_value
       if compare_to == receiver.ruby_value
-        root_namespace["true"]
+        root_namespace['true']
       else
-        root_namespace["false"]
+        root_namespace['false']
       end
     end
 
     string.def :substr do |receiver, arguments, context|
       if arguments.length < 2
-        root_namespace["nil"]
+        root_namespace.es_nil
       else
         s, e = arguments
-        if s.is_a?("Integer") && e.is_a?("Integer")
+        if s.is_a?('Integer') && e.is_a?('Integer')
           range = if e.ruby_value < 0
-            (s.ruby_value..e.ruby_value)
-          else
-            (s.ruby_value...e.ruby_value)
-          end
-          root_namespace["String"].new_with_value(receiver.ruby_value[range], context.namespace_context)
+                    (s.ruby_value..e.ruby_value)
+                  else
+                    (s.ruby_value...e.ruby_value)
+                  end
+          root_namespace['String'].new_with_value(receiver.ruby_value[range], context.namespace_context)
         else
-          root_namespace["nil"]
+          root_namespace.es_nil
         end
       end
     end
 
     string.def :length do |receiver, arguments, context|
-      root_namespace["Integer"].new_with_value(receiver.ruby_value.length, context.namespace_context)
+      root_namespace['Integer'].new_with_value(receiver.ruby_value.length, context.namespace_context)
     end
 
     string.def :upper_case do |receiver, arguments, context|
@@ -61,7 +61,7 @@ module EleetScript
 
     string.def :[] do |receiver, arguments, context|
       index = arguments.first
-      if index.is_a?("Integer")
+      if index.is_a?('Integer')
         index = index.ruby_value
         if index < 0 || index >= receiver.ruby_value.length
           root_namespace.es_nil
@@ -75,7 +75,7 @@ module EleetScript
 
     string.def :[]= do |receiver, arguments|
       index, value = arguments
-      if index.is_a?("Integer")
+      if index.is_a?('Integer')
         index = index.ruby_value
         if index < 0 && index >= receiver.ruby_value.length
           root_namespace.es_nil
@@ -90,15 +90,15 @@ module EleetScript
     end
 
     string.def :to_symbol do |receiver, arguments, context|
-      root_namespace["Symbol"].new_with_value(receiver.ruby_value.gsub(/\s+/, "_").to_sym, context.namespace_context)
+      root_namespace['Symbol'].new_with_value(receiver.ruby_value.gsub(/\s+/, '_').to_sym, context.namespace_context)
     end
 
     string.def :to_integer do |receiver, arguments, context|
-      root_namespace["Integer"].new_with_value(receiver.ruby_value.to_i, context.namespace_context)
+      root_namespace['Integer'].new_with_value(receiver.ruby_value.to_i, context.namespace_context)
     end
 
     string.def :to_float do |receiver, arguments, context|
-      root_namespace["Float"].new_with_value(receiver.ruby_value.to_f, context.namespace_context)
+      root_namespace['Float'].new_with_value(receiver.ruby_value.to_f, context.namespace_context)
     end
 
     string.def :replace do |receiver, arguments, context|
@@ -106,10 +106,10 @@ module EleetScript
         string.new_with_value(receiver.ruby_value, context.namespace_context)
       else
         pattern, replacement = arguments
-        if !pattern.is_a?("Regex")
-          pattern = root_namespace["Regex"].call(:new, [pattern.call(:to_string)])
+        if !pattern.is_a?('Regex')
+          pattern = root_namespace['Regex'].call(:new, [pattern.call(:to_string)])
         end
-        if replacement.is_a?("Lambda")
+        if replacement.is_a?('Lambda')
           new_str = if pattern.ruby_value.global?
             receiver.ruby_value.gsub(pattern.ruby_value) do
               args = Regexp.last_match[1..-1].map { |match| string.new_with_value(match, context.namespace_context) }
@@ -134,10 +134,10 @@ module EleetScript
     end
 
     string.def :match do |receiver, arguments, context|
-      str_cls, list_cls = root_namespace["String"], root_namespace["List"]
+      str_cls, list_cls = root_namespace['String'], root_namespace['List']
       rx = arguments.first
       args = []
-      if rx.is_a?("Regex")
+      if rx.is_a?('Regex')
         if rx.ruby_value.global?
           matches = receiver.ruby_value.scan(rx.ruby_value)
           list_args = matches.map do |match|
@@ -156,7 +156,7 @@ module EleetScript
             if matches.names.length > 0
               args += matches.names.map do |name|
                 n, v = str_cls.new_with_value(name, context.namespace_context), str_cls.new_with_value(matches[name], context.namespace_context)
-                root_namespace["Pair"].call(:new, [n, v])
+                root_namespace['Pair'].call(:new, [n, v])
               end
             else
               group_matches = matches.to_a
@@ -169,8 +169,15 @@ module EleetScript
           end
         end
       else
-        root_namespace["List"].call(:new)
+        root_namespace['List'].call(:new)
       end
+    end
+
+    string.def :to_list do |receiver, arguments, context|
+      chars = receiver.ruby_value.chars.map do |char|
+        root_namespace['String'].new_with_value(char, context)
+      end
+      root_namespace['List'].call(:new, chars)
     end
   end
 end

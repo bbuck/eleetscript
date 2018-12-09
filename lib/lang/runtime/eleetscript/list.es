@@ -47,4 +47,6 @@ class List
     self.each -> { |val, key| lst < (key => val) }
     lst
   end
+
+  to_list do self end
 end

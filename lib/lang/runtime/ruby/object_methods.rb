@@ -34,6 +34,34 @@ module EleetScript
       root_namespace["String"].new_with_value(receiver.runtime_class.name, context.namespace_context)
     end
 
+    object.class_def :responds_to? do |receiver, arguments|
+      t, f = root_namespace["true"], root_namespace["false"]
+      if arguments.length == 0
+        f
+      else
+        method_name = arguments.first.call(:to_string).ruby_value
+        if receiver.es_responds_to?(method_name)
+          t
+        else
+          f
+        end
+      end
+    end
+
+    object.def :responds_to? do |receiver, arguments, context|
+      t, f = root_namespace["true"], root_namespace["false"]
+      if arguments.length == 0
+        f
+      else
+        method_name = arguments.first.call(:to_string).ruby_value
+        if receiver.es_responds_to?(method_name)
+          t
+        else
+          f
+        end
+      end
+    end
+
     object.class_def :class_name do |receiver, arguments, context|
       root_namespace["String"].new_with_value(receiver.name, context.namespace_context)
     end

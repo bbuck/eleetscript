@@ -3,10 +3,6 @@ class TrueClass
     true
   end
 
-  to_string do
-    "true"
-  end
-
   not do
     false
   end

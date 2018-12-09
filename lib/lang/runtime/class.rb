@@ -1,7 +1,7 @@
-require "lang/runtime/class_skeleton"
-require "lang/runtime/class_instance"
-require "lang/runtime/method_hash"
-require "util/processed_key_hash"
+require 'lang/runtime/class_skeleton'
+require 'lang/runtime/class_instance'
+require 'lang/runtime/method_hash'
+require 'util/processed_key_hash'
 
 module EleetScript
   class EleetScriptClass < EleetScriptClassSkeleton
@@ -21,7 +21,7 @@ module EleetScript
       @methods = MethodHash.new
       @class_vars = ProcessedKeyHash.new
       @class_vars.set_key_preprocessor do |key|
-        key[0..1] == "@@" ? key[2..-1] : key
+        key[0..1] == '@@' ? key[2..-1] : key
       end
       @context = namespace.new_class_context(self, self)
       @super_class = super_class
@@ -38,13 +38,13 @@ module EleetScript
           method.call(self, arguments)
         end
       else
-        es_method_name = @context["String"].new_with_value(method_name.to_s, @context.namespace_context)
+        es_method_name = @context['String'].new_with_value(method_name.to_s, @context.namespace_context)
         call(NO_METHOD, arguments.dup.unshift(es_method_name))
       end
     end
 
     def lookup(method_name)
-      method_name = method_name[0..1] == "@@" ? method_name : "@@#{method_name}"
+      method_name = method_name[0..1] == '@@' ? method_name : "@@#{method_name}"
       method = @methods[method_name]
       if method.nil? && has_super_class?
         return super_class.lookup(method_name)
@@ -61,7 +61,7 @@ module EleetScript
     end
 
     def super_class
-      @super_class || @context["Object"]
+      @super_class || @context['Object']
     end
 
     def def(method_name, es_block = nil, &block)
@@ -87,23 +87,27 @@ module EleetScript
     end
 
     def new_with_value(value, current_context)
-      cls = EleetScriptClassInstance.new(@context, self, current_context.namespace_context)
-      cls.ruby_value = value
-      cls
+      EleetScriptClassInstance.new(@context, self, current_context.namespace_context).tap do |instance|
+        instance.ruby_value = value
+      end
+    end
+
+    def es_responds_to?(method_name)
+      !lookup(method_name.to_s).nil?
     end
 
     def to_s
-      "<EleetScriptClass \"#{name || "Unnamed"}\">"
+      "<EleetScriptClass \"#{name || 'Unnamed'}\">"
     end
 
     def inspect
-      to_s[0..-2] + " @methods(#{@methods.keys.join(", ")})>"
+      to_s[0..-2] + " @methods(#{@methods.keys.join(', ')})>"
     end
 
     private
 
     def has_super_class?
-      @super_class || (@super_class.nil? && name != "Object")
+      @super_class || (@super_class.nil? && name != 'Object')
     end
   end
 end

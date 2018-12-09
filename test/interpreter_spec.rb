@@ -702,5 +702,33 @@ describe "EleetScript::Interpreter" do
         interpreter.eval(code)
       end
     end
+
+    it "handles responds_to? on classes" do
+      code = <<-CODE
+      class RSTester
+        @@class_method do end
+        instance_method do end
+      end
+      println(RSTester.responds_to?(:class_method))
+      println(RSTester.responds_to?(:instance_method))
+      CODE
+      expect($stdout).to receive(:puts).with("true")
+      expect($stdout).to receive(:puts).with("false")
+      interpreter.eval(code)
+    end
+
+    it "handles responds_to? on instances" do
+      code = <<-CODE
+      class RSTester
+        @@class_method do end
+        instance_method do end
+      end
+      println(RSTester.new.responds_to?(:instance_method))
+      println(RSTester.new.responds_to?(:class_method))
+      CODE
+      expect($stdout).to receive(:puts).with("true")
+      expect($stdout).to receive(:puts).with("false")
+      interpreter.eval(code)
+    end
   end
 end

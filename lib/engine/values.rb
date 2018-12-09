@@ -1,4 +1,6 @@
 require "bigdecimal"
+require 'set'
+
 require "engine/eleet_to_ruby_wrapper"
 require "engine/ruby_to_eleet_wrapper"
 require "engine/esproc"
@@ -45,26 +47,37 @@ module EleetScript
       end
 
       def to_ruby_value(eleet_obj, engine)
-        ruby_values = ["TrueClass", "FalseClass", "NilClass", "String", "Integer", "Float", "Regex", "Symbol"]
-        if eleet_obj.kind_of?(RubyToEleetWrapper)
+        if eleet_obj.is_a?(RubyToEleetWrapper)
           eleet_obj.instance_variable_get("@ruby_obj")
-        elsif eleet_obj.class_name == "Lambda"
-          if eleet_obj.ruby_value.is_a?(ESProc)
-            eleet_obj.ruby_value.proc
-          else
-            proc = RubyLambda.new do |*args|
-              eleet_args = args.map do |arg|
-                to_eleet_value(arg, engine)
+        elsif eleet_obj.respond_to?(:class_name)
+          case eleet_obj.class_name
+          when 'Lambda'
+            if eleet_obj.ruby_value.is_a?(ESProc)
+              eleet_obj.ruby_value.proc
+            else
+              proc = RubyLambda.new do |*args|
+                eleet_args = args.map do |arg|
+                  to_eleet_value(arg, engine)
+                end
+                to_ruby_value(eleet_obj.call(:call, eleet_args), engine)
               end
-              to_ruby_value(eleet_obj.call(:call, eleet_args), engine)
+              proc.es_lambda = eleet_obj
+              proc
             end
-            proc.es_lambda = eleet_obj
-            proc
+          when 'TrueClass'
+            true
+          when 'FalseClass'
+            false
+          when 'NilClass'
+            nil
+          when 'String', 'Integer', 'Float', 'Regex', 'Symbol'
+            eleet_obj.ruby_value
+          else
+            EleetToRubyWrapper.new(eleet_obj, engine)
           end
-        elsif ruby_values.include?(eleet_obj.class_name)
-          eleet_obj.ruby_value
         else
-          EleetToRubyWrapper.new(eleet_obj, engine)
+          # Probably already is a ruby value
+          eleet_obj
         end
       end
     end

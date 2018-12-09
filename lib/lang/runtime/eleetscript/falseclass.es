@@ -3,10 +3,6 @@ class FalseClass
     false
   end
 
-  to_string do
-    "false"
-  end
-
   not do
     true
   end

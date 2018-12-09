@@ -1,16 +1,19 @@
+# frozen_string_literal: true
+
+require 'set'
+
 module EleetScript
   class ListBase
     attr_accessor :array_value, :hash_value
 
-    def initialize(nil_val)
-      @nil_val = nil_val
+    def initialize
       @array_value = []
-      @hash_value = Hash.new(nil_val)
+      @hash_value = {}
     end
 
     def merge!(o)
-      @array_value.concat(o.array_value)
-      @hash_value.merge!(o.hash_value)
+      array_value.concat(o.array_value)
+      hash_value.merge!(o.hash_value)
     end
 
     def clone
@@ -18,15 +21,26 @@ module EleetScript
     end
 
     def dup
-      lst = ListBase.new(@nil_val)
-      lst.array_value = @array_value.dup
-      lst.hash_value = @hash_value.dup
-      lst
+      ListBase.new.tap do |lst|
+        lst.array_value = array_value.dup
+        lst.hash_value = hash_value.dup
+      end
+    end
+
+    def to_h
+      {}.tap do |hash|
+        array_value.map.with_index do |value, index|
+          hash[index] = value
+        end
+        hash_value.map do |key, value|
+          hash[key] = value
+        end
+      end
     end
 
     def clear
-      @array_value.clear
-      @hash_value.clear
+      array_value.clear
+      hash_value.clear
     end
   end
 
@@ -39,15 +53,15 @@ module EleetScript
       end
     end
 
-    def initialize(pattern, flags = nil)
+    def initialize(pattern, desired_flags = nil)
       flag_num = 0
-      if flags.is_a?(String)
-        flags = flags ? flags.chars : []
-        @global = true if flags.include?("g")
-        flag_num |= Regexp::IGNORECASE if flags.include?("i")
-        flag_num |= Regexp::MULTILINE if flags.include?("m")
+      if desired_flags.is_a?(String)
+        flag_set = desired_flags ? Set.new(desired_flags.chars) : []
+        @global = true if flag_set.include?('g')
+        flag_num |= Regexp::IGNORECASE if flag_set.include?('i')
+        flag_num |= Regexp::MULTILINE if flag_set.include?('m')
       else
-        flag_num = flags
+        flag_num = desired_flags
       end
       super(pattern, flag_num)
     end
@@ -65,11 +79,11 @@ module EleetScript
     end
 
     def flags
-      flags = ""
-      flags += "m" if options & Regexp::MULTILINE == Regexp::MULTILINE
-      flags += "i" if options & Regexp::IGNORECASE == Regexp::IGNORECASE
-      flags += "g" if global?
-      flags
+      @flags ||= [].tap do |flags|
+        flags << 'm' if multiline?
+        flags << 'i' if ignorecase?
+        flags << 'g' if global?
+      end.join('')
     end
   end
 end

@@ -1,29 +1,31 @@
-require "lang/runtime/class"
-require "lang/runtime/context"
-require "lang/runtime/method"
-require "lang/runtime/array"
-require "lang/runtime/base_classes"
+# frozen_string_literal: true
+
+require 'lang/runtime/class'
+require 'lang/runtime/context'
+require 'lang/runtime/method'
+require 'lang/runtime/array'
+require 'lang/runtime/base_classes'
 
 module EleetScript
   class Memory
     attr_reader :root, :root_context, :root_namespace
 
     ROOT_OBJECTS = {
-      "Object" => nil,
-      "Number" => nil,
-      "Integer" => "Number",
-      "Float" => "Number",
-      "Enumerable" => nil,
-      "List" => "Enumerable",
-      "String" => "Enumerable",
-      "Symbol" => nil,
-      "Regex" => nil,
-      "IO" => nil,
-      "Lambda" => nil,
-      "TrueClass" => nil,
-      "FalseClass" => nil,
-      "NilClass" => nil,
-      "Random" => nil
+      'Object' => nil,
+      'Number' => nil,
+      'Integer' => 'Number',
+      'Float' => 'Number',
+      'Enumerable' => nil,
+      'List' => 'Enumerable',
+      'String' => 'Enumerable',
+      'Symbol' => nil,
+      'Regex' => nil,
+      'IO' => nil,
+      'Lambda' => nil,
+      'TrueClass' => nil,
+      'FalseClass' => nil,
+      'NilClass' => nil,
+      'Random' => nil
     }
 
     class << self
@@ -38,7 +40,7 @@ module EleetScript
 
     def initialize
       @root_namespace = NamespaceContext.new(nil, nil)
-      @root_path = File.join(File.dirname(__FILE__), "eleetscript")
+      @root_path = File.join(File.dirname(__FILE__), 'eleetscript')
     end
 
     def bootstrap(loader)
@@ -53,22 +55,22 @@ module EleetScript
         end
       end
 
-      @root = root_namespace["Object"].new(root_namespace)
+      @root = root_namespace['Object'].new(root_namespace)
       root_namespace.current_self = @root
       root_namespace.current_class = @root.runtime_class
 
-      root_namespace["true"] = root_namespace["TrueClass"].new_with_value(true, root_namespace)
-      root_namespace["false"] = root_namespace["FalseClass"].new_with_value(false, root_namespace)
-      root_namespace["nil"] = root_namespace["NilClass"].new_with_value(nil, root_namespace)
+      root_namespace['true'] = root_namespace['TrueClass'].new_with_value(true, root_namespace)
+      root_namespace['false'] = root_namespace['FalseClass'].new_with_value(false, root_namespace)
+      root_namespace['nil'] = root_namespace['NilClass'].new_with_value(nil, root_namespace)
 
       # Global Errors Object
-      root_namespace["Errors"] = root_namespace["List"].new_with_value(ListBase.new(root_namespace.es_nil), root_namespace)
+      root_namespace['Errors'] = root_namespace['List'].new_with_value(ListBase.new, root_namespace)
 
       self.class.core_definers.each do |definer_block|
         instance_eval(&definer_block)
       end
 
-      files = Dir.glob(File.join(@root_path, "**", "*.es"))
+      files = Dir.glob(File.join(@root_path, '**', '*.es'))
       files.each do |file|
         loader.load(file)
       end
@@ -76,6 +78,6 @@ module EleetScript
   end
 end
 
-Dir.glob(File.join(File.dirname(__FILE__), "ruby", "**", "*")).each do |file|
+Dir.glob(File.join(File.dirname(__FILE__), 'ruby', '**', '*')).each do |file|
   require file
 end

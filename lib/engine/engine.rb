@@ -55,11 +55,9 @@ module EleetScript
       var, ns = unnest(name)
       if var[0] =~ /[A-Z]/ && ns.constants.has_key?(var)
         memory.root_namespace["Errors"].call("<", [memory.root_namespace["String"].new_with_value("Cannot reassign constant via the Engine.", memory.root_namespace)])
-        return false
       else
         ns[var] = to_eleet_value(value, options)
       end
-      true
     end
 
     def get(var, raw = false)

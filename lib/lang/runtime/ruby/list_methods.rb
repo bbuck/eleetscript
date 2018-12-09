@@ -3,7 +3,7 @@ module EleetScript
     list = root_namespace["List"]
 
     list.class_def :new do |receiver, arguments, context|
-      new_list = receiver.new_with_value(ListBase.new(root_namespace.es_nil), context.namespace_context)
+      new_list = receiver.new_with_value(ListBase.new, context.namespace_context)
       arguments.each do |arg|
         if arg.instance? && arg.runtime_class.name == "Pair"
           new_list.ruby_value.hash_value[arg.call(:key)] = arg.call(:value)
@@ -17,15 +17,20 @@ module EleetScript
     list.def :[] do |receiver, arguments|
       lst = receiver.ruby_value
       arg = arguments.first
-      if arg.instance? && arg.runtime_class.name == "Integer"
-        index = arg.ruby_value
-        if index < lst.array_value.length
-          lst.array_value[index]
-        else
-          lst.hash_value[arg.ruby_value]
-        end
+      ret_val = if arg.instance? && arg.runtime_class.name == "Integer"
+                  index = arg.ruby_value
+                  if index < lst.array_value.length
+                    lst.array_value[index]
+                  else
+                    lst.hash_value[arg.ruby_value]
+                  end
+                else
+                  lst.hash_value[arg]
+                end
+      if ret_val.nil?
+        root_namespace.es_nil
       else
-        lst.hash_value[arg]
+        ret_val
       end
     end
 
