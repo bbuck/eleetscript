@@ -47,7 +47,7 @@ module EleetScript
       end
 
       def to_ruby_value(eleet_obj, engine)
-        if eleet_obj.is_a?(RubyToEleetWrapper)
+        if eleet_obj.kind_of?(RubyToEleetWrapper)
           eleet_obj.instance_variable_get("@ruby_obj")
         elsif eleet_obj.respond_to?(:class_name)
           case eleet_obj.class_name
