@@ -18,6 +18,7 @@ module EleetScript
       :less,
       :minus,
       :percent,
+      :pipe,
       :plus,
       :right_brace,
       :right_bracket,
@@ -26,6 +27,7 @@ module EleetScript
       :terminator,
 
       # two/three-character tokens
+      :arrow,
       :forward_slash_equal,
       :greater_equal,
       :less_equal,

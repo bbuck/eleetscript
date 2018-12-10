@@ -108,8 +108,8 @@ module EleetScript
       loop do
         begin
           break if at_end?
-
           @start = @current
+
           char = advance
 
           case char
@@ -129,10 +129,16 @@ module EleetScript
             emit_token(:right_brace)
           when '='
             emit_token(:equal)
+          when '|'
+            emit_token(:pipe)
           when '+'
             munch_equal_op(:plus, :plus_equal)
           when '-'
-            munch_equal_op(:minus, :minus_equal)
+            if match('>')
+              emit_token(:arrow)
+            else
+              munch_equal_op(:minus, :minus_equal)
+            end
           when '/'
             munch_equal_op(:forward_slash, :forward_slash_equal)
           when '%'
@@ -170,6 +176,7 @@ module EleetScript
         rescue LexicalError => err
           errors << err
           @logger.error("[LEXER] #{err.message}")
+          ignore
         end
       end
     end
