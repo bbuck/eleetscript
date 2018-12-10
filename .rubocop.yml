@@ -1,0 +1,20 @@
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: comma
+
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: consistent_comma
+
+Metrics/LineLength:
+  Max: 120
+
+Layout/Tab:
+  IndentationWidth: 2
+
+Layout/IndentArray:
+  EnforcedStyle: consistent
+
+Lint/BooleanSymbol:
+  Enabled: false
+
+Metrics/MethodLength:
+  Max: 15
