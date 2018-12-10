@@ -168,15 +168,38 @@ describe EleetScript::Lexer do
             token(:string, 'this is a string', '"this is a string"', 1),
             token(:string, 'this string %%contains ', '"this string %%contains %', 1),
             token(:plus, nil, '+', 1),
+            token(:left_paren, nil, '(', 1),
             token(:identifier, 'interpolation', 'interpolation', 1),
+            token(:right_paren, nil, ')', 1),
             token(:plus, nil, '+', 1),
             token(:string, ' ', ' %', 1),
             token(:plus, nil, '+', 1),
+            token(:left_paren, nil, '(', 1),
             token(:identifier, 'vars', 'vars', 1),
+            token(:right_paren, nil, ')', 1),
             token(:plus, nil, '+', 1),
             token(:string, '', '"', 1),
             token(:eof, nil, '', 1)
           )
+        end
+
+        context 'interpolating expressions' do
+          let(:code) { '"1 + 2 = %{1 + 2}"' }
+
+          it do
+            is_expected.to contain_exactly(
+              token(:string, '1 + 2 = ', '"1 + 2 = %', 1),
+              token(:plus, nil, '+', 1),
+              token(:left_paren, nil, '(', 1),
+              token(:integer, 1, '1', 1),
+              token(:plus, nil, '+', 1),
+              token(:integer, 2, '2', 1),
+              token(:right_paren, nil, ')', 1),
+              token(:plus, nil, '+', 1),
+              token(:string, '', '"', 1),
+              token(:eof, nil, '', 1)
+            )
+          end
         end
 
         context 'unterminate strings' do

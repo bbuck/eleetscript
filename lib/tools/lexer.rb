@@ -445,7 +445,7 @@ module EleetScript
       var_interpolation = !match('{')
       ignore
 
-      consume(var_interpolation ? /[^\s"]/ : /[^\s\}]/)
+      consume(var_interpolation ? /[^\s"]/ : /[^\n\}]/)
       error('Unexpected end of interpolation') if at_end?
 
       interpolated = interpolation_lexeme
@@ -454,7 +454,9 @@ module EleetScript
       interpolated_tokens.pop
 
       add_token(:plus, nil, '+')
+      add_token(:left_paren, nil, '(')
       @tokens += interpolated_tokens
+      add_token(:right_paren, nil, ')')
       add_token(:plus, nil, '+')
     end
   end
