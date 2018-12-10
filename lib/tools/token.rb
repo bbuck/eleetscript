@@ -27,7 +27,8 @@ module EleetScript
       :terminator,
 
       # two/three-character tokens
-      :arrow,
+      :dash_arrow,
+      :equal_arrow,
       :forward_slash_equal,
       :greater_equal,
       :less_equal,

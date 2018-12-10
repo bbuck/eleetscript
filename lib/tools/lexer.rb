@@ -128,14 +128,18 @@ module EleetScript
           when ']'
             emit_token(:right_brace)
           when '='
-            emit_token(:equal)
+            if match('>')
+              emit_token(:equal_arrow)
+            else
+              emit_token(:equal)
+            end
           when '|'
             emit_token(:pipe)
           when '+'
             munch_equal_op(:plus, :plus_equal)
           when '-'
             if match('>')
-              emit_token(:arrow)
+              emit_token(:dash_arrow)
             else
               munch_equal_op(:minus, :minus_equal)
             end

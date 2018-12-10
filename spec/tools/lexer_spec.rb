@@ -56,7 +56,7 @@ describe EleetScript::Lexer do
       before { lexer.tokenize }
 
       context 'operators' do
-        let(:code) { '+ += - -= * *= ** **= / /= % %= < <= > >= = -> |' }
+        let(:code) { '+ += - -= * *= ** **= / /= % %= < <= > >= = -> => |' }
 
         it do
           is_expected.to contain_exactly(
@@ -77,7 +77,8 @@ describe EleetScript::Lexer do
             token(:greater, nil, '>', 1),
             token(:greater_equal, nil, '>=', 1),
             token(:equal, nil, '=', 1),
-            token(:arrow, nil, '->', 1),
+            token(:dash_arrow, nil, '->', 1),
+            token(:equal_arrow, nil, '=>', 1),
             token(:pipe, nil, '|', 1),
             token(:eof, nil, '', 1)
           )
