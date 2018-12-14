@@ -5,26 +5,71 @@ require 'logger'
 require 'spec_helper'
 
 describe EleetScript::Lexer do
-  RESERVED_WORDS = ['lambda?', 'lambda', 'self', 'arguments'].freeze
+  RESERVED_WORDS = %w[lambda? lambda arguments defined?].freeze
 
-  KEYWORDS = ['do', 'end', 'class', 'load', 'if', 'while', 'namespace', 'else', 'elsif', 'return',
-              'break', 'next', 'true', 'yes', 'on', 'false', 'no', 'off', 'nil', 'self', 'property',
-              'super'].freeze
+  KEYWORDS = %w[do end class load if while namespace else elsif return break next true yes on
+                false no off nil self property super is isnt].freeze
+
+  WORD_OPERATORS = %w[and or not].freeze
+
+  SPECIAL_TOKEN_CASES = {
+    'yes' => :true,
+    'on'  => :true,
+    'no'  => :false,
+    'off' => :false,
+  }.freeze
+
+  SYMBOLS = {
+    plus: '+',
+    plus_equal: '+=',
+    minus: '-',
+    minus_equal: '-=',
+    star: '*',
+    star_equal: '*=',
+    star_star: '**',
+    star_star_equal: '**=',
+    forward_slash: '/',
+    forward_slash_equal: '/=',
+    percent: '%',
+    percent_equal: '%=',
+    less: '<',
+    less_equal: '<=',
+    greater: '>',
+    greater_equal: '>=',
+    equal: '=',
+    equal_tilde: '=~',
+    dash_arrow: '->',
+    equal_arrow: '=>',
+    pipe: '|',
+  }
+
+  let(:lexical_error_klass) { EleetScript::LexicalError }
 
   describe 'definition' do
     subject { described_class.new('') }
 
     it { is_expected.to respond_to(:reserved?) }
+    it { expect(described_class::RESERVED_WORDS).to contain_exactly(*RESERVED_WORDS) }
 
     RESERVED_WORDS.each do |word|
       it { expect(subject.reserved?(word)).to eq(true) }
     end
 
     it { is_expected.to respond_to(:keyword?) }
+    it { expect(described_class::KEYWORDS).to contain_exactly(*KEYWORDS) }
 
     KEYWORDS.each do |word|
       it "expect #{word} to be a keyword" do
         expect(subject.keyword?(word)).to eq(true)
+      end
+    end
+
+    it { is_expected.to respond_to(:word_operator?) }
+    it { expect(described_class::WORD_OPERATORS).to contain_exactly(*WORD_OPERATORS) }
+
+    WORD_OPERATORS.each do |word|
+      it "expect #{word} to be an operator word" do
+        expect(subject.word_operator?(word)).to eq(true)
       end
     end
 
@@ -55,33 +100,15 @@ describe EleetScript::Lexer do
 
       before { lexer.tokenize }
 
-      context 'operators' do
-        let(:code) { '+ += - -= * *= ** **= / /= % %= < <= > >= = -> => |' }
+      context 'symbols' do
+        let(:code) { SYMBOLS.values.join(' ') }
+        let(:tokens) do
+          symbols = SYMBOLS.map { |key, value| token(key, nil, value, 1) }
+          symbols << token(:eof, nil, '', 1)
+        end
 
         it do
-          is_expected.to contain_exactly(
-            token(:plus, nil, '+', 1),
-            token(:plus_equal, nil, '+=', 1),
-            token(:minus, nil, '-', 1),
-            token(:minus_equal, nil, '-=', 1),
-            token(:star, nil, '*', 1),
-            token(:star_equal, nil, '*=', 1),
-            token(:star_star, nil, '**', 1),
-            token(:star_star_equal, nil, '**=', 1),
-            token(:forward_slash, nil, '/', 1),
-            token(:forward_slash_equal, nil, '/=', 1),
-            token(:percent, nil, '%', 1),
-            token(:percent_equal, nil, '%=', 1),
-            token(:less, nil, '<', 1),
-            token(:less_equal, nil, '<=', 1),
-            token(:greater, nil, '>', 1),
-            token(:greater_equal, nil, '>=', 1),
-            token(:equal, nil, '=', 1),
-            token(:dash_arrow, nil, '->', 1),
-            token(:equal_arrow, nil, '=>', 1),
-            token(:pipe, nil, '|', 1),
-            token(:eof, nil, '', 1)
-          )
+          is_expected.to contain_exactly(*tokens)
         end
       end
 
@@ -114,34 +141,22 @@ describe EleetScript::Lexer do
       end
 
       context 'keywords' do
-        let(:code) { EleetScript::Lexer::KEYWORDS.to_a.join(' ') }
+        let(:code) { KEYWORDS.to_a.join(' ') }
+        let(:tokens) do
+          tokens = KEYWORDS.map do |keyword|
+            type = if SPECIAL_TOKEN_CASES.has_key?(keyword)
+                     SPECIAL_TOKEN_CASES[keyword]
+                   else
+                     keyword.to_sym
+                   end
+            token(type, nil, keyword, 1)
+          end
+          tokens << token(:eof, nil, '', 1)
+          tokens
+        end
 
         it do
-          is_expected.to contain_exactly(
-            token(:do, nil, 'do', 1),
-            token(:end, nil, 'end', 1),
-            token(:class, nil, 'class', 1),
-            token(:load, nil, 'load', 1),
-            token(:if, nil, 'if', 1),
-            token(:while, nil, 'while', 1),
-            token(:namespace, nil, 'namespace', 1),
-            token(:else, nil, 'else', 1),
-            token(:elsif, nil, 'elsif', 1),
-            token(:return, nil, 'return', 1),
-            token(:break, nil, 'break', 1),
-            token(:next, nil, 'next', 1),
-            token(:true, nil, 'true', 1),
-            token(:true, nil, 'yes', 1),
-            token(:true, nil, 'on', 1),
-            token(:false, nil, 'false', 1),
-            token(:false, nil, 'no', 1),
-            token(:false, nil, 'off', 1),
-            token(:nil, nil, 'nil', 1),
-            token(:self, nil, 'self', 1),
-            token(:property, nil, 'property', 1),
-            token(:super, nil, 'super', 1),
-            token(:eof, nil, '', 1)
-          )
+          is_expected.to contain_exactly(*tokens)
         end
       end
 
@@ -210,7 +225,7 @@ describe EleetScript::Lexer do
           let(:first_error) { lexer.errors.first }
 
           it { expect(lexer.successful?).to eq(false) }
-          it { expect(first_error).to be_kind_of(EleetScript::LexicalError) }
+          it { expect(first_error).to be_kind_of(lexical_error_klass) }
           it { expect(first_error.message).to match(/unexpected.*end.*string/i) }
         end
 
@@ -219,8 +234,23 @@ describe EleetScript::Lexer do
           let(:first_error) { lexer.errors.first }
 
           it { expect(lexer.successful?).to eq(false) }
-          it { expect(first_error).to be_kind_of(EleetScript::LexicalError) }
+          it { expect(first_error).to be_kind_of(lexical_error_klass) }
           it { expect(first_error.message).to match(/unexpected.*end.*interpolation/i) }
+        end
+      end
+
+      context 'word operators' do
+        let(:code) { 'and and= or or= not' }
+
+        it do
+          is_expected.to contain_exactly(
+            token(:and, nil, 'and', 1),
+            token(:and_equal, nil, 'and=', 1),
+            token(:or, nil, 'or', 1),
+            token(:or_equal, nil, 'or=', 1),
+            token(:not, nil, 'not', 1),
+            token(:eof, nil, '', 1)
+          )
         end
       end
     end

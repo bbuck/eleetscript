@@ -33,12 +33,15 @@ module EleetScript
 
     # Reserved words are normal identifiers that cannot be used or assigned by the user, only usable by
     # the system.
-    RESERVED_WORDS = Set.new(['lambda?', 'lambda', 'self', 'arguments', 'defined?']).freeze
+    RESERVED_WORDS = %w[lambda? lambda arguments defined?].to_set.freeze
 
     # Keywords are special words in the language with specific meanings associated to each keyword.
-    KEYWORDS = Set.new(['do', 'end', 'class', 'load', 'if', 'while', 'namespace', 'else',
-                        'elsif', 'return', 'break', 'next', 'true', 'yes', 'on', 'false',
-                        'no', 'off', 'nil', 'self', 'property', 'super']).freeze
+    KEYWORDS = %w[do end class load if while namespace else elsif return break next true yes on false
+                  no off nil self property super is isnt].to_set.freeze
+
+    # Special words that function as binary/unary operators and may potentially include a trailing = like
+    # other assignment operators.
+    WORD_OPERATORS = %w[and or not].to_set.freeze
 
     attr_reader :source, :tokens, :errors
 
@@ -99,6 +102,13 @@ module EleetScript
       RESERVED_WORDS.include?(word.to_s)
     end
 
+    # Detemine if the given word is in the list of operator words.
+    # @param [#to_s] word the word in question
+    # @return [Boolean] true if the word is an operator, false if it's not
+    def word_operator?(word)
+      WORD_OPERATORS.include?(word.to_s)
+    end
+
     protected
 
     # Analyze the source string, looking at each character and determining how to represent it
@@ -130,6 +140,8 @@ module EleetScript
           when '='
             if match('>')
               emit_token(:equal_arrow)
+            elsif match('~')
+              emit_token(:equal_tilde)
             else
               emit_token(:equal)
             end
@@ -239,9 +251,7 @@ module EleetScript
     # @return [(String | nil)] the character consumed if a match is found or nil
     def match(*matchers)
       matchers.each do |match|
-        if (match.is_a?(Regexp) && peek =~ match) || peek == match
-          return advance
-        end
+        return advance if (match.is_a?(Regexp) && peek =~ match) || peek == match
       end
 
       nil
@@ -260,15 +270,8 @@ module EleetScript
     #   that may or may not be present.
     def string_lexeme
       lexeme = current_lexeme
-
-      if lexeme[0] == '"'
-        lexeme = lexeme[1..-1]
-      end
-
-      if lexeme.end_with?('"') && !lexeme.end_with?('\\"')
-        lexeme = lexeme[0..-2]
-      end
-
+      lexeme = lexeme[1..-1] if lexeme.start_with?('"')
+      lexeme = lexeme[0..-2] if lexeme.end_with?('"') && !lexeme.end_with?('\\"')
       lexeme
     end
 
@@ -414,6 +417,7 @@ module EleetScript
     end
 
     # Munch an alpha-numeric identifier that can contain underscores.
+    # rubocop:disable Metrics/MethodLength
     def munch_identifier
       consume(/[a-z]/i, /\d/, '_')
       lexeme = current_lexeme
@@ -426,10 +430,13 @@ module EleetScript
         else
           emit_token(lexeme.to_sym)
         end
+      elsif word_operator?(lexeme)
+        munch_word_operator
       else
         emit_token(:identifier, lexeme)
       end
     end
+    # rubocop:enable Metrics/MethodLength
 
     # Munch a string value, including injected code
     def munch_string
@@ -448,6 +455,7 @@ module EleetScript
       end
     end
 
+    # rubocop:disable Metrics/AbcSize
     def munch_interpolation
       # %% is an 'escape' and print %
       return if match('%')
@@ -469,6 +477,18 @@ module EleetScript
       @tokens += interpolated_tokens
       add_token(:right_paren, nil, ')')
       add_token(:plus, nil, '+')
+    end
+    # rubocop:enable Metrics/AbcSize
+
+    def munch_word_operator
+      case current_lexeme
+      when 'and'
+        munch_equal_op(:and, :and_equal)
+      when 'or'
+        munch_equal_op(:or, :or_equal)
+      else
+        emit_token(:not)
+      end
     end
   end
   # rubocop:enable Metrics/ClassLength

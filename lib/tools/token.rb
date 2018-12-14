@@ -4,7 +4,7 @@ require 'set'
 
 module EleetScript
   class Token
-    TYPES = Set.new([
+    TYPES = [
       :eof,
 
       # single character tokens
@@ -29,6 +29,7 @@ module EleetScript
       # two/three-character tokens
       :dash_arrow,
       :equal_arrow,
+      :equal_tilde,
       :forward_slash_equal,
       :greater_equal,
       :less_equal,
@@ -40,6 +41,8 @@ module EleetScript
       :star_star_equal,
 
       # multi-value tokens
+      :and,
+      :and_equal,
       :break,
       :class,
       :do,
@@ -51,10 +54,15 @@ module EleetScript
       :identifier,
       :if,
       :integer,
+      :is,
+      :isnt,
       :load,
       :namespace,
       :next,
       :nil,
+      :not,
+      :or,
+      :or_equal,
       :property,
       :return,
       :self,
@@ -62,7 +70,7 @@ module EleetScript
       :super,
       :true,
       :while,
-    ])
+    ].to_set
 
     attr_reader :type, :literal, :lexeme, :line
 
