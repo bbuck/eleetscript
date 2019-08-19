@@ -8,6 +8,7 @@ module EleetScript
       :eof,
 
       # single character tokens
+      :comma,
       :dot,
       :equal,
       :forward_slash,
@@ -17,14 +18,15 @@ module EleetScript
       :left_paren,
       :less,
       :minus,
+      :newline,
       :percent,
       :pipe,
       :plus,
       :right_brace,
       :right_bracket,
       :right_paren,
+      :semicolon,
       :star,
-      :terminator,
 
       # two/three-character tokens
       :dash_arrow,
@@ -96,7 +98,7 @@ module EleetScript
     end
 
     def inspect
-      "<#{self.class.name} #{type.inspect} #{literal || lexeme} line#=#{line}>"
+      "<#{self.class.name} #{type.inspect} '#{literal || lexeme}' '#{lexeme}' line#=#{line}>"
     end
   end
 end

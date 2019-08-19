@@ -125,6 +125,8 @@ module EleetScript
           case char
           when '.'
             emit_token(:dot)
+          when ','
+            emit_token(:comma)
           when '('
             emit_token(:left_paren)
           when '{'
@@ -171,21 +173,25 @@ module EleetScript
             end
           when /[0-9]/
             munch_number
+          when '@'
+            match('@')
+            munch_identifier
           when /[a-z_]/i
             munch_identifier
           when '"'
             munch_string
           when '#'
             consume(/[^\n]/)
-            advance
-            next_line
+            ignore
           # rubocop:disable Lint/EmptyWhen
           when ' ', '\t'
             # empty, we don't tokenize these
             # rubocop:enable Lint/EmptyWhen
-          when ';', "\n"
-            emit_token(:terminator)
-            next_line if current_lexeme == "\n"
+          when ';'
+            emit_token(:semicolon)
+          when "\n"
+            emit_token(:newline)
+            next_line
           else
             error("Unknown character '#{char}' encountered")
           end
@@ -464,7 +470,7 @@ module EleetScript
       var_interpolation = !match('{')
       ignore
 
-      consume(var_interpolation ? /[^\s"]/ : /[^\n\}]/)
+      consume(var_interpolation ? /[a-z\d_]/i : /[^\n\}]/)
       error('Unexpected end of interpolation') if at_end?
 
       interpolated = interpolation_lexeme

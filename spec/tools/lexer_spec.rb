@@ -41,6 +41,14 @@ describe EleetScript::Lexer do
     dash_arrow: '->',
     equal_arrow: '=>',
     pipe: '|',
+    comma: ',',
+    left_paren: '(',
+    left_brace: '[',
+    left_bracket: '{',
+    right_paren: ')',
+    right_brace: ']',
+    right_bracket: '}',
+    semicolon: ';',
   }
 
   let(:lexical_error_klass) { EleetScript::LexicalError }
@@ -104,7 +112,7 @@ describe EleetScript::Lexer do
         let(:code) { SYMBOLS.values.join(' ') }
         let(:tokens) do
           symbols = SYMBOLS.map { |key, value| token(key, nil, value, 1) }
-          symbols << token(:eof, nil, '', 1)
+          symbols << eof(1)
         end
 
         it do
@@ -123,7 +131,7 @@ describe EleetScript::Lexer do
             token(:integer, 9, '0b10_01', 1),
             token(:integer, 511, '0o7_77', 1),
             token(:integer, 64_206, '0xfa_ce', 1),
-            token(:eof, nil, '', 1)
+            eof(1)
           )
         end
       end
@@ -135,7 +143,7 @@ describe EleetScript::Lexer do
           is_expected.to contain_exactly(
             token(:float, 0.18, '0.18', 1),
             token(:float, 634.0808, '6_34.08_08', 1),
-            token(:eof, nil, '', 1)
+            eof(1)
           )
         end
       end
@@ -151,7 +159,7 @@ describe EleetScript::Lexer do
                    end
             token(type, nil, keyword, 1)
           end
-          tokens << token(:eof, nil, '', 1)
+          tokens << eof(1)
           tokens
         end
 
@@ -161,7 +169,7 @@ describe EleetScript::Lexer do
       end
 
       context 'identifier' do
-        let(:code) { 'custom Constant MixedCase withNum1 _ _start snake_case arguments' }
+        let(:code) { 'custom Constant MixedCase withNum1 _ _start snake_case arguments @instance @@class' }
 
         it do
           is_expected.to contain_exactly(
@@ -173,7 +181,9 @@ describe EleetScript::Lexer do
             token(:identifier, '_start', '_start', 1),
             token(:identifier, 'snake_case', 'snake_case', 1),
             token(:identifier, 'arguments', 'arguments', 1),
-            token(:eof, nil, '', 1)
+            token(:identifier, '@instance', '@instance', 1),
+            token(:identifier, '@@class', '@@class', 1),
+            eof(1)
           )
         end
       end
@@ -197,7 +207,7 @@ describe EleetScript::Lexer do
             token(:right_paren, nil, ')', 1),
             token(:plus, nil, '+', 1),
             token(:string, '', '"', 1),
-            token(:eof, nil, '', 1)
+            eof(1)
           )
         end
 
@@ -215,7 +225,7 @@ describe EleetScript::Lexer do
               token(:right_paren, nil, ')', 1),
               token(:plus, nil, '+', 1),
               token(:string, '', '"', 1),
-              token(:eof, nil, '', 1)
+              eof(1)
             )
           end
         end
@@ -249,9 +259,32 @@ describe EleetScript::Lexer do
             token(:or, nil, 'or', 1),
             token(:or_equal, nil, 'or=', 1),
             token(:not, nil, 'not', 1),
-            token(:eof, nil, '', 1)
+            eof(1)
           )
         end
+      end
+
+      context 'comments' do
+        let(:code) { '# this is ignored' }
+
+        it { is_expected.to contain_exactly(eof(1)) }
+      end
+
+      context 'newline' do
+        let(:code) { "\n" }
+
+        it do
+          is_expected.to contain_exactly(
+            newline(1),
+            eof(2)
+          )
+        end
+      end
+
+      context 'greeter sample' do
+        let(:code) { ES_GREETER }
+
+        it { is_expected.to contain_exactly(*ES_GREETER_TOKENS) }
       end
     end
   end
