@@ -7,6 +7,8 @@ class Pair
   end
 
   to_string do
-    "<Pair " + @key.inspect + " => " + @value.inspect + ">"
+    key = @key.inspect
+    value = @value.inspect
+    "%key => %value"
   end
 end

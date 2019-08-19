@@ -178,5 +178,13 @@ module EleetScript
       end
       root_namespace["String"].new_with_value("[#{str}]", context.namespace_context)
     end
+
+    list.def :array? do |receiver, _arguments, _context|
+      receiver.ruby_value.array? ? root_namespace['true'] : root_namespace['false']
+    end
+
+    list.def :map? do |receiver, _arguments, _context|
+      receiver.ruby_value.map? ? root_namespace['true'] : root_namespace['false']
+    end
   end
 end

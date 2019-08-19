@@ -49,4 +49,8 @@ class List
   end
 
   to_list do self end
+
+  empty? do
+    length is 0
+  end
 end

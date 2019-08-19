@@ -42,6 +42,14 @@ module EleetScript
       array_value.clear
       hash_value.clear
     end
+
+    def array?
+      hash_value.empty?
+    end
+
+    def map?
+      array_value.empty? && !hash_value.empty?
+    end
   end
 
   class ESRegex < Regexp
